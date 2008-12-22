@@ -1,0 +1,13 @@
+jQuery UI (personalized -> http://ui.jquery.com/download_builder/)
+v 1.5.3
+
+contents:
+
+== Core ==
+* UI Core
+
+== Widgets ==
+
+* Accordion
+* Slider
+* Tabs

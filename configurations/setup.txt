@@ -1,0 +1,234 @@
+lib.tx_crud.configurations {
+	createAction {
+		setup {
+			extension = crud
+			secret = YourSecretKey
+		}
+		controller {
+			className = tx_crud__marker_controller
+			classPath = typo3conf/ext/crud/controllers/class.tx_crud__marker_controller.php
+		}
+		view{
+			className = tx_crud__views_create
+			classPath = typo3conf/ext/crud/views/class.tx_crud__views_create.php
+			template = create
+			translatorClassName = tx_lib_translator
+			keyOfPathToLanguageFile = EXT:crud/locallang.xml
+			templatePath = EXT:crud/templates/
+			resourcePath = EXT:crud/resources/
+			tinymce.enable = 1
+				tinymce.default {
+				mode = textareas
+				theme = simple
+				cols = 30
+				rows = 5
+				fields = rte_field
+			}
+			tinymce.extra{
+				cols = 45
+				rows = 10
+				fields =
+				mode = textareas
+				theme= advanced
+				theme_advanced_buttons1 = strong, emphasize, underline, separator, strikethrough, justifyleft, justifycenter, justifyright, justifyfull, bullist, numlist, undo, redo, link, unlink
+				theme_advanced_buttons2 =
+				theme_advanced_buttons3 =
+				extended_valid_elements = a[name|href|target|title|onclick], img[class|src|border=0|alt|title|hspace|vspace|width|height|align|onmouseover|onmouseout|name], hr[class|width|size|noshade], font[face|size|color|style], span[class|align|style]
+			}
+			ajaxTargets {
+					default = crud-tabs-form
+			}
+		}
+		resources {
+				actionIcons = typo3conf/ext/crud/resources/images/icons/
+				fileTypes = typo3conf/ext/crud/resources/images/files/
+				tinyMCE = typo3conf/ext/crud/resources/tiny_mce/
+				libraries {
+					jquery = <script type="text/javascript" src="typo3conf/ext/crud/resources/jquery/jquery-1.2.6.pack.js"></script>
+					jquery-forms = <script type="text/javascript" src="typo3conf/ext/crud/resources/jquery/jquery.form-2.17.packed.js"></script>
+					jquery-ui-tabs = <script type="text/javascript" src="typo3conf/ext/crud/resources/jquery/jquery-ui-crud-1.5.3.packed.js"></script>
+					tiny-mce = <script type="text/javascript" src="typo3conf/ext/crud/resources/tiny_mce/tiny_mce.js"></script>
+					crudscript = <script type="text/javascript" src="typo3conf/ext/crud/resources/jquery/includes/crud.js"></script>
+				}
+				css {
+					forms = <link type="text/css" rel="stylesheet" href="typo3conf/ext/crud/resources/styles/themes/default/default_forms.css" />
+					tables = <link type="text/css" rel="stylesheet" href="typo3conf/ext/crud/resources/styles/themes/default/default_tables.css" />
+				}
+
+		}
+		enable {
+			caching = 1
+			rights = 0
+			logging = 0
+		}
+		caching {
+			typoscript=1
+			tca=1
+			setup=1
+			resultCount=1
+		}
+		logging {
+				read{
+					pid = 1
+					actions = retrieve,create,update,delete
+					max = 20
+				}
+				write {
+					pid = 1
+					actions = retrieve,create,update,delete
+				}
+		}
+		storage {
+			className = tx_crud__models_create
+			classPath = typo3conf/ext/crud/models/class.tx_crud__models_create.php
+			nameSpace =
+			nodes =
+			fields =
+			action = create
+			modifications {
+				tt_content {
+					divider {
+						Inhalt {
+							Inhaltsype = CType
+							Title = header,header_position,subheader,header_link,header_layout
+							Text = bodytext,rte_enabled
+							Textoptionen = text_align,text_face,text_size,text_color,text_properties,menu_type
+						}
+						Bilder {
+							Dateien = image,imagewidth,imageorient,imagecaption,imagecols,imageborder
+							Bildoptionen = imagecaption_position,image_link,image_zoom,image_frames,recursive,imageheight,image_noRows,image_effects,image_compression
+							Beschreibung = altText,titleText,longdescURL
+						}
+						Optional {
+							Allgemein = media,layout,cols,records,pages,colPos,spaceBefore,spaceAfter,
+							Zugriff = fe_group,list_type,starttime,endtime,deleted,hidden
+							Tabellen = table_border,table_cellspacing,table_cellpadding,table_bgColor,select_key,
+							Rest = sectionIndex, linkToTop, filelink_size, section_frame, date, splash_layout, multimedia, sys_language_uid, tx_impexp_origuid, pi_flexform, l18n_parent, l18n_diffsource, tx_templavoila_ds, tx_templavoila_to, tx_templavoila_flex, tx_templavoila_pito
+						}
+					}
+					CType {
+						unset = login, table, templavoila_pi1, html, div, script, list, shortcut, mailform, search, login, splash
+						label = Inhaltstyp
+						help = Auswahl des Inhalttypes
+					}
+					header {
+						label = Name des Inhaltes
+						help = Geben Sie den Title des Inhaltes an
+						config {
+							eval = required
+						}
+					}
+					pages {
+						label = Menu von:
+						help = Geben Sie sie seiten der sitemap an
+						rootPid = 0
+						denyPids =
+						denyUids =
+					}
+				}
+				pages  {
+					title {
+						label = Titel der Seite
+						help = %%%page_title_help%%%
+						config {
+							eval = required
+						}
+					}
+				}
+			}
+			virtual {
+				tx_testupload {
+					divider {
+						Upload {
+							emptySection = files
+						}
+					}
+					files {
+						label = Upload
+						help = Datei | Hochladen und gut
+						config {
+							type = group
+							internal_type = file
+							allowed = gif,png,jpeg,jpg
+							max_size = 1000
+							uploadfolder = uploads/
+							show_thumbs = 1
+							size = 5
+							minitems = 1
+							maxitems = 1000
+						}
+					}
+				}
+			}
+		}
+	}
+
+	retrieveAction < lib.tx_crud.configurations.createAction
+	retrieveAction {
+			view {
+			className = tx_crud__views_retrieve
+			classPath = typo3conf/ext/crud/views/class.tx_crud__views_retrieve.php
+			template = retrieve
+			ajaxTargets {
+					default = crud-browser
+			}
+		}
+		storage {
+			className = tx_crud__models_retrieve
+			classPath = typo3conf/ext/crud/models/class.tx_crud__models_retrieve.php
+			action = retrieve
+		}
+	}
+
+	updateAction < lib.tx_crud.configurations.createAction
+	updateAction {
+			view {
+			className = tx_crud__views_update
+			classPath = typo3conf/ext/crud/views/class.tx_crud__views_update.php
+			template = update
+			ajaxTargets {
+					default = crud-tabs-form
+			}
+		}
+		storage {
+			className = tx_crud__models_update
+			classPath = typo3conf/ext/crud/models/class.tx_crud__models_update.php
+			action = update
+		}
+	}
+
+	deleteAction < lib.tx_crud.configurations.createAction
+	deleteAction {
+			view {
+			className = tx_crud__views_delete
+			classPath = typo3conf/ext/crud/views/class.tx_crud__views_delete.php
+			template = delete
+			ajaxTargets {
+					default = crud-tabs-form
+			}
+		}
+		storage {
+			className = tx_crud__models_delete
+			classPath = typo3conf/ext/crud/models/class.tx_crud__models_delete.php
+			action = delete
+		}
+	}
+
+	browseAction < lib.tx_crud.configurations.createAction
+	browseAction {
+			view {
+			className = tx_crud__views_browse
+			classPath = typo3conf/ext/crud/views/class.tx_crud__views_browse.php
+			template = browse
+			limit = 10
+			ajaxTargets {
+					default = crud-browser
+			}
+		}
+		storage {
+			className = tx_crud__models_browse
+			classPath = typo3conf/ext/crud/models/class.tx_crud__models_browse.php
+			action = browse
+		}
+	}
+}

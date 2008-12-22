@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<T3locallang>
+	<meta type="array">
+		<type>database</type>
+		<description>
+			Language labels for database tables/fields belonging to
+			extension 'crud'
+		</description>
+	</meta>
+	<data type="array">
+		<languageKey index="default" type="array">
+			<label index="tx_crud_groups">CRUD Groups</label>
+			<label index="tx_crud_groups.title">Title</label>
+			<label index="tx_crud_groups.subtitle">Subtitle</label>
+			<label index="tx_crud_groups.roles">CRUD Roles</label>
+			<label index="tx_crud_groups.fe_groups">
+				Access FE-Groups
+			</label>
+			<label index="tx_crud_roles">CRUD Roles</label>
+			<label index="tx_crud_roles.title">Name of the Role</label>
+			<label index="tx_crud_roles.subtitle">Shortinfo</label>
+			<label index="tx_crud_roles.allow_create">Create</label>
+			<label index="tx_crud_roles.allow_retrieve">Retrieve</label>
+			<label index="tx_crud_roles.allow_update">Update</label>
+			<label index="tx_crud_roles.allow_delete">Delete</label>
+			<label index="tx_crud_roles.allow_controller">
+				Controller
+			</label>
+			<label index="tx_crud_roles.allow_plugin">Plugin</label>
+			<label index="tx_crud_options">CRUD Options</label>
+			<label index="tx_crud_options.title">Title</label>
+			<label index="tx_crud_options.action.I.0">CREATE</label>
+			<label index="tx_crud_options.action.I.1">RETRIEVE</label>
+			<label index="tx_crud_options.action.I.2">UPDATE</label>
+			<label index="tx_crud_options.action.I.3">DELETE</label>
+			<label index="tx_crud_options.action.I.4">CONTROLLER</label>
+			<label index="tx_crud_options.action.I.5">PLUGIN</label>
+			<label index="tx_crud_options.action">Option</label>
+			<label index="tx_crud_options.target">
+				Table/Controller
+			</label>
+			<label index="tx_crud_options.value">Field/Action</label>
+			<label index="tx_crud_users">CRUD Users</label>
+			<label index="tx_crud_users.crud_group">CRUD Group</label>
+			<label index="tx_crud_users.crud_role">CRUD Role</label>
+			<label index="tx_crud_users.feuser">FEUSER</label>
+			<label index="tx_crud_log">CRUD Log</label>
+			<label index="tx_crud_log.crud_action">Action</label>
+			<label index="tx_crud_log.title">Title</label>
+			<label index="tx_crud_log.crud_table">Table</label>
+			<label index="tx_crud_log.crud_record">Record</label>
+			<label index="tx_crud_log.crud_page">Page</label>
+			<label index="tx_crud_log.crud_user">FE User ID</label>
+			<label index="tx_crud_log.crud_session">Session ID</label>
+			<label index="tx_crud_log.crud_session">Session ID</label>
+			<label index="tx_crud_log.crud_username">FE Username</label>
+			<label index="tx_crud_locks.crud_table">Table</label>
+			<label index="tx_crud_locks.crud_record">Record</label>
+			<label index="tx_crud_locks.crud_timeout">Timeout</label>
+			<label index="tx_crud_locks.crud_user">FE USer</label>
+			<label index="tt_content.tx_crud_ts">CRUD Typoscript</label>
+		</languageKey>
+	</data>
+</T3locallang>

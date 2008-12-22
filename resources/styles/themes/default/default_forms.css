@@ -1,0 +1,256 @@
+/**
+* @section crud-tabs
+*
+* tabs-css for crud, based on jQuery ui.tabs
+* @see     
+*/ /* Caution! Ensure accessibility in print and other media types... */
+@media projection , screen {
+	/* Use class for showing/hiding tab content, so that visibility can be better controlled in different media types... */
+	.ui-tabs-hide {
+		position: absolute;
+		left: -99999999px
+	}
+}
+
+/* Hide useless elements in print layouts... */
+@media print {
+	.ui-tabs-nav {
+		display: none;
+	}
+}
+
+.ui-tabs-nav { /*resets*/
+	margin: 0;
+	padding: 0;
+	border: 0;
+	outline: 0;
+	line-height: 1.3;
+	text-decoration: none;
+	font-size: 100%;
+	list-style: none;
+	/* 	font-size: 1.1em; */
+	float: left;
+	position: relative;
+	z-index: 1;
+	border-right: 1px solid #d3d3d3;
+	bottom: -1px;
+}
+
+.ui-tabs-nav li { /*resets*/
+	margin: 0;
+	padding: 0;
+	border: 0;
+	outline: 0;
+	line-height: 1.3;
+	text-decoration: none;
+	font-size: 100%;
+	list-style: none;
+	float: left;
+	border: 1px solid #d3d3d3;
+	border-right: none;
+}
+
+.ui-tabs-nav li a { /*resets*/
+	margin: 0;
+	padding: 0;
+	border: 0;
+	outline: 0;
+	line-height: 1.3;
+	text-decoration: none;
+	font-size: 100%;
+	list-style: none;
+	float: left;
+	font-size: 1em;
+	font-weight: normal;
+	text-decoration: none;
+	padding: .5em 1.7em;
+	color: #555555;
+	background: #e6e6e6 url(images/e6e6e6_40x100_textures_02_glass_75.png) 0
+		50% repeat-x;
+}
+
+.ui-tabs-nav li a:hover {
+	background: #dadada url(images/dadada_40x100_textures_02_glass_75.png) 0
+		50% repeat-x;
+	color: #212121;
+}
+
+.ui-tabs-nav li.ui-tabs-selected {
+	border-bottom-color: #ffffff;
+}
+
+.ui-tabs-nav li.ui-tabs-selected a,.ui-tabs-nav li.ui-tabs-selected a:hover
+	{
+	background: #ffffff url(images/ffffff_40x100_textures_02_glass_65.png) 0
+		50% repeat-x;
+	color: #222222;
+}
+
+.ui-tabs-panel { /*resets*/
+	margin: 0;
+	padding: 0;
+	border: 0;
+	outline: 0;
+	line-height: 1.3;
+	text-decoration: none;
+	font-size: 100%;
+	list-style: none;
+	font-family: Verdana, Arial, sans-serif;
+	clear: left;
+	border: 1px solid #d3d3d3;
+	background: #ffffff url(images/ffffff_40x100_textures_01_flat_0.png) 0 0
+		repeat-x;
+	color: #222222;
+	padding: 1.5em 1.7em;
+	font-size: 1.1em;
+}
+
+.ui-tabs-nav .ui-tabs-selected a:link,.ui-tabs-nav .ui-tabs-selected a:visited,.ui-tabs-nav .ui-tabs-disabled a:link,.ui-tabs-nav .ui-tabs-disabled a:visited
+	{ /* @ Opera, use pseudo classes otherwise it confuses cursor... */
+	cursor: text;
+}
+
+.ui-tabs-nav a:hover,.ui-tabs-nav a:focus,.ui-tabs-nav a:active,.ui-tabs-nav .ui-tabs-unselect a:hover,.ui-tabs-nav .ui-tabs-unselect a:focus,.ui-tabs-nav .ui-tabs-unselect a:active
+	{ /* @ Opera, we need to be explicit again here now... */
+	cursor: pointer;
+}
+
+.ui-tabs-disabled {
+	opacity: .4;
+	filter: alpha(opacity = 40);
+}
+
+.ui-tabs-nav .ui-tabs-disabled a:link,.ui-tabs-nav .ui-tabs-disabled a:visited
+	{
+	color: #000;
+}
+
+/* Additional IE specific bug fixes... */
+* html .ui-tabs-nav { /* auto clear @ IE 6 & IE 7 Quirks Mode */
+	display: inline-block;
+}
+
+* :first-child+html .ui-tabs-nav {
+	/* auto clear @ IE 7 Standards Mode - do not group selectors, otherwise IE 6 will ignore complete rule (because of the unknown + combinator)... */
+	display: inline-block;
+}
+
+/**
+* @section crud-forms
+*
+* forms-css for crud
+* @see     
+*/
+fieldset.crud-section {
+	border: 1px solid #eee;
+}
+
+fieldset.crud-section input,fieldset.crud-section textarea {
+	border: 1px solid #999;
+	background: #fff url(images/bg-input.png) repeat-x top left;
+}
+
+fieldset.crud-section input {
+	padding: 3px 5px;
+}
+
+fieldset.crud-section input.checkbox {
+	width: auto;
+}
+
+fieldset.crud-section textarea {
+	padding: 5px;
+}
+
+span.mandatory {
+	background: transparent url(images/mandatory.png) no-repeat;
+	display: block;
+	position: absolute;
+	height: 10px;
+	line-height: 100px;
+	overflow: hidden;
+	width: 50px;
+	right: 0;
+}
+
+fieldset.crud-section dt {
+	clear: both;
+	padding: 1em 0 0 0;
+}
+
+fieldset.crud-section dd {
+	margin: 0;
+	position: relative;
+}
+
+fieldset.crud-section dd * {
+	float: left;
+	margin-right: .5em;
+}
+
+fieldset.crud-section dd ul li {
+	float: none;
+}
+
+ul.crud-datetime {
+	margin: 0;
+	padding: 0;
+}
+
+fieldset.crud-section dd ul.crud-datetime li {
+	float: left;
+	list-style: none;
+}
+
+/**
+  * @section crud-tooltips
+  *
+  * jQuery tooltips
+  * @see     Enter an optional reference url
+  */
+div.csh {
+	background: #cc0000 url(images/arrow_left.gif) no-repeat top left;
+	color: #fff;
+	padding: 2px 2px 2px 15px;
+	margin-left: .25em;
+	opacity: 0.85;
+}
+
+
+/**
+  * @section other
+  *
+  */
+.crud-browser,.crud-tabs-form { 
+	position: relative;
+}
+
+img#loadAjaxGif {
+	position: absolute;
+	z-index: 99;
+	top: 50%;
+	margin-top: -9px;
+	left: 50%;
+	margin-left: -110px;
+}
+
+.clearfix:after {
+	content: ".";
+	display: block;
+	clear: both;
+	visibility: hidden;
+	line-height: 0;
+	height: 0;
+}
+
+.clearfix {
+	display: inline-block;
+}
+
+html[xmlns] .clearfix {
+	display: block;
+}
+
+* html .clearfix {
+	height: 1%;
+}

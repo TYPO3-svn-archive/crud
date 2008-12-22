@@ -1,0 +1,80 @@
+$(document).ready(function(){
+	// verweise mit ajax verarbeiten###########################
+	var ajaxLink = "";
+	$("option[onclick]").attr("onclick", "AJAX");
+	
+	// submit-formulare----------------------------------------
+	$("input[type='submit']").click(function() { 
+  		// die action
+  		var form = $(this).parents("form");
+  		ajaxLink += form.attr("action");
+  		
+  		// parameter
+  		var params = [];
+  		$("input[name]", form).each(function() { 
+			params.push(this.name + '=' + escape(this.value));
+		})
+		if(params.length > 0)
+			if(ajaxLink.indexOf("?") == -1)
+				ajaxLink += "?" + params.join("&amp;");
+			else
+				ajaxLink += "&amp;" + params.join("&amp;");
+		ajaxLoad();	
+	})
+	
+	// onclick-formulare---------------------------------------
+	$("option[onclick]").click(function() { 
+		// parameterwert
+		paramval = $(this).attr("value");
+		
+		// parametername
+		var sel = $(this).parent("select");
+		var paramname = sel.attr("name");
+		
+		// die action
+  		var form = sel.parent("form");
+  		ajaxLink += form.attr("action");
+  		
+  		// andere inputs
+  		var params = [];
+  		$("input[name]", form).each(function() { 
+			params.push(this.name + '=' + escape(this.value));
+		})
+		
+		if(ajaxLink.indexOf("?") == -1)
+			ajaxLink += "?" + paramname + "=" + paramval;
+		else
+			ajaxLink += "&amp;" + paramname + "=" + paramval;
+		
+		ajaxLink += params.join("&amp;");
+		ajaxLoad();	
+  		
+  	})
+	
+	// <a href>------------------------------------------------
+	$("a").click(function(){
+		ajaxLink += $(this).attr("href");
+		ajaxLoad();	
+	})
+	
+	// ########################################################
+	function ajaxLoad()
+	{
+		alert(ajaxLink);
+		jQuery.get('test.html',{id: 109},function(data){alert(data);});
+	/*	jQuery.ajax({
+			url: ajaxLink,
+			timeout: 2000,
+			error: function() {
+				console.log("Failed to submit");
+			},
+			success: function(r) { 
+				alert(r);
+			}
+		})*/
+		ajaxLink = "";
+		return false;
+	
+	}
+
+});

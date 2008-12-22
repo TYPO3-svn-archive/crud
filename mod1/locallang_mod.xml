@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<T3locallang>
+	<meta type="array">
+		<type>module</type>
+		<description>
+			Language labels for module &quot;web_txcrudM1&quot; -
+			header, description
+		</description>
+	</meta>
+	<data type="array">
+		<languageKey index="default" type="array">
+			<label index="mlang_tabs_tab">crud Manager</label>
+			<label index="mlang_labels_tabdescr">
+				Edit and Create Access Control Lists
+			</label>
+			<label index="mlang_labels_tablabel">
+				Edit and Create Access Control Lists
+			</label>
+		</languageKey>
+	</data>
+</T3locallang>
