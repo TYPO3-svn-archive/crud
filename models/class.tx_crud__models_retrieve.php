@@ -106,6 +106,10 @@ class tx_crud__models_retrieve extends tx_crud__models_common{
 	
 	}
 	
+	public function _getValue($item_key) {
+		return $this->processData[$this->panelRecord][$item_key];
+	}
+	
 	/**
 	 * set the mode for the retrieve
 	 * 
