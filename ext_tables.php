@@ -19,7 +19,7 @@ $TCA["tx_crud_groups"] = array (
 		'iconfile'          => t3lib_extMgm::extRelPath($_EXTKEY).'icon_tx_crud_groups.gif',
 	),
 	"feIntercrude" => array (
-		"fe_admin_fieldList" => "sys_language_uid, l18n_parent, l18n_diffsource, hidden, title, subtitle, roles, fe_groups",
+		"fe_admin_fieldList" => "sys_language_uid, l18n_parent, l18n_diffsource, hidden, title, subtitle, roles, fe_groups, allow_type",
 	)
 );
 
@@ -42,7 +42,7 @@ $TCA["tx_crud_roles"] = array (
 		'iconfile'          => t3lib_extMgm::extRelPath($_EXTKEY).'icon_tx_crud_roles.gif',
 	),
 	"feIntercrude" => array (
-		"fe_admin_fieldList" => "sys_language_uid, l18n_parent, l18n_diffsource, hidden, title, subtitle, allow_create, allow_retrieve, allow_update, allow_delete, allow_controller, allow_plugin",
+		"fe_admin_fieldList" => "sys_language_uid, l18n_parent, l18n_diffsource, hidden, title, subtitle, allow_create, allow_retrieve, allow_update, allow_delete, allow_controller, allow_type",
 	)
 );
 
@@ -98,9 +98,11 @@ $TCA["tx_crud_log"] = array (
 		'iconfile'          => t3lib_extMgm::extRelPath($_EXTKEY).'icon_tx_crud_log.gif',
 	),
 	"feIntercrude" => array (
-		"fe_admin_fieldList" => "title,crud_action, crud_table, crud_record, crud_page, crud_user, crud_session, crud _username",
+		"fe_admin_fieldList" => "title,crud_action, crud_table, crud_record, crud_page, crud_user, crud_session, crud _username, crud_cardinality",
 	)
 );
+
+
 
 $TCA["tx_crud_locks"] = array (
 	"ctrl" => array (

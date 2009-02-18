@@ -1,0 +1,214 @@
+plugin.browse-tt_content < lib.tx_crud_show
+plugin.browse-tt_content.configurations.browseAction {
+	view {
+		template = browse
+		keyOfPathToLanguageFile = EXT:crud/templates/tt_content/locallang.xml
+		templatePath = EXT:crud/templates/tt_content/
+		ajaxTargets {
+			default = browsecontent
+		}
+	}
+	enable.rights=0
+	storage {
+		nameSpace = tt_content
+		nodes =
+		fields = header,header_position,subheader,bodytext
+		action = browse
+		modifications {
+			tt_content {
+				divider {
+					Inhalt {
+						Typ = CType
+					}
+					Layout {
+					  	Postion=layout,cols,records,pages,colPos,spaceBefore,spaceAfter	
+					}
+					Zugriff {
+						Zeitraum=starttime,endtime,
+						Sichtbarkeit=fe_group,deleted,hidden
+					}
+					Titel {
+						Title = header
+						Subtitle=subheader
+						Layout=header_layout,header_position,header_link
+					}
+					Text {
+						Text = bodytext,rte_enabled
+						Textoptionen = text_align,text_face,text_size,text_color,text_properties,menu_type
+					}
+					Bilder {
+						Dateien = image
+						Eigenschaften=imagewidth,imageorient,imagecaption,imagecols,imageborder
+					}
+					Bildoptionen {
+						Bildoptionen = imagecaption_position,image_link,image_zoom,image_frames,recursive,imageheight,image_noRows,image_effects,image_compression
+						Beschreibung = altText,titleText,longdescURL
+					}
+					Extra {
+						Optionen= sectionIndex, linkToTop, filelink_size, section_frame, date, splash_layout, 
+						Rest=multimedia, media,sys_language_uid, tx_impexp_origuid, pi_flexform, l18n_parent, l18n_diffsource, tx_templavoila_ds, tx_templavoila_to, tx_templavoila_flex, tx_templavoila_pito
+					}
+					Tabelle {
+						Eigenschaften = table_border,table_cellspacing,table_cellpadding,table_bgColor,select_key,
+					}
+				}
+				CType {
+					unset = --div--,login,table,bullets,templavoila_pi1,html,div,script, list,mailform,search,login,splash,menu,div,uploads,multimedia,shortcut,list
+					label = Inhaltstyp
+					help = Auswahl des Inhalttypes
+				}
+				header {
+					label = Name des Inhaltes
+					help = Geben Sie den Title des Inhaltes an
+					config {
+						eval = required
+					}
+				}
+			}
+		}
+	}
+}
+plugin.create-tt_content < lib.tx_crud_create
+plugin.create-tt_content.configurations.createAction {
+	view {
+		template = create
+		keyOfPathToLanguageFile = EXT:crud/templates/tt_content/locallang.xml
+		templatePath = EXT:crud/templates/tt_content/
+		ajaxTargets {
+			default = createcontent
+		}
+	}
+	enable.rights=0
+	storage {
+		className = tx_crud__models_create
+		classPath = typo3conf/ext/crud/models/class.tx_crud__models_create.php
+		nameSpace = tt_content
+		nodes =
+		fields = CType,header,header_position,subheader,header_link,header_layout,bodytext,rte_enabled,text_align,text_face,text_size,text_color,text_properties,menu_type,image,imagewidth,imageorient,imagecaption,imagecols,imageborder,imagecaption_position,image_link,image_zoom,image_frames,recursive,imageheight,image_noRows,image_effects,image_compression,altText,titleText,longdescURL,media,layout,cols,records,pages,colPos,spaceBefore,spaceAfter,fe_group,list_type,starttime,endtime,deleted,hidden,sectionIndex, linkToTop, filelink_size, section_frame, date, splash_layout, multimedia, sys_language_uid, tx_impexp_origuid, pi_flexform, l18n_parent, l18n_diffsource, tx_templavoila_ds, tx_templavoila_to, tx_templavoila_flex, tx_templavoila_pito
+		action = create
+		modifications {
+			tt_content {
+				divider {
+					Inhalt {
+						Typ = CType
+					}
+					Layout {
+					  	Postion=layout,cols,records,pages,colPos,spaceBefore,spaceAfter	
+					}
+					Zugriff {
+						Zeitraum=starttime,endtime,
+						Sichtbarkeit=fe_group,deleted,hidden
+					}
+					Titel {
+						Title = header
+						Subtitle=subheader
+						Layout=header_layout,header_position,header_link
+					}
+					Text {
+						Text = bodytext,rte_enabled
+						Textoptionen = text_align,text_face,text_size,text_color,text_properties,menu_type
+					}
+					Bilder {
+						Dateien = image
+						Eigenschaften=imagewidth,imageorient,imagecaption,imagecols,imageborder
+					}
+					Bildoptionen {
+						Bildoptionen = imagecaption_position,image_link,image_zoom,image_frames,recursive,imageheight,image_noRows,image_effects,image_compression
+						Beschreibung = altText,titleText,longdescURL
+					}
+					Extra {
+						Optionen= sectionIndex, linkToTop, filelink_size, section_frame, date, splash_layout, 
+						Rest=multimedia, media,sys_language_uid, tx_impexp_origuid, pi_flexform, l18n_parent, l18n_diffsource, tx_templavoila_ds, tx_templavoila_to, tx_templavoila_flex, tx_templavoila_pito
+					}
+					Tabelle {
+						Eigenschaften = table_border,table_cellspacing,table_cellpadding,table_bgColor,select_key,
+					}
+				}
+				CType {
+					unset = --div--,login,table,bullets,templavoila_pi1,html,div,script, list,mailform,search,login,splash,menu,div,uploads,multimedia,shortcut,list
+					label = Inhaltstyp
+					help = Auswahl des Inhalttypes
+				}
+				header {
+					label = Name des Inhaltes
+					help = Geben Sie den Title des Inhaltes an
+					config {
+						eval = required
+					}
+				}
+			}
+		}
+	}
+}
+
+
+plugin.update-tt_content < lib.tx_crud_update
+plugin.update-tt_content.configurations.updateAction {
+	view {
+		template = update
+		keyOfPathToLanguageFile = EXT:crud/templates/tt_content/locallang.xml
+		templatePath = EXT:crud/templates/tt_content/
+		ajaxTargets {
+			default = updatecontent
+		}
+	}
+	enable.rights=0
+	storage {
+		nameSpace = tt_content
+		nodes =
+		fields = CType,header,header_position,subheader,header_link,header_layout,bodytext,rte_enabled,text_align,text_face,text_size,text_color,text_properties,menu_type,image,imagewidth,imageorient,imagecaption,imagecols,imageborder,imagecaption_position,image_link,image_zoom,image_frames,recursive,imageheight,image_noRows,image_effects,image_compression,altText,titleText,longdescURL,media,layout,cols,records,pages,colPos,spaceBefore,spaceAfter,fe_group,list_type,starttime,endtime,deleted,hidden,sectionIndex, linkToTop, filelink_size, section_frame, date, splash_layout, multimedia, sys_language_uid, tx_impexp_origuid, pi_flexform, l18n_parent, l18n_diffsource, tx_templavoila_ds, tx_templavoila_to, tx_templavoila_flex, tx_templavoila_pito
+		action = update
+		modifications {
+			tt_content {
+				divider {
+					Inhalt {
+						Typ = CType
+					}
+					Layout {
+					  	Postion=layout,cols,records,pages,colPos,spaceBefore,spaceAfter	
+					}
+					Zugriff {
+						Zeitraum=starttime,endtime,
+						Sichtbarkeit=fe_group,deleted,hidden
+					}
+					Titel {
+						Title = header
+						Subtitle=subheader
+						Layout=header_layout,header_position,header_link
+					}
+					Text {
+						Text = bodytext,rte_enabled
+						Textoptionen = text_align,text_face,text_size,text_color,text_properties,menu_type
+					}
+					Bilder {
+						Dateien = image
+						Eigenschaften=imagewidth,imageorient,imagecaption,imagecols,imageborder
+					}
+					Bildoptionen {
+						Bildoptionen = imagecaption_position,image_link,image_zoom,image_frames,recursive,imageheight,image_noRows,image_effects,image_compression
+						Beschreibung = altText,titleText,longdescURL
+					}
+					Extra {
+						Optionen= sectionIndex, linkToTop, filelink_size, section_frame, date, splash_layout, 
+						Rest=multimedia, media,sys_language_uid, tx_impexp_origuid, pi_flexform, l18n_parent, l18n_diffsource, tx_templavoila_ds, tx_templavoila_to, tx_templavoila_flex, tx_templavoila_pito
+					}
+					Tabelle {
+						Eigenschaften = table_border,table_cellspacing,table_cellpadding,table_bgColor,select_key,
+					}
+				}
+				CType {
+					unset = --div--,login,table,bullets,templavoila_pi1,html,div,script, list,mailform,search,login,splash,menu,div,uploads,multimedia,shortcut,list
+					label = Inhaltstyp
+					help = Auswahl des Inhalttypes
+				}
+				header {
+					label = Name des Inhaltes
+					help = Geben Sie den Title des Inhaltes an
+					config {
+						eval = required
+					}
+				}
+			}
+		}
+	}
+}

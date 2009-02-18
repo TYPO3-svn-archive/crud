@@ -32,29 +32,105 @@
 require_once(t3lib_extMgm::extPath('crud') . 'models/class.tx_crud__models_common.php');
 class tx_crud__models_create extends tx_crud__models_common{
 
-	function processQuery() {
+	// -------------------------------------------------------------------------------------
+	// database create queries
+	// -------------------------------------------------------------------------------------
+	
+	/**
+	 * overwrite of the query call in common
+	 * 
+	 * @return  void
+	 */	
+	public function processQuery() {		
 		$this->createQuery();
 	}
 
-	function checkNode() {
-		$where = 'pid=' . $this->panelRecord;
-		$table = strtolower($this->panelTable);
-		$query = $GLOBALS['TYPO3_DB']->exec_SELECTquery("uid",$table,$where);
+	/**
+	 * makes the create query
+	 * 
+	 * @return  void
+	 */	
+	protected function createQuery() {
+		foreach ($this->html as $key=>$val) {
+			if (is_array($val['process'])) {
+				$this->processData[$key] = implode(",",$val['process']);
+			} elseif ($val['processMM']) {
+				$this->processMM[$key] = $val;
+				$this->processData[$key] = sizeof($val['processMM']);
+			} else {
+				$this->processData[$key] = $val['process'];
+			}
+		}
+		$this->preQuery();
+		if (is_array($this->controller->configurations['storage.']['defaultQuery.'][$this->panelTable."."])) {
+			$insert = $this->controller->configurations['storage.']['defaultQuery.'][$this->panelTable."."];
+		}
+		foreach ($this->processData as $key=>$val) {
+			if (strlen($val) >= 1) {
+				$insert[$key] = $val;
+			}
+		}
+		unset($insert['captcha']);
+		$insert["pid"] = $this->panelRecord;
+		$insert["tstamp"] = time();
+		if(strlen($this->bigTCA['ctrl']['languageField'])>=3) {
+			$insert[$this->bigTCA['ctrl']['languageField']]=$GLOBALS['TSFE']->config['config']['sys_language_uid'];
+		}
+		if ($this->mode == 'PROCESS') {
+			$query = $GLOBALS['TYPO3_DB']->exec_INSERTquery(strtolower($this->panelTable),$insert);
+		}
 		if (!$query) {
-			$this->mode = 'NOT_EXIST';
+			$this->mode="QUERY_ERROR";
+		} else {
+			$config = $this->controller->configurations->getArrayCopy();
+			$this->lastQueryID = $GLOBALS['TYPO3_DB']->sql_insert_id();
+			if ($config['enable.']['logging'] == 1) {
+				tx_crud__log::write($config['storage.']['action'], $this->lastQueryID, $config['storage.']['nameSpace'],$config['logging.']);
+			}
+			if (is_array($this->processMM)) {
+				$uid_local = $this->lastQueryID;
+				foreach ($this->processMM as $key=>$val) {
+					$table = $this->html[$key]['config.']['MM'];
+					if (is_array($val['processMM'])) {
+						$i = 1;
+						foreach ($val['processMM'] as $k=>$v) {
+							$what = explode("__",$v);
+							if (count($what) > 1) {
+								$tableName = $what[0];
+								$v = $what[1];
+							}
+							$insertMM = array();
+							$insertMM['uid_local'] = $uid_local;
+							$insertMM['uid_foreign'] = $v;
+							$insertMM['tablenames'] = $tableName;
+							$insertMM['sorting'] = $i; 
+							if (!$GLOBALS['TYPO3_DB']->exec_INSERTquery($table,$insertMM)) {
+								$this->mode="QUERY_ERROR";
+							}
+							$i++;
+						}
+					}
+				}
+			}
+			$this->postQuery();
+			$this->processData = false;
+			$this->processMM = false;
 		}
 	}
 
-	function getData() {
-		$pars = $this->controller->parameters->getArrayCopy();
-		return $pars;
-	}
-
+	// -------------------------------------------------------------------------------------
+	// create data helpers
+	// -------------------------------------------------------------------------------------
+	
+	/**
+	 * sets the values for a create form to the setup
+	 * 
+	 * @return  void
+	 */	
 	function setupValues() {
-	//	t3lib_div::debug($_POST,"post");
-	//	t3lib_div::debug($_GET,"get");
+		$orgMode=$this->mode;
 		$pars = $this->controller->parameters->getArrayCopy();
-		foreach ($this->html as $item_key=>$entry) {
+		if(is_array($this->html))foreach ($this->html as $item_key=>$entry) {
 			$item_value = $this->_getValue($item_key);	
 			if(($entry['config.']['type'] == "input" || $entry['config.']['type'] == "text" )) {
 				$eval = $this->_processEval($item_key);
@@ -63,7 +139,6 @@ class tx_crud__models_create extends tx_crud__models_common{
 						$entry[$key] = $val;
 					}
 				}
-				
 				$eval_exploded = explode(",",$entry['config.']['eval']);
 				if (in_array('datetime',$eval_exploded) || in_array('date',$eval_exploded)) {
 					if (!$entry['config.']['splitter']) {
@@ -83,17 +158,16 @@ class tx_crud__models_create extends tx_crud__models_common{
 				}
 				if (in_array('datetime',$eval_exploded)) {
 					$item_value = $this->_getValue($item_key);
-					if(strlen($entry['process']) > 1) {
+					if($entry['process'] !=0) {
 						$date_exploded=explode(" ",date($entry['config.']['output'],$entry['process']));
 						$entry['value']['time'] = $date_exploded[0]; 
 						$entry['value']['date'] = $date_exploded[1];
 						$entry['preview'] = date($entry['config.']['output'],$entry['process']);
 					}
-					//t3lib_div::debug($entry,$this->panelAction);
 				} 
-				elseif (in_array('date',$eval_exploded))  {
+				elseif (in_array('date',$eval_exploded) && is_numeric($this->_getValue($item_key)))  {
 					$item_value = $this->_getValue($item_key);
-					if (strlen($entry['process']) >= 1) {;
+					if ($entry['process'] != 0) {;
 						$item_value=date($entry['config.']['output'],$entry['process']);
 						$entry['value'] = $item_value;
 						$entry['preview'] = $item_value;
@@ -104,9 +178,9 @@ class tx_crud__models_create extends tx_crud__models_common{
 					$entry['process'] = $item_value;
 					$entry['preview'] = $item_value;
 				}
-				//t3lib_div::debug($entry);
 				$this->html[$item_key] = $entry;
-			} elseif ($entry['config.']['type'] == "select") {
+			} 
+			elseif ($entry['config.']['type'] == "select") {
 				$eval = $this->_processEval($item_key);
 				if (is_array($eval)) {
 					foreach ($eval as $key=>$val) {
@@ -120,6 +194,7 @@ class tx_crud__models_create extends tx_crud__models_common{
 					$entry["element"] = "selectRow";
 				}
 				$item_value = $this->_getValue($item_key);
+				
 				if (is_array($item_value)) {
 					$values = $item_value;
 					$item_value = array();
@@ -152,7 +227,6 @@ class tx_crud__models_create extends tx_crud__models_common{
 							$entry["value"] = $item_value;
 						}
 					}
-					
 				}
 				if (isset($this->cType[$item_key]))$entry['reload'] = 1;
 				if (is_array($entry['value'])) {
@@ -165,7 +239,8 @@ class tx_crud__models_create extends tx_crud__models_common{
 					$entry['preview'] = $entry['options.'][$entry['value']];
 				}
 				$this->html[$item_key] = $entry;
-			} elseif ($entry['config.']['type'] == "radio") {
+			} 
+			elseif ($entry['config.']['type'] == "radio") {
 				$eval = $this->_processEval($item_key);
 				if (is_array($eval)) {
 					foreach ($eval as $key=>$val) {
@@ -191,10 +266,10 @@ class tx_crud__models_create extends tx_crud__models_common{
 					$item_process = 0;
 					$y = 1;
 					for ($i = 0; $i < sizeof($items); $i++) {
-						$options[$i] = $this->_getLL($items[$i][0]);
+						$options[$i] = $items[$i][0];
 						if (is_array($item_value) && in_array($i,$item_value)) {
 							$item_process += $y;
-							$value[$y] = $this->_getLL($items[$i][0]);
+							$value[$y] = $items[$i][0];
 						}
 						$y = $y * 2;
 					}
@@ -282,15 +357,12 @@ class tx_crud__models_create extends tx_crud__models_common{
 						$entry["preview"] = "Off";
 						$entry['attributes.']["value"] = 1;
 					}
-					//if(is_numeric($entry['process'])) $entry['preview']=$options[$entry['value']];
 					$entry["key"] = $item_key;
 					$entry["element"] = "checkboxRow";
 				}
 				$this->html[$item_key] = $entry;
 			} 
-			//TCA TYPE GROUP DB REL
-			elseif($entry['config.']['type'] == 'group'  && $entry['config.']['internal_type']!="file") {
-				
+			elseif($entry['config.']['type'] == 'group' && $entry['config.']['internal_type']!="file") {
 				$eval = $this->_processEval($item_key);
 				if (is_array($eval)) {
 					foreach ($eval as $key=>$val) {
@@ -298,7 +370,6 @@ class tx_crud__models_create extends tx_crud__models_common{
 					}
 				}
 				$item_value = $this->_getValue($item_key);
-				
 				$new_value=array();
 				if (is_array($item_value) && strlen($item_value[0])>=1) {
 					foreach ($item_value as $key=>$val) {
@@ -312,7 +383,6 @@ class tx_crud__models_create extends tx_crud__models_common{
 				}
 				$options = $entry['options.'];
 				$sorting = $entry['sorting.'];	
-				$process_value = explode("__",$item_value);
 				$processValues="";
 				if(is_array($item_value)) foreach($item_value as $key=>$value) {
 					if(isset($multiple)) {
@@ -340,107 +410,53 @@ class tx_crud__models_create extends tx_crud__models_common{
 					}
 				}
 				$this->html[$item_key] = $entry;
-			} elseif($entry['config.']['type'] == 'group' && $entry['config.']['internal_type'] == "file") {
+			} 
+			elseif($entry['config.']['type'] == 'group' && $entry['config.']['internal_type'] == "file") {
 				$eval = $this->_processEval($item_key);
+				if (is_array($eval)) {
+					foreach ($eval as $key=>$val) {
+						$entry[$key] = $val;
+					}
+				}
+				$item_value="";
+				$value=$this->_getValue($item_key);
+				if(!is_array($item_value) && strlen($item_value)>=3) {
+					$item_value[0]=$value;
+				}
+				else $item_value=$value;
 				if (is_array($eval)) {
 					foreach ($eval as $key=>$val) $entry[$key] = $val;
 				}
-				if ($entry['config.']['maxitems'] > 1) {
-					$entry["element"] = "multiFileRow";
-				} elseif ($entry['value'][0]) {
-					$entry["element"] = "noFileRow";
-				} else {
-					$entry["element"] = "fileRow";
-				}
+				$entry["element"] = "multiFileRow";
 				if (is_array($entry['value'])) {
 					$entry['preview'] = implode(",",$entry['value']);
 				}
 				$this->html[$item_key] = $entry;
 			}
+			$this->html[$item_key] = $entry;
 		}
+		$this->mode=$orgMode;
 	}
-
-	protected function createQuery() {
-		foreach ($this->html as $key=>$val) {
-			if (is_array($val['process'])) {
-				$this->processData[$key] = implode(",",$val['process']);
-			} elseif ($val['processMM']) {
-				$this->processMM[$key] = $val;
-				$this->processData[$key] = sizeof($val['processMM']);
-			} else {
-				$this->processData[$key] = $val['process'];
-			}
-		}
-		$this->preQuery();
-		if (is_array($this->controller->configurations['storage.']['defaultQuery.'][$this->panelTable."."])) {
-			$insert = $this->controller->configurations['storage.']['defaultQuery.'][$this->panelTable."."];
-		}
-		foreach ($this->processData as $key=>$val) {
-			if (strlen($val) >= 1) {
-				$insert[$key] = $val;
-			}
-		}
-		unset($insert['captcha']);
-		$insert["pid"] = $this->panelRecord;
-		$insert["tstamp"] = time();
-		if(strlen($this->bigTCA['ctrl']['languageField'])>=3) {
-			$insert[$this->bigTCA['ctrl']['languageField']]=$GLOBALS['TSFE']->config['config']['sys_language_uid'];
-		}
-		if ($this->mode == 'PROCESS') {
-			$query = $GLOBALS['TYPO3_DB']->exec_INSERTquery(strtolower($this->panelTable),$insert);
-		}
-		if (!$query) {
-			$this->mode="QUERY_ERROR";
-		} else {
-			$config = $this->controller->configurations->getArrayCopy();
-			$this->lastQueryID = $GLOBALS['TYPO3_DB']->sql_insert_id();
-			if ($config['enable.']['logging'] == 1) {
-				tx_crud__log::write($config['storage.']['action'], $this->lastQueryID, $config['storage.']['nameSpace'],$config['logging.']);
-			}
-			if (is_array($this->processMM)) {
-				$uid_local = $this->lastQueryID;
-				//t3lib_div::debug($uid_local,"MM uid local");
-				foreach ($this->processMM as $key=>$val) {
-					$table = $this->html[$key]['config.']['MM'];
-					//t3lib_div::debug($table,"MM table");
-					if (is_array($val['processMM'])) {
-						$i = 1;
-						foreach ($val['processMM'] as $k=>$v) {
-							$what = explode("__",$v);
-							if (count($what) > 1) {
-								$tableName = $what[0];
-								$v = $what[1];
-							}
-							$insertMM = array();
-							$insertMM['uid_local'] = $uid_local;
-							$insertMM['uid_foreign'] = $v;
-							$insertMM['tablenames'] = $tableName;
-							$insertMM['sorting'] = $i; 
-							//t3lib_div::debug($insertMM,"MM");
-							if (!$GLOBALS['TYPO3_DB']->exec_INSERTquery($table,$insertMM)) {
-								// TODO: Localization
-								echo "nix insert MM";
-							}
-							$i++;
-						}
-					}
-				}
-			}
-			$this->postQuery();
-			$this->processData = false;
-			$this->processMM = false;
-			
-		}
+	
+	/**
+	 * returns the form data
+	 * 
+	 * @return  void
+	 */	
+	function getData() {
+		$pars = $this->controller->parameters->getArrayCopy();
+		return $pars;
 	}
-
+	
+	/**
+	 * returns the value from form field
+	 * 
+	 * @return  void
+	 */	
 	function _getValue($item_key) {
 		$pars = $this->controller->parameters->getArrayCopy();
 		if(!is_array($pars[$item_key]) && strlen($pars[$item_key])>=1) return $pars[$item_key];
 		if(is_array($pars[$item_key]) && strlen($pars[$item_key][0])>=1) return $pars[$item_key];
 	}
-}
-
-if (defined('TYPO3_MODE') && $TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/crud/models/class.tx_crud_models_create.php']) {
-	include_once($TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/crud/models/class.tx_crud_models_createphp']);
 }
 ?>

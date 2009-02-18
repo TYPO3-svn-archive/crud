@@ -1,5 +1,4 @@
 <?php
-
 ########################################################################
 # Extension Manager/Repository config file for ext: "crud"
 #
@@ -11,30 +10,31 @@
 ########################################################################
 
 $EM_CONF[$_EXTKEY] = array(
-	'title' => 'Frontend Access library',
-	'description' => 'Implements a new Rolebased Rightsmanagement for Frontend-User,depending on Access Control Lists. Works like the programming Concept C.R.U.D.(create,retrieve,update,delete) for any TCA-based Contents. Provides Models and Views as library for Developer wich using lib/div.',
+	'title' => 'High Performance Plugin System',
+	'description' => 'Addon for lib/div based development wich implements a new rolebased Rightsmanagement for Frontend-User depending on Access Control Lists, wich allows to create, retrieve, update, delete, browse, search and filter any TCA-based Contents with the focus on speed for non cached dynamic content including caching, logging, histories and edit locks.',
 	'category' => 'misc',
-	'author' => 'Frank Thelemann, Mattes Angelus, Gordon Böhme, Thomas Krüger',
+	'author' => 'Frank Thelemann',
 	'author_email' => 'f.thelemann@yellowmed.com',
 	'shy' => '',
-	'dependencies' => 'cms,lib,div',
+	'dependencies' => 'cms,lib,div,captcha',
 	'conflicts' => '',
 	'priority' => '',
 	'module' => 'mod1',
-	'state' => 'alpha',
+	'state' => 'beta',
 	'internal' => '',
 	'uploadfolder' => 0,
 	'createDirs' => '',
 	'modify_tables' => '',
-	'clearCacheOnLoad' => 0,
+	'clearCacheOnLoad' => 1,
 	'lockType' => '',
 	'author_company' => 'yellowmed.com',
-	'version' => '0.3.0',
+	'version' => '0.8.0',
 	'constraints' => array(
 		'depends' => array(
 			'cms' => '',
-			'lib' => '',
-			'div' => '',
+			'lib' => '0.1.0',
+			'div' => '0.1.0',
+			'captcha' => '',
 		),
 		'conflicts' => array(
 		),

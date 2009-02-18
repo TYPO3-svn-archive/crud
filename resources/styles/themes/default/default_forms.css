@@ -55,23 +55,21 @@
 	padding: 0;
 	border: 0;
 	outline: 0;
-	line-height: 1.3;
+/* 	line-height: 1.3; */
 	text-decoration: none;
-	font-size: 100%;
+/* 	font-size: 100%; */
 	list-style: none;
 	float: left;
-	font-size: 1em;
-	font-weight: normal;
+/* 	font-size: 1em; */
+	font-weight: bold;
 	text-decoration: none;
 	padding: .5em 1.7em;
 	color: #555555;
-	background: #e6e6e6 url(images/e6e6e6_40x100_textures_02_glass_75.png) 0
-		50% repeat-x;
+	background: #e6e6e6 url(images/e6e6e6_40x100_textures_02_glass_75.png) 0 50% repeat-x;
 }
 
 .ui-tabs-nav li a:hover {
-	background: #dadada url(images/dadada_40x100_textures_02_glass_75.png) 0
-		50% repeat-x;
+	background: #dadada url(images/dadada_40x100_textures_02_glass_75.png) 0 50% repeat-x;
 	color: #212121;
 }
 
@@ -81,9 +79,9 @@
 
 .ui-tabs-nav li.ui-tabs-selected a,.ui-tabs-nav li.ui-tabs-selected a:hover
 	{
-	background: #ffffff url(images/ffffff_40x100_textures_02_glass_65.png) 0
-		50% repeat-x;
+	background: #ffffff url(images/ffffff_40x100_textures_02_glass_65.png) 0 50% repeat-x;
 	color: #222222;
+	font-style:bold;
 }
 
 .ui-tabs-panel { /*resets*/
@@ -91,27 +89,24 @@
 	padding: 0;
 	border: 0;
 	outline: 0;
-	line-height: 1.3;
+/* 	line-height: 1.3; */
 	text-decoration: none;
-	font-size: 100%;
+/* 	font-size: 100%; */
 	list-style: none;
-	font-family: Verdana, Arial, sans-serif;
+/* 	font-family: Verdana, Arial, sans-serif; */
 	clear: left;
 	border: 1px solid #d3d3d3;
-	background: #ffffff url(images/ffffff_40x100_textures_01_flat_0.png) 0 0
-		repeat-x;
+	background: #ffffff url(images/ffffff_40x100_textures_01_flat_0.png) 0 0 repeat-x;
 	color: #222222;
-	padding: 1.5em 1.7em;
-	font-size: 1.1em;
+/* 	padding: 1.5em 1.7em; */
+/* 	font-size: 1.1em; */
 }
 
-.ui-tabs-nav .ui-tabs-selected a:link,.ui-tabs-nav .ui-tabs-selected a:visited,.ui-tabs-nav .ui-tabs-disabled a:link,.ui-tabs-nav .ui-tabs-disabled a:visited
-	{ /* @ Opera, use pseudo classes otherwise it confuses cursor... */
+.ui-tabs-nav .ui-tabs-selected a:link,.ui-tabs-nav .ui-tabs-selected a:visited,.ui-tabs-nav .ui-tabs-disabled a:link,.ui-tabs-nav .ui-tabs-disabled a:visited { /* @ Opera, use pseudo classes otherwise it confuses cursor... */
 	cursor: text;
 }
 
-.ui-tabs-nav a:hover,.ui-tabs-nav a:focus,.ui-tabs-nav a:active,.ui-tabs-nav .ui-tabs-unselect a:hover,.ui-tabs-nav .ui-tabs-unselect a:focus,.ui-tabs-nav .ui-tabs-unselect a:active
-	{ /* @ Opera, we need to be explicit again here now... */
+.ui-tabs-nav a:hover,.ui-tabs-nav a:focus,.ui-tabs-nav a:active,.ui-tabs-nav .ui-tabs-unselect a:hover,.ui-tabs-nav .ui-tabs-unselect a:focus,.ui-tabs-nav .ui-tabs-unselect a:active { /* @ Opera, we need to be explicit again here now... */
 	cursor: pointer;
 }
 
@@ -120,8 +115,7 @@
 	filter: alpha(opacity = 40);
 }
 
-.ui-tabs-nav .ui-tabs-disabled a:link,.ui-tabs-nav .ui-tabs-disabled a:visited
-	{
+.ui-tabs-nav .ui-tabs-disabled a:link,.ui-tabs-nav .ui-tabs-disabled a:visited {
 	color: #000;
 }
 
@@ -142,10 +136,21 @@
 * @see     
 */
 fieldset.crud-section {
-	border: 1px solid #eee;
+	padding-top:5px;
+	border-color: #eee;
+	border-style: double;
+	border-width: thin;
+	background-color:#fefefe;
 }
-
-fieldset.crud-section input,fieldset.crud-section textarea {
+.fielderror {
+	color:#fff;
+	margin-top:2px;
+	padding:2px;
+	width:100%;
+	border: 0px solid #000;	
+	background-color:#ff6363;
+}
+fieldset.crud-section input, fieldset.crud-section textarea {
 	border: 1px solid #999;
 	background: #fff url(images/bg-input.png) repeat-x top left;
 }
@@ -175,7 +180,7 @@ span.mandatory {
 
 fieldset.crud-section dt {
 	clear: both;
-	padding: 1em 0 0 0;
+	padding: .5em 0 0 0;
 }
 
 fieldset.crud-section dd {
@@ -184,8 +189,12 @@ fieldset.crud-section dd {
 }
 
 fieldset.crud-section dd * {
-	float: left;
 	margin-right: .5em;
+}
+
+#crud-bodytext_container *, fieldset.crud-section dd .mceEditor * {
+	float: none;
+	margin-right: 0;
 }
 
 fieldset.crud-section dd ul li {
@@ -221,17 +230,9 @@ div.csh {
   * @section other
   *
   */
-.crud-browser,.crud-tabs-form { 
-	position: relative;
-}
 
-img#loadAjaxGif {
-	position: absolute;
-	z-index: 99;
-	top: 50%;
-	margin-top: -9px;
-	left: 50%;
-	margin-left: -110px;
+.error {
+	color: #ff0000;
 }
 
 .clearfix:after {

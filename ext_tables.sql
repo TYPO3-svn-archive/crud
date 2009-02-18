@@ -32,7 +32,8 @@ CREATE TABLE tx_crud_groups (
 	subtitle text NOT NULL,
 	roles int(11) DEFAULT '0' NOT NULL,
 	fe_groups blob NOT NULL,
-	
+	allow_type int(11) DEFAULT '0' NOT NULL,
+
 	PRIMARY KEY (uid),
 	KEY parent (pid)
 );
@@ -118,21 +119,6 @@ CREATE TABLE tx_crud_roles_allow_controller_mm (
 
 
 #
-# Table structure for table 'tx_crud_roles_allow_plugin_mm'
-# 
-#
-CREATE TABLE tx_crud_roles_allow_plugin_mm (
-  uid_local int(11) DEFAULT '0' NOT NULL,
-  uid_foreign int(11) DEFAULT '0' NOT NULL,
-  tablenames varchar(30) DEFAULT '' NOT NULL,
-  sorting int(11) DEFAULT '0' NOT NULL,
-  KEY uid_local (uid_local),
-  KEY uid_foreign (uid_foreign)
-);
-
-
-
-#
 # Table structure for table 'tx_crud_roles'
 #
 CREATE TABLE tx_crud_roles (
@@ -154,7 +140,7 @@ CREATE TABLE tx_crud_roles (
 	allow_update int(11) DEFAULT '0' NOT NULL,
 	allow_delete int(11) DEFAULT '0' NOT NULL,
 	allow_controller int(11) DEFAULT '0' NOT NULL,
-	allow_plugin int(11) DEFAULT '0' NOT NULL,
+	allow_type int(11) DEFAULT '0' NOT NULL,
 	
 	PRIMARY KEY (uid),
 	KEY parent (pid)
@@ -204,6 +190,25 @@ CREATE TABLE tx_crud_users (
 );
 
 
+#
+# Table structure for table 'tx_crud_histories'
+#
+CREATE TABLE tx_crud_histories (
+	uid int(11) NOT NULL auto_increment,
+	pid int(11) DEFAULT '0' NOT NULL,
+	tstamp int(11) DEFAULT '0' NOT NULL,
+	crdate int(11) DEFAULT '0' NOT NULL,
+	cruser_id int(11) DEFAULT '0' NOT NULL,
+    title tinytext NOT NULL,
+	crud_table tinytext NOT NULL,
+	crud_record tinytext NOT NULL,
+	crud_page tinytext NOT NULL,
+	crud_user blob NOT NULL,
+	crud_username tinytext NOT NULL,
+	crud_data text NOT NULL,
+	PRIMARY KEY (uid),
+	KEY parent (pid)
+);
 
 #
 # Table structure for table 'tx_crud_log'
@@ -222,7 +227,7 @@ CREATE TABLE tx_crud_log (
 	crud_user blob NOT NULL,
 	crud_session tinytext NOT NULL,
 	crud_username tinytext NOT NULL,
-
+	crud_cardinality int(11) DEFAULT '1' NOT NULL,
 	PRIMARY KEY (uid),
 	KEY parent (pid)
 );

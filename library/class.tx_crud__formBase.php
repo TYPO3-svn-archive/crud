@@ -3,7 +3,7 @@
 /***************************************************************
  *  Copyright notice
  *
- *  (c) 2006 Frank Thelemann
+ *  (c) 2009 Frank Thelemann
  *  Contact: f.thelemann@yellowmed.com
  *  All rights reserved
  *
@@ -40,13 +40,12 @@ class tx_crud__formBase extends tx_lib_formBase {
 		$pars = $this->controller->parameters->getArrayCopy();
 		$img = $item_key;
 		$wrapImage = explode("|",$wrapImage);
-		//t3lib_div::debug($img);
 		if (is_array($img)) {
 			$i = 0;
 			foreach ($img as $key=>$val) {
 				$url = $val;
 				if (file_exists($url) && $i < $maxImages) {
-					$size = getimagesize($url);
+					$size = @getimagesize($url);
 					if ($size[1] > $height) {
 						$size[1] = $height;
 					}
@@ -86,35 +85,9 @@ class tx_crud__formBase extends tx_lib_formBase {
 		$attributes['method'] = $this->method();
 		$attributes['name'] = $this->prefixId."form";
 		$attrutes['enctype'] = "multipart/form-data";
-		//$attributes = $this->_makeAttributes($attributes);
 		$url = $this->action();
 		$url = str_replace("no_cache=1","",$url);
 		echo "\r\n" . '<form method="post" action="' . $url . '" enctype="multipart/form-data">' . "\r\n";
-	}
-
-	function fileRow($key, $label, $attributes=array()) {
-		$setup = $this->setup;
-		if (!isset($attributes['name'])) {
-			$this->_die('Please set a name attribute for FileRow controls.', __FILE__, __LINE__); 
-		}
-		$out = '<input type="file" title="' . $attributes['title'] . '" name="' . $attributes['name'] . '[]" maxlength="' . $attributes['maxlength'] . '" />' . "\n";
-		return '<dt><label for="' . $key .'">' . $label . "</label></dt>\n\t
-			<dd>" . $out . "</dd>\n";
-	}
-	
-	function noFileRow($key, $label, $attributes=array()) {
-		$setup = $this->setup;
-		//debug($setup);
-		if (!isset($setup[$key]['value'][0])) {
-			$this->_die('Please set a value attribute for noFileRow controls.', __FILE__, __LINE__);
-		}
-		$out = '<input type="hidden" name="' . $attributes['name'] . '[0]" value="' . $setup[$key]['value'][0] . '" />' . "\n";
-		$out .= '<input type="image" src="typo3conf/ext/crud/resources/icons/delete.gif" name="' . $this->getDesignator() . '[remove][' . $key . ']" value="0" class="icon" />' . "\n";
-		//if($setup[$key]['config.']['show_thumbs']) $file=$this->makeImage($setup[$key]['value'][0]); 
-		//else $file=$setup[$key]['value'][0];
-		$file = $this->makeFilePreview($setup[$key]['value'][0]); 
-		return '<dt><label for="' . $key . '">' . $label . "</label></dt>\n\t
-				<dd>" . $file . $setup[$key]['value'][0] . $out . "</dd>\n";
 	}
 	
 	function multiFileRow($key, $label, $attributes=array()) {
@@ -131,7 +104,7 @@ class tx_crud__formBase extends tx_lib_formBase {
 					$y++;
 				}
 			} else {
-				$files .= "<li>" . $this->makeFilePreview($setup[$key]['value'][$i]).$setup[$key]['process'][$i];
+				$files .= "<li>" . $this->makeFilePreview($setup[$key]['value'][$i]).'<a href="'.$setup[$key]['value'][$i].'">'.$setup[$key]['process'][$i]."</a>";
 				$files .= "\n" . '<input type="hidden" name="' . $attributes['name'] . '[' . $i . ']" value="' . $setup[$key]['value'][$i] . '" />';
 				$files .= "\n" . '<input type="image" src="typo3conf/ext/crud/resources/icons/delete.gif" name="' . $this->getDesignator() . '[remove][' . $key . ']" value="' . $i . '" class="icon "/></li>' . "\n";
 			}
@@ -142,13 +115,15 @@ class tx_crud__formBase extends tx_lib_formBase {
 	}
 	
 	function makeFilePreview($url) {
-		require_once(PATH_site.'t3lib/class.t3lib_stdgraphic.php');
-		require_once(PATH_site.'typo3/sysext/cms/tslib/class.tslib_gifbuilder.php');
+		
 		$fileExtension_exploded = explode(".",$url);
 		$fileExtension = strtolower($fileExtension_exploded[count($fileExtension_exploded)-1]);
 		$images = array("jpg","jpeg","png","gif","bmp");
 		//$images =
 		if (in_array($fileExtension,$images)) {
+			require_once(PATH_site.'typo3/sysext/cms/tslib/class.tslib_content.php');
+			require_once(PATH_site.'t3lib/class.t3lib_stdgraphic.php');
+			require_once(PATH_site.'typo3/sysext/cms/tslib/class.tslib_gifbuilder.php');
 			$setup = $this->setup;
 			$size = getimagesize($url);
 			if ($size[1] > 30) {
@@ -279,7 +254,7 @@ class tx_crud__formBase extends tx_lib_formBase {
 		$options = $options ? $options : $this->getOptionList($key);
 		if (!$sorting) {
 			
-			foreach ($options as $value => $text ) {
+			if(is_array($options)) foreach ($options as $value => $text ) {
 				$value = strlen($value) ? $value : $text;
 				$selected = $this->selected($key, $value);
 				//$multiselect = ' class="select-multi"';
@@ -373,14 +348,13 @@ class tx_crud__formBase extends tx_lib_formBase {
 							}
 						}
 					}
-					$body .= "</optgroup>\n";
 				}
+				$body .= "</optgroup>\n";
 			}
 		}
 		if ($setup[$key]['reload']) {
 			$reload = ' onchange="javascript:this.form.submit();"';
 		}
-		//$hidden='<input type="hidden" name="'.$this->getDesingator().'[noProcess]'" value="
 		return '<select' . $attributes . $reload . $multiselect . '>' . "\n\t" . $body . '</select>' . "\n";
 	}
 	

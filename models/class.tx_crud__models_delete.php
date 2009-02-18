@@ -32,63 +32,79 @@
 require_once(t3lib_extMgm::extPath('crud') . 'models/class.tx_crud__models_common.php');
 class tx_crud__models_delete extends tx_crud__models_common{
 
-	 var $panelAction = "DELETE";
-	 var $panelTable;
-	 var $panelRecord;
-
-	 protected function deleteQuery() {
-	 	//echo "delete";
+	// -------------------------------------------------------------------------------------
+	// database create queries
+	// -------------------------------------------------------------------------------------
+	
+	/**
+	 * overwrite of the query call in common
+	 * 
+	 * @return  void
+	 */	
+	function processQuery() {
+		$this->deleteQuery();
+	} 
+	
+	/** 
+	 * makes the delete query
+	 * 
+	 * @return  void
+	 */	
+	protected function deleteQuery() {
 		$this->preQuery(); 
 		$where = 'uid=' . $this->panelRecord;
 		$table = strtolower($this->panelTable);
-		//echo $where;
 		if ($this->mode == 'PROCESS') {
 			$query = $GLOBALS['TYPO3_DB']->exec_DELETEquery($table,$where);
 		}
 		if (!$query) {
-			// TODO: Localization
-			echo "no query";
 			$this->mode = 'QUERY_ERROR';
 		}
 		$config = $this->controller->configurations->getArrayCopy();
 		if ($config['enable.']['logging']==1) {
 			tx_crud__log::write($config['storage.']['action'], $this->panelRecord, $config['storage.']['nameSpace'],$config['logging.']);
 		}
-
 		$this->postQuery(); 
 		$config['view.']['mode'] = $this->mode;
 		$config['view.']['errors'] = $this->errors;
 		$config['view.']['setup'] = $this->html;
 		$config['view.']['data'] = $this->data;
 		$this->controller->configurations = new tx_lib_object($config);
-
 		$this->_nextStep();
 	}
-
-	function checkNode() {
-		$where = 'uid=' . $this->panelRecord;
-		$table = strtolower($this->panelTable);
-		$query = $GLOBALS['TYPO3_DB']->exec_SELECTquery("uid",$table,$where);
-		if ($query) {
-			$result = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($query);
-		}
-		if (!is_array($result)) {
-			$this->mode = 'NOT_EXIST';
-		}
-	}
-	 
-	function processQuery() {
-		$this->deleteQuery();
-	}
-
+		
+	/** 
+	 * get an value for an delete form
+	 * 
+	 * @params	$item_key	the key of the form
+	 * @return  string	the get/post value from the form field
+	 */	
 	function _getValue($item_key)  {
 		if (isset($this->parameters[$item_key])) {
 			return $this->parameters[$item_key];
 		}
 	}
+	
+	// -------------------------------------------------------------------------------------
+	// overwrite non used function at deleting
+	// -------------------------------------------------------------------------------------
+	
+	/** 
+	 * dummy to overwrite the getValue, because at a delete are not values to get
+	 * 
+	 * @params	$item_key	the key of the form
+	 * @return  string	the get/post value from the form field
+	 */
+	function getData() {}
+	 
+	/** 
+	 * dummy to overwrite the setupValues, because at a delete are not values to set
+	 * 
+	 * @params	$item_key	the key of the form
+	 * @return  string	the get/post value from the form field
+	 */
+	function setupValues() {}
+	
 }
 
-if (defined('TYPO3_MODE') && $TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/crud/models/class.tx_crud_models_delete.php']) {
-	include_once($TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/crud/models/class.tx_crud_models_delete.php']);
-}
 ?>

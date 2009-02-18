@@ -4,7 +4,7 @@ if (!defined ('TYPO3_MODE')) 	die ('Access denied.');
 $TCA["tx_crud_groups"] = array (
 	"ctrl" => $TCA["tx_crud_groups"]["ctrl"],
 	"intercrude" => array (
-		"showRecordFieldList" => "sys_language_uid,l18n_parent,l18n_diffsource,hidden,title,subtitle,roles,fe_groups"
+		"showRecordFieldList" => "sys_language_uid,l18n_parent,l18n_diffsource,hidden,title,subtitle,roles,fe_groups,allow_type"
 	),
 	"feIntercrude" => $TCA["tx_crud_groups"]["feIntercrude"],
 	"columns" => array (
@@ -90,9 +90,21 @@ $TCA["tx_crud_groups"] = array (
 				"maxitems" => 100,
 			)
 		),
+		"allow_type" => Array (		
+			"exclude" => 1,		
+			"label" => "LLL:EXT:crud/locallang_db.xml:tx_crud_roles.allow_type",		
+			'config' => array (
+				'type'                => 'select',
+				'items' => array(
+					array("OWNER",1),
+					array('GROUP',2),
+					array('GLOBAL',3)
+				)
+			)
+		),
 	),
 	"types" => array (
-		"0" => array("showitem" => "sys_language_uid;;;;1-1-1, l18n_parent, l18n_diffsource, hidden;;1, title;;;;2-2-2, subtitle;;;;3-3-3, roles, fe_groups")
+		"0" => array("showitem" => "sys_language_uid;;;;1-1-1, l18n_parent, l18n_diffsource, hidden;;1, title;;;;2-2-2, subtitle;;;;3-3-3, roles, fe_groups, allow_type")
 	),
 	"palettes" => array (
 		"1" => array("showitem" => "")
@@ -104,7 +116,7 @@ $TCA["tx_crud_groups"] = array (
 $TCA["tx_crud_roles"] = array (
 	"ctrl" => $TCA["tx_crud_roles"]["ctrl"],
 	"intercrude" => array (
-	"showRecordFieldList" => "sys_language_uid,l18n_parent,l18n_diffsource,hidden,title,subtitle,allow_create,allow_retrieve,allow_update,allow_delete,allow_controller,allow_plugin"
+	"showRecordFieldList" => "sys_language_uid,l18n_parent,l18n_diffsource,hidden,title,subtitle,allow_create,allow_retrieve,allow_update,allow_delete,allow_controller,allow_type"
 	),
 	"feIntercrude" => $TCA["tx_crud_roles"]["feIntercrude"],
 	"columns" => array (
@@ -230,22 +242,21 @@ $TCA["tx_crud_roles"] = array (
 				"MM" => "tx_crud_roles_allow_controller_mm",
 			)
 		),
-		"allow_plugin" => Array (		
+		"allow_type" => Array (		
 			"exclude" => 1,		
-			"label" => "LLL:EXT:crud/locallang_db.xml:tx_crud_roles.allow_plugin",		
-			"config" => Array (
-				"type" => "select",	
-				"foreign_table" => "tx_crud_options",	
-				"foreign_table_where" => "AND tx_crud_options.action=5 AND tx_crud_options.pid=###CURRENT_PID### ORDER BY tx_crud_options.uid",
-				"size" => 10,	
-				"minitems" => 0,
-				"maxitems" => 100,	
-				"MM" => "tx_crud_roles_allow_plugin_mm",
+			"label" => "LLL:EXT:crud/locallang_db.xml:tx_crud_roles.allow_type",		
+			'config' => array (
+				'type'                => 'select',
+				'items' => array(
+					array("OWNER",1),
+					array('GROUP',2),
+					array('GLOBAL',3)
+				)
 			)
 		),
 	),
 	"types" => array (
-	"0" => array("showitem" => "sys_language_uid;;;;1-1-1, l18n_parent, l18n_diffsource, hidden;;1, title;;;;2-2-2, subtitle;;;;3-3-3, allow_create, allow_retrieve,allow_update, allow_delete, allow_controller, allow_plugin")
+	"0" => array("showitem" => "sys_language_uid;;3;;1-1-1, l18n_parent, l18n_diffsource, hidden;;1, title;;;;2-2-2, subtitle;;;;3-3-3, allow_create, allow_retrieve,allow_update, allow_delete, allow_controller, allow_type")
 	),
 	"palettes" => array (
 		"1" => array("showitem" => "")
@@ -387,7 +398,7 @@ $TCA["tx_crud_users"] = array (
 $TCA["tx_crud_log"] = array (
 	"ctrl" => $TCA["tx_crud_log"]["ctrl"],
 	"intercrude" => array (
-		"showRecordFieldList" => "title,crud_action,crud_table,crud_record,crud_page,crud_user,crud_session,crud_username"
+		"showRecordFieldList" => "title,crud_action,crud_table,crud_record,crud_page,crud_user,crud_session,crud_username,crud_cardinality"
 	),
 	"feIntercrude" => $TCA["tx_crud_log"]["feIntercrude"],
 	"columns" => array (
@@ -459,15 +470,98 @@ $TCA["tx_crud_log"] = array (
 				"size" => "32",
 			)
 		),
+		"crud_cardinality" => Array (		
+			"exclude" => 1,		
+			"label" => "LLL:EXT:crud/locallang_db.xml:tx_crud_log.crud_cardinality",		
+			"config" => Array (
+				"type" => "input",	
+				"size" => "11",
+			)
+		),
 	),
 	"types" => array (
-		"0" => array("showitem" => "title,crud_action, crud_table, crud_record, crud_page, crud_user, crud_session, crud_username")
+		"0" => array("showitem" => "title,crud_action, crud_table, crud_record, crud_page, crud_user, crud_session, crud_username, crud_cardinality")
 	),
 	"palettes" => array (
 		"1" => array("showitem" => "starttime, endtime")
 	)
 );
-
+$TCA["tx_crud_histories"] = array (
+	"ctrl" => $TCA["tx_crud_log"]["ctrl"],
+	"intercrude" => array (
+		"showRecordFieldList" => "title,crud_action,crud_table,crud_record,crud_page,crud_user,crud_username"
+	),
+	"feIntercrude" => $TCA["tx_crud_log"]["feIntercrude"],
+	"columns" => array (
+		"crud_action" => Array (		
+			"exclude" => 1,		
+			"label" => "LLL:EXT:crud/locallang_db.xml:tx_crud_log.crud_action",		
+			"config" => Array (
+				"type" => "input",	
+				"size" => "30",
+			)
+		),
+		"title" => Array (		
+			"exclude" => 1,		
+			"label" => "LLL:EXT:crud/locallang_db.xml:tx_crud_log.title",		
+			"config" => Array (
+				"type" => "input",	
+				"size" => "30",
+			)
+		),
+		"crud_table" => Array (		
+			"exclude" => 1,		
+			"label" => "LLL:EXT:crud/locallang_db.xml:tx_crud_log.crud_table",		
+			"config" => Array (
+				"type" => "input",	
+				"size" => "30",
+			)
+		),
+		"crud_record" => Array (		
+			"exclude" => 1,		
+			"label" => "LLL:EXT:crud/locallang_db.xml:tx_crud_log.crud_record",		
+			"config" => Array (
+				"type" => "input",	
+				"size" => "30",
+			)
+		),
+		"crud_page" => Array (		
+			"exclude" => 1,		
+			"label" => "LLL:EXT:crud/locallang_db.xml:tx_crud_log.crud_page",		
+			"config" => Array (
+				"type" => "input",	
+				"size" => "4",
+			)
+		),
+		"crud_user" => Array (		
+			"exclude" => 1,		
+			"label" => "LLL:EXT:crud/locallang_db.xml:tx_crud_log.crud_user",		
+			"config" => Array (
+				"type" => "group",	
+				"internal_type" => "db",	
+				"allowed" => "fe_users",	
+				"size" => 1,	
+				"minitems" => 0,
+				"maxitems" => 1,
+			)
+		),
+		
+		"crud_username" => Array (		
+			"exclude" => 1,		
+			"label" => "LLL:EXT:crud/locallang_db.xml:tx_crud_log.crud_username",		
+			"config" => Array (
+				"type" => "input",	
+				"size" => "32",
+			)
+		),
+	),
+	"types" => array (
+		"0" => array("showitem" => "title,crud_action,crud_table,crud_record,crud_page,crud_user,crud_username")
+	),
+	"palettes" => array (
+		"1" => array("showitem" => "starttime, endtime")
+	)
+);
 
 
 $TCA["tx_crud_locks"] = array (

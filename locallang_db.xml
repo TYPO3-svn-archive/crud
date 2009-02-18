@@ -54,6 +54,7 @@
 			<label index="tx_crud_log.crud_session">Session ID</label>
 			<label index="tx_crud_log.crud_session">Session ID</label>
 			<label index="tx_crud_log.crud_username">FE Username</label>
+			<label index="tx_crud_log.crud_cardinality">Cardinality</label>
 			<label index="tx_crud_locks.crud_table">Table</label>
 			<label index="tx_crud_locks.crud_record">Record</label>
 			<label index="tx_crud_locks.crud_timeout">Timeout</label>

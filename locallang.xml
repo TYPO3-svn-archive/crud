@@ -11,115 +11,56 @@
 			<label index="update">Update Element</label>
 			<label index="delete">Delete Element</label>
 			<label index="back">Back</label>
-			<label index="error_required">
-				This is a mandatory field.
-			</label>
-			<label index="error_max">
-				Too many characters. Only ###MAX### characters are
-				allowed.
-			</label>
-			<label index="error_min">
-				Too little characters. You have to use at least
-				###MIN### characters.
-			</label>
-			<label index="error_date_complete">
-				Please comlete the date.
-			</label>
-			<label index="error_date_exist">
-				The date doesn't exist.
-			</label>
-			<label index="error_date_upper">
-				Please type in a prior date. You have to use at least a
-				date later than ###UPPER### .
-			</label>
-			<label index="error_date_lower">
-				Please type in a posterior date. You have to use at
-				least a date earlier than ###LOWER### .
-			</label>
+			<label index="error_required">This is a mandatory field.</label>
+			<label index="error_max">Too many characters. Only ###MAX### characters are allowed.</label>
+			<label index="error_min">Too little characters. You have to use at least ###MIN### characters.</label>
+			<label index="error_date_complete">Please comlete the date.</label>
+			<label index="error_date_exist">The date doesn't exist.</label>
+			<label index="error_date_upper">Please type in a prior date. You have to use at least a date later than ###UPPER###.</label>
+			<label index="error_date_lower">Please type in a posterior date. You have to use at least a date earlier than ###LOWER###.</label>
 			<label index="error_leng">Your text is too long.</label>
-			<label index="error_date">
-				Please type in a correct date.
-			</label>
-			<label index="error_datetime">
-				Please type in a correct date and time.
-			</label>
-			<label index="error_minitems">
-				Please choose more items. You have to use at least
-				###MINITEMS### items.
-			</label>
-			<label index="error_maxitems">
-				You have choosen too much items. You can use at least
-				###MAXITEMS### items.
-			</label>
-			<label index="error_email">
-				Please type in a valid e-mail adress.
-			</label>
+			<label index="error_date">Please type in a correct date.</label>
+			<label index="error_datetime">Please type in a correct date and time.</label>
+			<label index="error_minitems">Please choose more items. You have to use at least ###MINITEMS### items.</label>
+			<label index="error_maxitems">You have choosen too much items. You can use at least ###MAXITEMS### items.</label>
+			<label index="error_email">Please type in a valid e-mail adress.</label>
 			<label index="error_unique">Your input isn't unique.</label>
-			<label index="error_integer">
-				Your input is no number.
-			</label>
-			<label index="error_twice">
-				Your input already exists.
-			</label>
-			<label index="error_link">
-				Link not correct or doesn't exist.
-			</label>
-			<label index="error_filesize">
-				###FILENAME### Filesize is to big.
-			</label>
-			<label index="error_filetype">
-				###FILENAME### No correct filetype.
-			</label>
-			<label index="error_filecopy">
-				###FILENAME### File copying failed.
-			</label>
+			<label index="error_integer">Your input is no number.</label>
+			<label index="error_twice">Your input already exists.</label>
+			<label index="error_link">The link is not correct or doesn't exist.</label>
+			<label index="error_filesize">Filesize is to big. Maximal ###MAX_SIZE### is allowed.</label>
+			<label index="error_filetype">No correct filetype. Allowed are ###ALLOWED###.</label>
+			<label index="error_filecopy">File copying failed.</label>
 			<label index="error_fileitems">Not enough files.</label>
 			<label index="dateTCA.splitter">.</label>
 			<label index="dateTCA.format">dd.mm.yyyy</label>
-			<label index="dateTCA.output">d.m.Y</label>
-			<label index="datetimeTCA.output">H:i d.m.Y</label>
-			<label index="error_unlink">
-				Could not delete file ###FILENAME### .
-			</label>
-			<label index="error_captcha">Captcha not matched</label>
-			<label index="error_nothing-found">Nothing found!</label>
-			<label index="error_no-image">
-				The image doesn't exist.
-			</label>
-			<label index="error_captcha-HTML-output">
-				Sorry! No HTML output.
-			</label>
-			<label index="error_crud-log-query">
-				Sorry! Can't write to database.
-			</label>
-			<label index="create_preview">
-				Record succesfully created.
-			</label>
-			<label index="create_record_failed">
-				An error occured! Please contact site admin!
-			</label>
+			<label index="dateTCA.output">%m/%d/%Y</label>
+			<label index="datetimeTCA.output">%H:%M  %m/%d/%Y</label>
+			<label index="error_unlink">Sorry! The file couldn't be deleted.</label>
+			<label index="error_captcha">Captcha doesn't match!</label>
+			<label index="error_nothing-found">Something is wrong: nothing found!</label>
+			<label index="error_no-image">The image doesn't exist.</label>
+			<label index="error_captcha-HTML-output">Sorry! No HTML output.</label>
+			<label index="error_crud-log-query">Sorry! Can't write to database.</label>
+			<label index="create_preview">Record succesfully created.</label>
+			<label index="create_record_failed">An error occured! Please contact site admin!</label>
 			<label index="retrieve_guest">Guest</label>
-			<label index="update_preview">
-				Record successfully updated.
-			</label>
-			<label index="update_record_failed">
-				An error occured! Please contact site admin!
-			</label>
-			<label index="delete_preview">
-				Deleting! This can take a few moments.
-			</label>
-			<label index="delete_not_exist">Storage not found</label>
-			<label index="delete_query_failed">
-				Query error! Please contact site admin!
-			</label>
-			<label index="youbrowse">
-				You are browsing through the results.
-			</label>
+			<label index="update_preview">Record successfully updated.</label>
+			<label index="update_record_failed">An error occured! Please contact site admin!</label>
+			<label index="delete_preview">Deleting! This can take a few moments.</label>
+			<label index="delete_not_exist">Storage not found.</label>
+			<label index="delete_query_failed">Query error! Please contact site admin!</label>
+			<label index="youbrowse">You are browsing through the results.</label>
 			<label index="resultsProPage">Records per Page:</label>
 			<label index="from">from</label>
+			<label index="no">no</label>
+			<label index="yes">yes</label>
 			<label index="next">next</label>
 			<label index="prev">previous</label>
 			<label index="pages">Pages:</label>
+			<label index="noResults">No Results</label>
+			<label index="freeSearch">free Search</label>
+			<label index="search">Search</label>
 			<label index="show">Show</label>
 			<label index="records">Records</label>
 			<label index="General">General</label>
@@ -131,108 +72,92 @@
 			<label index="atall">at all</label>
 			<label index="atlast">at last</label>
 			<label index="times">times</label>
-			<label index="date">Date</label>
-			<label index="time">Time</label>
-			<label index="no_rights_browse">
-				Your are not allowed to browse this Content
-			</label>
-			<label index="no_rights_retrieve">
-				Your are not allowed to see this Content
-			</label>
-			<label index="no_rights_create">
-				Your are not allowed to create this Content
-			</label>
-			<label index="no_rights_update">
-				Your are not allowed to update this Content
-			</label>
-			<label index="no_rights_delete">
-				Your are not allowed to delete this Content
-			</label>
+			<label index="date">Date (dd.mm.yyyy)</label>
+			<label index="dateTCA.output">%d.%m.%Y</label>
+			<label index="datetimeTCA.output">%H:%M  %d.%m.%Y</label>
+			<label index="time">Time (hh:mm)</label>
+			<label index="no_rights_browse">Your are not allowed to browse this content.</label>
+			<label index="no_rights_retrieve">Your are not allowed to see this content.</label>
+			<label index="no_rights_create">Your are not allowed to create this content.</label>
+			<label index="no_rights_update">Your are not allowed to update this content.</label>
+			<label index="no_rights_delete">Your are not allowed to delete this content.</label>
 		</languageKey>
 		<languageKey index="de" type="array">
 			<label index="create">Element erstellen.</label>
 			<label index="retrieve">Element abrufen.</label>
 			<label index="update">Element aktualisieren.</label>
-			<label index="delete">Element löschen</label>
-			<label index="error_required">
-				Dies ist ein Pflichtpfeld.
-			</label>
-			<label index="error_max">Zeichenlänge überschritten.</label>
-			<label index="error_min">
-				Zu wenige Zeichen eingegeben.
-			</label>
-			<label index="error_date">
-				Bitte geben Sie ein Datum ein.
-			</label>
-			<label index="error_date_complete">
-				Bitte vervollständigen Sie das Datum
-			</label>
-			<label index="error_date_exist">
-				Dieses Datum existiert nicht.
-			</label>
-			<label index="error_date_upper">
-				Bitte wählen Sie ein späteresDatum aus.
-			</label>
-			<label index="error_date_lower">
-				Bitte wählen Sie ein früheres Datum aus.
-			</label>
-			<label index="error_leng">Der Text ist zu lang.</label>
-			<label index="error_date">
-				Die Datumangabe ist nicht korrekt.
-			</label>
-			<label index="error_minitems">
-				Nicht genügend Elemente.
-			</label>
-			<label index="error_maxitems">Zu viele Elemente.</label>
-			<label index="error_email">
-				Bitte geben Sie eine korrekte E-Mail Adresse an!
-			</label>
-			<label index="error_unique">
-				Dieser wurde bereits angegeben.
-			</label>
-			<label index="error_integer">
-				Die Angabe ist keine Zahl.
-			</label>
-			<label index="error_twice">
-				Die Angabe ist nicht identisch.
-			</label>
-			<label index="error_link">
-				Der angegebene Link wurde nicht korrekt eigegeben oder
-				existiert nicht.
-			</label>
-			<label index="error_filesize">
-				Dateigröße überschritten.
-			</label>
-			<label index="error_filetype">
-				Dieses Dateiformat ist nicht zulässig.
-			</label>
-			<label index="error_filecopy">
-				der Kopiervorgang war nicht erfolgreich.
-			</label>
-			<label index="error_fileitems">
-				Die Dateien sind nicht vollständig.
-			</label>
-			<label index="error_unlink">
-				Diese Datei kann nicht gelöscht werden.
-			</label>
-			<label index="youbrowse">
-				Sie durchsuchen die Ergebnisse.
-			</label>
-			<label index="resultsProPage">
-				Anzahl der Einräge pro Seite:
-			</label>
+			<label index="delete">Element löschen.</label>
+			<label index="back">Zurück</label>
+			<label index="error_required">Dies ist ein Pflichtpfeld.</label>
+			<label index="error_max">Zeichenlänge überschritten. Es sind nur ###MAX### Zeichen erlaubt.</label>
+			<label index="error_min">Zu wenige Zeichen eingegeben. Sie müssen mindestens ###MIN### Zeichen verwenden.</label>
+			<label index="error_date_complete">Bitte geben Sie ein Datum ein.</label>
+			<label index="error_date_exist">Dieses Datum existiert nicht.</label>
+			<label index="error_date_upper">Bitte wählen Sie ein früheres Datum aus. Sie müssen ein Datum vor ###UPPER### verwenden.</label>
+			<label index="error_date_lower">Bitte wählen Sie ein späteres Datum aus. Sie müssen ein Datum nach ###LOWER### verwenden.</label>
+			<label index="error_leng">Der Text ist zu lang. Bitte verwenden Sie weniger Zeichen.</label>
+			<label index="error_date">Die Datumsangabe ist nicht korrekt. Bitte geben Sie ein gültiges Datum ein.</label>
+			<label index="error_datetime">Bitte verwenden Sie ein gültiges Datum und Uhrzeit.</label>
+			<label index="error_minitems">Bitte wählen Sie mehr Elemente aus. Sie müssen mindestens ###MINITEMS### auswählen.</label>
+			<label index="error_maxitems">Sie haben zu viele Elemente ausgewählt. Sie können maximal ###MAXITEMS### auswählen.</label>
+			<label index="error_email">Bitte geben Sie eine korrekte E-Mail Adresse an!</label>
+			<label index="error_unique">Ihre Eingabe stimmt nicht überein.</label>
+			<label index="error_integer">Ihre Eingabe ist keine Zahl.</label>
+			<label index="error_twice">Ihre Eingabe existiert bereits.</label>
+			<label index="error_link">Der angegebene Link wurde nicht korrekt eigegeben oder existiert nicht.</label>
+			<label index="error_filesize">Dateigröße überschritten. Maximal ###MAX_SIZE### sind erlaubt.</label>
+			<label index="error_filetype">Dieses Dateiformat ist nicht zulässig. Zulässige Formate sind: ###ALLOWED###.</label>
+			<label index="error_filecopy">Der Kopiervorgang war leider nicht erfolgreich.</label>
+			<label index="error_fileitems">Die Dateien sind nicht vollständig.</label>
+			<label index="dateTCA.splitter">.</label>
+			<label index="dateTCA.format">dd.mm.yyyy</label>
+			<label index="dateTCA.output">%m/%d/%Y</label>
+			<label index="datetimeTCA.output">%H:%M  %m/%d/%Y</label>
+			<label index="error_unlink">Diese Datei kann nicht gelöscht werden.</label>
+			<label index="error_captcha">Ihre eingabe stimmt nicht mit der Vorgabe überein. Bitte überprüfen Sie die Eingabe oder laden sie das Bild neu.</label>
+			<label index="error_nothing-found">Irgendetwas stimmt nicht: es wurde nichts gefunden!</label>
+			<label index="error_no-image">Das Bild kann nicht angezeigt werden.</label>
+			<label index="error_captcha-HTML-output">Die HTML-Seite kann nicht ausgegeben werden.</label>
+			<label index="error_crud-log-query">Die Daten können nicht a die Datenbank übergeben werden.</label>
+			<label index="create_preview">Der Datensatz wurde erfolgreich erstellt!</label>
+			<label index="create_record_failed">Ein Fehler ist aufgetreten! Bitte kontaktieren Sie den Administrator der Seite.</label>
+			<label index="retrieve_guest">Gastt</label>
+			<label index="update_preview">Der Datensatz wurde erfolgreich aktualisiert!</label>
+			<label index="update_record_failed">Ein Fehler ist aufgetreten! Bitte kontaktieren Sie den Administrator der Seite.</label>
+			<label index="delete_preview">Die Daten werden gelöscht. Dies kann einen Moment dauern.</label>
+			<label index="delete_not_exist">Der angegebene Speicherort existiert nicht.</label>
+			<label index="delete_query_failed">Ein Fehler ist aufgetreten! Bitte kontaktieren Sie den Administrator der Seite.</label>
+			<label index="youbrowse">Sie durchsuchen die Ergebnisse.</label>
+			<label index="resultsProPage">Anzahl der Einräge pro Seite:</label>
 			<label index="from">von</label>
+			<label index="no">nein</label>
+			<label index="yes">ja</label>
+			<label index="next">Nächste</label>
+			<label index="prev">Vorherige</label>
+			<label index="pages">Seiten:</label>
+			<label index="show">Anzeigen</label>
+			<label index="noResults">keine Ergebnisse</label>
+			<label index="freeSearch">freie Suche</label>
+			<label index="search">Search</label>
 			<label index="records">Datensätze</label>
 			<label index="General">Allgemein</label>
-			<label index="dateformat">d.m.Y \u\m H:i</label>
 			<label index="created">erstellt</label>
 			<label index="retrieved">angesehen</label>
-			<label index="updated">geändert</label>
+			<label index="updated">aktualisiert</label>
 			<label index="by">von</label>
 			<label index="on">am</label>
 			<label index="atall">insgesamt</label>
 			<label index="atlast">zuletzt</label>
 			<label index="times">mal</label>
+			<label index="date">Datum (dd.mm.yyyy)</label>
+			<label index="dateTCA.output">%d.%m.%Y</label>
+			<label index="datetimeTCA.output">%H:%M  %d.%m.%Y</label>
+			<label index="time">Zeit (hh:mm)</label>
+			<label index="no_rights_browse">Sie verfügen nicht über die nötigen Rechte, die Daten zu sehen.</label>
+			<label index="no_rights_retrieve">Sie verfügen nicht über die nötigen Rechte, die Daten abzurufen.</label>
+			<label index="no_rights_create">Sie verfügen nicht über die nötigen Rechte, Inhalte zu erstellen.</label>
+			<label index="no_rights_update">Sie verfügen nicht über die nötigen Rechte, die Daten zu aktualisieren.</label>
+			<label index="no_rights_delete">Sie verfügen nicht über die nötigen Rechte, die Daten zu löschen.</label>
 		</languageKey>
 	</data>
 </T3locallang>

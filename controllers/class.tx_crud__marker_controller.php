@@ -30,22 +30,17 @@
  * @subpackage tx_crud
  */
 
-tx_div::load('tx_lib_controller');
 class tx_crud__marker_controller extends tx_lib_controller{
 	
-	var $defaultAction = 'update';
+	var $defaultAction = 'retrieve';
 	var $headerData = false;
 	var $footerData = false;
-
+	
 	function updateAction() {
 		$config = $this->configurations;
-		$modelClassName = $config['storage.']['className'];
-		$templateEngineClassName = $config['view.']['className'];
 		$translatorClassName = tx_div::makeInstanceClassName($config["view."]["translatorClassName"]);
-		require_once($config['storage.']['classPath']);
-		require_once($config['view.']['classPath']);
-		$model = new $modelClassName($this);
-		$view = new $templateEngineClassName($model->controller); 
+		$model = $this->model;
+		$view = $this->view;
 		$view->setPathToTemplateDirectory($config["view."]["templatePath"]); 
 	    $view->render($config['view.']['template']);
 		$this->headerData = $view->headerData;
@@ -55,12 +50,7 @@ class tx_crud__marker_controller extends tx_lib_controller{
 		$view->_iterator->array['_content'] = $translator->translateContent();
 		$translator = new $translatorClassName($view);
 		$translator->setPathToLanguageFile("EXT:crud/locallang.xml");
-		if ($_GET['ajax'] || $_POST['ajax']) {
-			echo $translator->translateContent();
-			die();
-		} else {
-			return $translator->translateContent();
-		}
+		return $translator->translateContent();
 	}
 	
 	function deleteAction() {
@@ -68,10 +58,8 @@ class tx_crud__marker_controller extends tx_lib_controller{
 		$modelClassName = $config['storage.']['className'];
 		$templateEngineClassName = $config['view.']['className'];
 		$translatorClassName = tx_div::makeInstanceClassName($config["view."]["translatorClassName"]);
-		require_once($config['storage.']['classPath']);
-		require_once($config['view.']['classPath']);
-		$model = new $modelClassName($this);
-		$view = new $templateEngineClassName($model->controller); 
+		$model = $this->model;
+		$view = $this->view;
 		$view->setPathToTemplateDirectory($config["view."]["templatePath"]); 
 	    $view->render($config['view.']['template']);
 		$this->headerData = $view->headerData;
@@ -81,12 +69,7 @@ class tx_crud__marker_controller extends tx_lib_controller{
 		$view->_iterator->array['_content'] = $translator->translateContent();
 		$translator = new $translatorClassName($view);
 		$translator->setPathToLanguageFile("EXT:crud/locallang.xml");
-		if ($_GET['ajax'] || $_POST['ajax']) {
-			echo $translator->translateContent();
-			die();
-		} else {
-			return $translator->translateContent();
-		}
+		return $translator->translateContent();
 	}
 	
 	function createAction() {
@@ -94,10 +77,8 @@ class tx_crud__marker_controller extends tx_lib_controller{
 		$modelClassName = $config['storage.']['className'];
 		$templateEngineClassName = $config['view.']['className'];
 		$translatorClassName = tx_div::makeInstanceClassName($config["view."]["translatorClassName"]);
-		require_once($config['storage.']['classPath']);
-		require_once($config['view.']['classPath']);
-		$model = new $modelClassName($this);
-		$view = new $templateEngineClassName($model->controller); 
+		$model = $this->model;
+		$view = $this->view;
 		$view->setPathToTemplateDirectory($config["view."]["templatePath"]); 
 	    $view->render($config['view.']['template']);
 		$this->headerData = $view->headerData;
@@ -107,26 +88,16 @@ class tx_crud__marker_controller extends tx_lib_controller{
 		$view->_iterator->array['_content'] = $translator->translateContent();
 		$translator = new $translatorClassName($view);
 		$translator->setPathToLanguageFile("EXT:crud/locallang.xml");
-		if ($_REQUEST['ajax']) {
-			echo $translator->translateContent();
-			die();
-		} else {
-			return $translator->translateContent();
-		}
+		return $translator->translateContent();
 	}
 	
-	function retrieveAction() {		
+	function retrieveAction() {
 		$config = $this->configurations;
-		$start = microtime(true);
-		$modelClassName = $config['storage.']['className'];
 		$templateEngineClassName = $config['view.']['className'];
 		$translatorClassName = tx_div::makeInstanceClassName($config["view."]["translatorClassName"]);
-		require_once($config['storage.']['classPath']);
-		require_once($config['view.']['classPath']);
-		$model = new $modelClassName($this);
-		$view = new $templateEngineClassName($model->controller); 
+		$model = $this->model;
+		$view = $this->view;
 		$view->setPathToTemplateDirectory($config["view."]["templatePath"]); 
-		//$view->set("data",$model->getData());
 		$view->render($config['view.']['template']);
 		$this->headerData = $view->headerData;
 		$this->footerData = $view->footerData;
@@ -135,55 +106,39 @@ class tx_crud__marker_controller extends tx_lib_controller{
 		$view->_iterator->array['_content'] = $translator->translateContent();
 		$translator = new $translatorClassName($view);
 		$translator->setPathToLanguageFile("EXT:crud/locallang.xml");
-		$stop = microtime(true);
-		if ($_GET['ajax'] || $_POST['ajax']) {
-			echo $translator->translateContent();
-			die();
-		} else {
-			return $translator->translateContent();
-		}
+		return $translator->translateContent();
+		
 	}
 
 	function browseAction() {
-		$start = microtime(true);
 		$config = $this->configurations;
-		$modelClassName = $config['storage.']['className'];
 		$templateEngineClassName = $config['view.']['className'];
 		$translatorClassName = tx_div::makeInstanceClassName($config["view."]["translatorClassName"]);
-		$stop = microtime(true);
-		//echo "<br> instanzen:".round($stop-$start,3);
-		$start = microtime(true);
-		include($config['storage.']['classPath']);
-		include($config['view.']['classPath']);
-		$stop = microtime(true);
-		//echo "<br> file include:".round($stop-$start,3);
-		$start = microtime(true);
-		$model = new $modelClassName($this);
-		$view = new $templateEngineClassName($model->controller); 
-		$stop = microtime(true);
-		//echo "<br> model and view:".round($stop-$start,3);
-		$start = microtime(true);
+		$model = $this->model;
+		$view = $this->view;
 		$view->setPathToTemplateDirectory($config["view."]["templatePath"]); 
 		$view->render($config['view.']['template']);
 		$this->headerData = $view->headerData;
 		$this->footerData = $view->footerData;
-		$stop = microtime(true);
-		// "<br> view rendern:".round($stop-$start,3);
-		$start = microtime(true);
 		$translator = new $translatorClassName($view);
 		$translator->setPathToLanguageFile($config["view."]["keyOfPathToLanguageFile"]);
 		$view->_iterator->array['_content'] = $translator->translateContent();
 		$translator = new $translatorClassName($view);
 		$translator->setPathToLanguageFile("EXT:crud/locallang.xml");
-		$stop = microtime(true);
-		//echo "<br> translate:".round($stop-$start,3);
-		if ($_GET['ajax'] || $_POST['ajax']) {
-			echo $translator->translateContent();
+		return $translator->translateContent();
+	}
+	
+	function autocompleteAction() {		
+		if($_REQUEST['q']) {
+			$config = $this->configurations;
+			$pars=$this->parameters->getArrayCopy();
+			$pars['search']=$_GET['q'];
+			$pars['autocomplete']="1";
+			$this->parameters=new tx_lib_object($pars);
+			$model = $this->model;
+			echo $model->data;
 			die();
-		} else {
-			return $translator->translateContent();
 		}
-		
 	}
 }
 

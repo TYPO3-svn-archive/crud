@@ -1,4 +1,5 @@
 <?php 
+
 if (!defined ('TYPO3_MODE')) die ('Access denied.');
 if ($this->get('mode') == 'EDIT') {
 	$entryList = $this->get('setup');
@@ -8,7 +9,7 @@ if ($this->get('mode') == 'EDIT') {
 	echo '<ul>' . "\n\t";
 	$i = 1;
 	foreach ($entryList as $divider=>$sections) {
-		echo '<li><a href="'.$this->baseUrl.'#fragment-' . $i . '"><span>' . $this->getLLfromKey($divider,0,1) . '</span></a></li>' . "\n\t";
+		echo '<li><a href="'.$this->baseUrl.'#fragment-' . $i . '"><span>' . $this->getLL($divider,1) . '</span></a></li>' . "\n\t";
 		$i++;
 	}
 	echo "</ul>\n";
@@ -47,7 +48,7 @@ if ($this->get('mode') == 'EDIT') {
 		$i++;
 	}
 	
-	$this->loadHeaderData("css","tabs");
+	$this->loadHeaderData("css","tables");
 	$this->loadHeaderData("css","forms");
 	$this->loadHeaderData("libraries","jquery");
 	$this->loadHeaderData("libraries","jquery-forms");

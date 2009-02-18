@@ -32,76 +32,25 @@
 require_once(t3lib_extMgm::extPath('crud') . 'models/class.tx_crud__models_create.php');
 class tx_crud__models_update extends tx_crud__models_create{
 
-	var $panelAction = "UPDATE";
-	var $panelTable;
-	var $panelRecord;
-
-
-	function _getValue($item_key)  {
-		//echo $item_key;
-		$TCA = $this->items[$item_key];
-		$pars = $this->controller->parameters->getArrayCopy();
-		//if($item_key=='')
-		$pars = $this->controller->parameters->getArrayCopy();
-		//t3lib_div::debug($pars);
-		if(!is_array($pars[$item_key]) && strlen($pars[$item_key])>=1) return $pars[$item_key];
-		elseif(is_array($pars[$item_key]) && strlen($pars[$item_key][0])>=1) return $pars[$item_key]; 
-		else {
-			if ($TCA['config']['MM']) {
-				$table = $TCA["config"]['MM'];
-				$where = "uid_local=" . $this->panelRecord;
-				$query = $GLOBALS['TYPO3_DB']->exec_SELECTquery("*",$table,$where);
-				if($query) {
-					for ($y = 0; $y < $GLOBALS['TYPO3_DB']->sql_num_rows($query); $y++) {
-						$GLOBALS['TYPO3_DB']->sql_data_seek($query,$y);
-						$row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($query);
-						if ($TCA['config']["allowed"]) {
-							$values[$row['tablenames']."__".$row['uid_foreign']] = $row['tablenames'] . "__" . $row['uid_foreign'];
-						} else {
-							$values[] = $row['uid_foreign'];
-						}
-					}
-				}
-				return $values;
-			}
-			//elseif($TCA['config']["allowed"]) {
-			//	
-			//}
-			else{
-				$fields = $this->getStorageFields();
-				$where = 'uid=' . $this->panelRecord;
-				if ($query = $GLOBALS['TYPO3_DB']->exec_SELECTquery($fields,strtolower($this->panelTable),$where)) {
-					$result = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($query);
-				}
-				if ($result && $TCA['config']['maxitems'] > 1) {
-					if(strlen($result[$item_key])>=1)$result[$item_key] = explode(",",$result[$item_key]);
-				}
-				if (strlen($result[$item_key])>=1) {
-					//t3lib_div::debug($result[$item_key]);
-					return $result[$item_key];
-				} 
-				else {
-					return false;
-				}
-			}
-
-		}
-	}
-    
+	// -------------------------------------------------------------------------------------
+	// database create queries
+	// -------------------------------------------------------------------------------------
+	
+	/**
+	 * overwrite of the query call in common
+	 * 
+	 * @return  void
+	 */	
 	function processQuery() {
 		$this->updateQuery();
 	}
-	
-	function checkNode() {
-	 	$where = 'uid=' . $this->panelRecord;
-		$table = strtolower($this->panelTable);
-		$query = $GLOBALS['TYPO3_DB']->exec_SELECTquery("uid",$table,$where);
-		if (!$query) {
-			$this->mode = 'NOT_EXIST';
-		}
-	 }
 
-	protected function updateQuery() {
+	/**
+	 * makes the update query
+	 * 
+	 * @return  void
+	 */	
+	private function updateQuery() {
 		foreach ($this->html as $key=>$val) {
 			if (is_array($val['process'])) {
 				$this->processData[$key] = implode(",",$val['process']);
@@ -121,15 +70,26 @@ class tx_crud__models_update extends tx_crud__models_create{
 		$this->preQuery();
 		$update = $this->processData;
 		$update['tstamp'] = time();
-		//t3lib_div::debug($update,"up");
 		$where = 'uid=' . $this->panelRecord;
-		$table = strtolower($this->panelTable);
+		$table = strtolower($this->panelTable);	
+		$config=$this->controller->configurations->getArrayCopy();
 		if ($this->mode == 'PROCESS') {
+			if($config['enable.']['histories']) {
+				$query4History = $GLOBALS['TYPO3_DB']->sql_query('SELECT '.$this->getStorageFields().' FROM ' . $table . ' WHERE ' . $where);
+				$result = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($query4History);
+				foreach($result AS $itemkey=>$value) {
+					if(isset($this->html[$itemkey]['config.']['MM'])) {
+						$mmData=$this->getDataMM($this->panelRecord,$itemkey);
+						if(is_array($mmData))$result[$itemkey]=implode(",",array_keys($mmData));
+					}
+				}
+			}
 			$query = $GLOBALS['TYPO3_DB']->exec_UPDATEquery($table,$where,$update);
 		}
 		if (!$query) {
 			$this->mode='QUERY_ERROR';
-		} else {
+		} 
+		else {
 			$TCE = tx_div::makeInstance('t3lib_TCEmain');
 			$TCE->admin = 1;
 			$TCE->clear_cacheCmd('pages');
@@ -138,6 +98,13 @@ class tx_crud__models_update extends tx_crud__models_create{
 			if ($config['enable.']['logging'] == 1) {
 				tx_crud__log::write($config['storage.']['action'], $this->panelRecord, $config['storage.']['nameSpace'],$config['logging.']);
 			}
+			if($config['enable.']['histories']) {
+				tx_crud__histories::write($this->panelTable, $this->panelRecord, $result);
+			}
+			if(!isset(tx_crud__lock::$status)) {
+				tx_crud__lock::init($this->panelTable,$this->panelRecord,$config['locks.']);
+			}
+			tx_crud__lock::unlock($this->panelTable,$this->panelRecord);
 			if (is_array($this->processMM)) {
 				foreach($this->processMM as $key=>$val) {
 					$uid_local = $this->panelRecord;
@@ -158,10 +125,9 @@ class tx_crud__models_update extends tx_crud__models_create{
 							$insertMM['tablenames'] = $tableName;
 							$insertMM['sorting'] = $i;
 							if (!$GLOBALS['TYPO3_DB']->exec_INSERTquery($table,$insertMM)) {
-								//TODO: Localization
-								die("Fehler beim crud_tca update in processMM");
+								die("Fehler beim crud update query in processMM");
 							}
-							$i *= 16; //NOTE: Prüfen.
+							$i *= 16; 
 						}
 					}
 				}
@@ -169,9 +135,59 @@ class tx_crud__models_update extends tx_crud__models_create{
 			$this->postQuery(); 
 		}
 	}
-}
-
-if (defined('TYPO3_MODE') && $TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/crud/models/class.tx_crud_models_update.php']) {
-	include_once($TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/crud/models/class.tx_crud_models_update.php']);
+	
+	/**
+	 * if no post value from a form isset it returns the db value otherwise the post param 
+	 * 
+	 * @param 	
+	 * @return  void
+	 */	
+	function _getValue($item_key)  {
+		$TCA = $this->items[$item_key];
+		$pars = $this->controller->parameters->getArrayCopy();
+		$pars = $this->controller->parameters->getArrayCopy();
+		$config=$this->controller->configurations->getArrayCopy();
+		if(!isset(tx_crud__lock::$status)) {
+			tx_crud__lock::init($this->panelTable,$this->panelRecord,$config['locks.']);
+			if(tx_crud__lock::$status=="LOCKED") $this->mode="LOCKED";
+		}
+		if(!is_array($pars[$item_key]) && strlen($pars[$item_key])>=1) return $pars[$item_key];
+		elseif(is_array($pars[$item_key]) && strlen($pars[$item_key][0])>=1) return $pars[$item_key]; 
+		else {
+			if ($TCA['config']['MM']) {
+				$table = $TCA["config"]['MM'];
+				$where = "uid_local=" . $this->panelRecord;
+				$query = $GLOBALS['TYPO3_DB']->exec_SELECTquery("*",$table,$where);
+				if($query) {
+					for ($y = 0; $y < $GLOBALS['TYPO3_DB']->sql_num_rows($query); $y++) {
+						$GLOBALS['TYPO3_DB']->sql_data_seek($query,$y);
+						$row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($query);
+						if ($TCA['config']["allowed"]) {
+							$values[$row['tablenames']."__".$row['uid_foreign']] = $row['tablenames'] . "__" . $row['uid_foreign'];
+						} else {
+							$values[] = $row['uid_foreign'];
+						}
+					}
+				}
+				return $values;
+			}
+			else {
+				$fields = $this->getStorageFields();
+				$where = 'uid=' . $this->panelRecord;
+				if ($query = $GLOBALS['TYPO3_DB']->exec_SELECTquery($fields,strtolower($this->panelTable),$where)) {
+					$result = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($query);
+				}
+				if ($result && $TCA['config']['maxitems'] > 1) {
+					if(strlen($result[$item_key])>=1)$result[$item_key] = explode(",",$result[$item_key]);
+				}
+				if (strlen($result[$item_key])>=1) {
+					return $result[$item_key];
+				} 
+				else {
+					return false;
+				}
+			}
+		}
+	}
 }
 ?>

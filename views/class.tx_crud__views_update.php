@@ -29,10 +29,9 @@
  * @package TYPO3
  * @subpackage tx_crud
  */
-require_once(PATH_site.'typo3/sysext/cms/tslib/class.tslib_content.php');
-require_once(t3lib_extMgm::extPath('crud') . 'library/class.tx_crud__formBase.php');
-require_once(t3lib_extMgm::extPath('crud') . 'views/class.tx_crud__views_common.php');
-class tx_crud__views_update extends tx_crud__views_common {
+
+require_once(t3lib_extMgm::extPath('crud') . 'views/class.tx_crud__views_create.php');
+class tx_crud__views_update extends tx_crud__views_create {
 	var $viewAction = "UPDATE";
 }
 
