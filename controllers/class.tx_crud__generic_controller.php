@@ -30,48 +30,17 @@
  * @subpackage tx_crud
  */
 
-class tx_crud__marker_controller extends tx_lib_controller{
+class tx_crud__generic_controller extends tx_lib_controller{
 	
 	var $defaultAction = 'retrieve';
 	var $headerData = false;
 	var $footerData = false;
 	
-	function updateAction() {
-		$config = $this->configurations;
-		$translatorClassName = tx_div::makeInstanceClassName($config["view."]["translatorClassName"]);
-		$model = $this->model;
-		$view = $this->view;
-		$view->setPathToTemplateDirectory($config["view."]["templatePath"]); 
-	    $view->render($config['view.']['template']);
-		$this->headerData = $view->headerData;
-		$this->footerData = $view->footerData;
-		$translator = new $translatorClassName($view);
-		$translator->setPathToLanguageFile($config["view."]["keyOfPathToLanguageFile"]);
-		$view->_iterator->array['_content'] = $translator->translateContent();
-		$translator = new $translatorClassName($view);
-		$translator->setPathToLanguageFile("EXT:crud/locallang.xml");
-		return $translator->translateContent();
-	}
-	
-	function deleteAction() {
-		$config = $this->configurations;
-		$modelClassName = $config['storage.']['className'];
-		$templateEngineClassName = $config['view.']['className'];
-		$translatorClassName = tx_div::makeInstanceClassName($config["view."]["translatorClassName"]);
-		$model = $this->model;
-		$view = $this->view;
-		$view->setPathToTemplateDirectory($config["view."]["templatePath"]); 
-	    $view->render($config['view.']['template']);
-		$this->headerData = $view->headerData;
-		$this->footerData = $view->footerData;
-		$translator = new $translatorClassName($view);
-		$translator->setPathToLanguageFile($config["view."]["keyOfPathToLanguageFile"]);
-		$view->_iterator->array['_content'] = $translator->translateContent();
-		$translator = new $translatorClassName($view);
-		$translator->setPathToLanguageFile("EXT:crud/locallang.xml");
-		return $translator->translateContent();
-	}
-	
+	/**
+	 * generic create action
+	 * 
+	 * @return	string	the content of the controller
+	 */
 	function createAction() {
 		$config = $this->configurations;
 		$modelClassName = $config['storage.']['className'];
@@ -91,6 +60,11 @@ class tx_crud__marker_controller extends tx_lib_controller{
 		return $translator->translateContent();
 	}
 	
+	/**
+	 * generic retrieve action
+	 * 
+	 * @return	string	the content of the controller
+	 */
 	function retrieveAction() {
 		$config = $this->configurations;
 		$templateEngineClassName = $config['view.']['className'];
@@ -109,7 +83,59 @@ class tx_crud__marker_controller extends tx_lib_controller{
 		return $translator->translateContent();
 		
 	}
-
+	
+	/**
+	 * generic update action
+	 * 
+	 * @return	void
+	 */
+	function updateAction() {
+		$config = $this->configurations;
+		$translatorClassName = tx_div::makeInstanceClassName($config["view."]["translatorClassName"]);
+		$model = $this->model;
+		$view = $this->view;
+		$view->setPathToTemplateDirectory($config["view."]["templatePath"]); 
+	    $view->render($config['view.']['template']);
+		$this->headerData = $view->headerData;
+		$this->footerData = $view->footerData;
+		$translator = new $translatorClassName($view);
+		$translator->setPathToLanguageFile($config["view."]["keyOfPathToLanguageFile"]);
+		$view->_iterator->array['_content'] = $translator->translateContent();
+		$translator = new $translatorClassName($view);
+		$translator->setPathToLanguageFile("EXT:crud/locallang.xml");
+		return $translator->translateContent();
+	}
+	
+		
+	/**
+	 * generic delete action
+	 * 
+	 * @return	string	the content of the controller
+	 */
+	function deleteAction() {
+		$config = $this->configurations;
+		$modelClassName = $config['storage.']['className'];
+		$templateEngineClassName = $config['view.']['className'];
+		$translatorClassName = tx_div::makeInstanceClassName($config["view."]["translatorClassName"]);
+		$model = $this->model;
+		$view = $this->view;
+		$view->setPathToTemplateDirectory($config["view."]["templatePath"]); 
+	    $view->render($config['view.']['template']);
+		$this->headerData = $view->headerData;
+		$this->footerData = $view->footerData;
+		$translator = new $translatorClassName($view);
+		$translator->setPathToLanguageFile($config["view."]["keyOfPathToLanguageFile"]);
+		$view->_iterator->array['_content'] = $translator->translateContent();
+		$translator = new $translatorClassName($view);
+		$translator->setPathToLanguageFile("EXT:crud/locallang.xml");
+		return $translator->translateContent();
+	}
+	
+	/**
+	 * generic browse action
+	 * 
+	 * @return	string	the content of the controller
+	 */
 	function browseAction() {
 		$config = $this->configurations;
 		$templateEngineClassName = $config['view.']['className'];
@@ -128,6 +154,12 @@ class tx_crud__marker_controller extends tx_lib_controller{
 		return $translator->translateContent();
 	}
 	
+		
+	/**
+	 * generic autocomplete action for the searchbox
+	 * 
+	 * @return	string	the content of the controller
+	 */
 	function autocompleteAction() {		
 		if($_REQUEST['q']) {
 			$config = $this->configurations;
@@ -140,10 +172,6 @@ class tx_crud__marker_controller extends tx_lib_controller{
 			die();
 		}
 	}
-}
-
-if (defined('TYPO3_MODE') && $TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/crud/controllers/class.tx_crud_controllers_common.php']) {
-	include_once($TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/crud/controllers/class.tx_crud_controllers_common.php']);
 }
 
 ?>
