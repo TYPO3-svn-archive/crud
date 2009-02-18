@@ -65,7 +65,7 @@ if ($this->get('mode') == 'EDIT') {
 	} elseif ($this->get('mode') == 'ICON') {
 		$this->printActionLink("update") . "";
 	} elseif ($this->get('mode') == 'PROCESS') {
-		echo "%%%create_preview%%%".$this->getExitLink("%%%back%%%",0);
+		echo "%%%create_preview%%%".$this->printAsExitLink("%%%back%%%",0);
 	} elseif ($this->get('mode') == 'HIDE') {
 		echo "";
 	}
