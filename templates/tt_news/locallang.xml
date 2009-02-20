@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<T3locallang>
+	<meta type="array">
+		<type>database</type>
+		<description>Language labels for 'crud'</description>
+	</meta>
+	<data type="array">
+		<languageKey index="default" type="array">
+			<label index="datetime">created</label>
+			<label index="newsSearch">Search within the news! </label>
+			<label index="more">Read more</label>
+			<label index="back">back to newslist</label>
+			<label index="back">back to newslist</label>
+			<label index="backtitle">back to newslist</label>
+			<label index="author">author</label>
+			<label index="category">category</label>
+			<label index="timesvisited">viewed</label>
+			<label index="print">print</label>
+			<label index="search">search</label>
+			<label index="send">send article</label>
+			<label index="links">links</label>
+			<label index="relatednews">related news</label>
+		</languageKey>
+		<languageKey index="de" type="array">
+			<label index="datetime">geschrieben am</label>
+			<label index="newsSearch">News durchsuchen! </label>
+			<label index="more">Weiterlesen</label>
+			<label index="back">zurück zur Übersicht</label>
+			<label index="backtitle">zurück zur Übersicht</label>
+			<label index="author">Autor</label>
+			<label index="category">Kategorie</label>
+			<label index="timesvisited">besucht</label>
+			<label index="print">Drucken</label>
+			<label index="search">Suchen</label>
+			<label index="send">Artikel versenden</label>
+			<label index="links">Links</label>
+			<label index="relatednews">verwandte Artikel</label>
+		</languageKey>
+	</data>
+</T3locallang>
