@@ -35,7 +35,7 @@
 			<label index="dateTCA.splitter">.</label>
 			<label index="dateTCA.format">dd.mm.yyyy</label>
 			<label index="dateTCA.output">%m/%d/%Y</label>
-			<label index="datetimeTCA.output">%H:%M  %m/%d/%Y</label>
+			<label index="datetimeTCA.output"> %m/%d/%Y at %H:%M</label>
 			<label index="error_unlink">Sorry! The file couldn't be deleted.</label>
 			<label index="error_captcha">Captcha doesn't match!</label>
 			<label index="error_nothing-found">Something is wrong: nothing found!</label>
@@ -73,8 +73,6 @@
 			<label index="atlast">at last</label>
 			<label index="times">times</label>
 			<label index="date">Date (dd.mm.yyyy)</label>
-			<label index="dateTCA.output">%d.%m.%Y</label>
-			<label index="datetimeTCA.output">%H:%M  %d.%m.%Y</label>
 			<label index="time">Time (hh:mm)</label>
 			<label index="no_rights_browse">Your are not allowed to browse this content.</label>
 			<label index="no_rights_retrieve">Your are not allowed to see this content.</label>
@@ -112,7 +110,7 @@
 			<label index="dateTCA.splitter">.</label>
 			<label index="dateTCA.format">dd.mm.yyyy</label>
 			<label index="dateTCA.output">%m/%d/%Y</label>
-			<label index="datetimeTCA.output">%H:%M  %m/%d/%Y</label>
+			<label index="datetimeTCA.output"> %d.%m.%Y um %H:%M Uhr</label>
 			<label index="error_unlink">Diese Datei kann nicht gelöscht werden.</label>
 			<label index="error_captcha">Ihre eingabe stimmt nicht mit der Vorgabe überein. Bitte überprüfen Sie die Eingabe oder laden sie das Bild neu.</label>
 			<label index="error_nothing-found">Irgendetwas stimmt nicht: es wurde nichts gefunden!</label>
@@ -150,8 +148,6 @@
 			<label index="atlast">zuletzt</label>
 			<label index="times">mal</label>
 			<label index="date">Datum (dd.mm.yyyy)</label>
-			<label index="dateTCA.output">%d.%m.%Y</label>
-			<label index="datetimeTCA.output">%H:%M  %d.%m.%Y</label>
 			<label index="time">Zeit (hh:mm)</label>
 			<label index="no_rights_browse">Sie verfügen nicht über die nötigen Rechte, die Daten zu sehen.</label>
 			<label index="no_rights_retrieve">Sie verfügen nicht über die nötigen Rechte, die Daten abzurufen.</label>

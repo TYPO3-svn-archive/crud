@@ -61,6 +61,7 @@ class tx_crud__models_common extends tx_lib_object {
 	 * @return	void
 	 */
 	function setup(&$controller) {
+		$start=microtime(true);
 		$this->reset ();
 		$this->controller = $controller;
 		$pars = $controller->parameters->getArrayCopy ();
@@ -91,6 +92,8 @@ class tx_crud__models_common extends tx_lib_object {
 		if ($config ['enable.'] ['caching'] == 1)
 			$this->cached = tx_crud__cache::get ( $hash );
 		$this->load ();
+		$stop=microtime(true);
+		//echo "</br>model complete:".round($stop-$start,8);
 	}
 	
 	/**
@@ -708,14 +711,17 @@ class tx_crud__models_common extends tx_lib_object {
 					if ($pars [$key])
 						$reloadTCA = true;
 			if ($reloadTCA) {
+				//echo "tca neu laden";
 				$this->cached = false;
 				$items = false;
 				$cache = false;
 				$this->bigTCA = false;
 				$this->divider = false;
 			}
-			if (! is_array ( $items ) || $reloadTCA)
+			if (! is_array ( $items ) || $reloadTCA) {
+				//echo "process tca";
 				$items = $this->_processTCA ( $table, $fields );
+			}
 			$this->table = $table;
 			$this->items = $items;
 			$this->setSubmit ();
@@ -728,8 +734,10 @@ class tx_crud__models_common extends tx_lib_object {
 			}
 			$start = microtime ( true );
 			$data = $this->getData ();
+			//t3lib_div::Debug($data);
+			$stop=microtime(true);
+			//echo "</br>get data complete:".round($stop-$start,8);
 			$config = $this->controller->configurations->getArrayCopy ();
-			$stop = microtime ( true );
 			$this->_processOptions ();
 			$this->setupValues ();
 			$this->setMode ();
@@ -756,6 +764,7 @@ class tx_crud__models_common extends tx_lib_object {
 				$config ['view.'] ['mode'] = $this->mode;
 				if ($config ['enable.'] ['histories'] == 1 && is_array ( $this->histories ))
 					$config ['view.'] ['histories'] = $this->histories;
+					$config ['view.'] ['data'] = $data;
 				$this->controller->configurations = new tx_lib_object ( $config );
 				$this->_nextStep ();
 			}
@@ -1513,6 +1522,7 @@ class tx_crud__models_common extends tx_lib_object {
 		}
 		$table = $TCA ['config'] ['foreign_table'];
 		t3lib_div::loadTCA ( $table );
+		//echo "lade tca von".$table;
 		$orgTCA = $GLOBALS ["TCA"] [$table];
 		if (isset ( $GLOBALS ["TCA"] [$table] ['ctrl'] ['delete'] )) {
 			$where = $table . "." . $GLOBALS ["TCA"] [$table] ['ctrl'] ['delete'] . "=0 ";
@@ -1586,6 +1596,7 @@ class tx_crud__models_common extends tx_lib_object {
 				$what .= ',' . $key;
 			}
 			t3lib_div::loadTCA ( $table );
+			//echo "lade tca von ".$table;
 			$orgTCA = $GLOBALS ["TCA"] [$table];
 			if ($GLOBALS ["TCA"] [$table] ['ctrl'] ['delete']) {
 				$where = $GLOBALS ["TCA"] [$table] ['ctrl'] ['delete'] . '=0';
@@ -2149,13 +2160,14 @@ class tx_crud__models_common extends tx_lib_object {
 			} else {
 				$field = 'title';
 			}
-			$query = $GLOBALS ['TYPO3_DB']->exec_SELECT_mm_query ( $table . "." . $field . "," . $table . ".uid", $this->panelTable, $config ['MM'], $table, " AND " . $config ['MM'] . ".uid_local=" . $uid . $tableNames ); //$where=false;
+			$query = $GLOBALS ['TYPO3_DB']->exec_SELECT_mm_query ( $table . "." . $field . "," . $table . ".uid,".$config ['MM'].".uid_foreign", $this->panelTable, $config ['MM'], $table, " AND " . $config ['MM'] . ".uid_local=" . $uid . $tableNames ); //$where=false;
 			if ($query) {
 				$size = $GLOBALS ['TYPO3_DB']->sql_affected_rows ( $query );
 				for($i = 0; $i < $size; $i ++) {
 					$GLOBALS ['TYPO3_DB']->sql_data_seek ( $query, $i );
 					$result = $GLOBALS ['TYPO3_DB']->sql_fetch_assoc ( $query );
-					$mm [$table . "__" . $result ['uid']] = $result [$field];
+					//t3lib_div::debug($result);
+					$mm [$table . "__" . $result ['uid_foreign']] = $result [$field];
 				}
 			}
 		}

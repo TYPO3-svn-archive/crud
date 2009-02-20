@@ -31,9 +31,6 @@
  * @package TYPO3
  * @subpackage tx_crud
  */
-
-
-
 final class tx_crud__parser{
 	var $newContent;
 	var $extras;
@@ -45,9 +42,9 @@ final class tx_crud__parser{
 	/**
 	 * hook for replacing all markers on a page with controller content and class factory for models and views
 	 * 
-	 * @param 	obejct	$params	
-	 * @param 	string	$item_key	the key of the setup
-	 * @return  array	mm data array
+	 * @param 	object	$params	the pObj 
+	 * @param 	string	$reference	the reference
+	 * @return  string	the parsed html pages
 	 */	
 	function contentPostProc_output(&$params, &$reference) {
 		include_once(t3lib_extMgm::extPath('crud') . 'library/class.tx_crud__div.php');
@@ -60,9 +57,21 @@ final class tx_crud__parser{
 				$test = explode("~",$marker);
 				if (count($test) >= 3) {
 					$str = '{{{' . $marker . '}}}';
-					if(tx_crud__div::getActionID("",$str)==$_REQUEST['aID']) {
+					if(tx_crud__div::getActionID("",$str)==$_REQUEST['aID'] || tx_crud__div::getActionID("",$str)==$_REQUEST['xID']) {
+						if(isset($_REQUEST['mID'])) {
+							//echo "ok";
+							$str=$_REQUEST['mID'];
+							$this->parse($str);
+							echo $this->markerArray[$str];
+							die();
+						}
 						$this->parse($str);
-						echo $this->markerArray[$str];
+						$content=$this->markerArray[$str];
+						$this->parse($content);
+						if(is_array($this->markerArray)) foreach($this->markerArray as $marker=>$html) {
+							$content=str_replace($marker,$html,$content);
+						}
+						echo $content;
 						die();
 					}
 				}
@@ -83,6 +92,11 @@ final class tx_crud__parser{
 		}
 	}
 	
+	/**
+	 * get and cached the typoscript configuation for an action
+	 * 
+	 * @return  array	typoscript
+	 */	
 	function setup() {
 		$marker = $this->marker;
 		$hash = md5("pluginSetup".$marker);
@@ -94,6 +108,7 @@ final class tx_crud__parser{
 		if(is_array($cached['typoscript'])) {
 			$typoscript=$cached['typoscript'];
 		}
+		//t3lib_div::Debug($setup);
 		$cache['config']=$cached['config'];
 		if (!is_array($typoscript)) {
 			define(PATH_t3lib,"t3lib/");
@@ -114,6 +129,7 @@ final class tx_crud__parser{
 			$typoscript=$cache['typoscript'];
 			$this->pageConfig=$cache['config'];
 		}
+		//t3lib_div::debug($cache);
 		$setup = $typoscript['configurations.'][strtolower($marker[0])."Action."];
 		if(!is_array($setup['setup.'])) $this->newContent="CRUD Parser has no Typscript found for ".implode("~",$marker)."! Please create Typoscript: ". $marker[3];
 		$pars=tx_crud__div::_GP($setup['setup.']['extension']);
@@ -161,6 +177,12 @@ final class tx_crud__parser{
 		return $setup_ok;
 	}
 
+	/**
+	 * search and replace content marker with the contoller action
+	 * 
+	 * @param	$content	the content with the markers
+	 * @return  void
+	 */
 	function parse($content) {
 		$html = explode('{{{',$content);
 		$replace = array();
@@ -174,6 +196,7 @@ final class tx_crud__parser{
 				$this->marker = $marker;
 				$setup = $this->setup();
 				$setup['setup.']['marker'] = $str;
+				//t3lib_div::Debug($setup);
 				$mode = $this->setSubmit($setup);
 				if ($test[0] == "CREATE" || $test[0] == "UPDATE" || $test[0] == "DELETE") {
 					$icon = true;
@@ -254,6 +277,13 @@ final class tx_crud__parser{
 		}
 	}
 
+	/**
+	 * write header data like css or javscripts to the page header
+	 * 
+	 * @param	array $headerData	the data for the header
+	 * @param 	string	$content	the html page
+	 * @return  string the htmlpage with the added header data
+	 */
 	function makeHeader($headerData,$content) {
 		$headerData=$headerData;
 		if (is_array($headerData)) {
@@ -292,6 +322,13 @@ function getBaseurl(){
 		return $content;
 	}
 	
+	/**
+	 * write footer data like css or javscripts to the page footer
+	 * 
+	 * @param	array $headerData	the data for the header
+	 * @param 	string	$content	the html page
+	 * @return  string the htmlpage with the added footer data
+	 */
 	function makeFooter($headerData,$content) {
 		$headerData=$headerData;
 		if (is_array($headerData)) {
@@ -316,6 +353,12 @@ function getBaseurl(){
 		return $content;
 	}
 	
+	/**
+	 * set submit state 
+	 * 
+	 * @param	array $setup	the configuration setup
+	 * @return  string the mode
+	 */
 	function setSubmit($setup) {
 		$pars=tx_crud__div::_GP($setup['setup.']['extension']);
 		if ($pars["form"] == tx_crud__div::getActionID($setup)) {
@@ -351,7 +394,4 @@ function getBaseurl(){
 	}
 }
 
-if (defined("TYPO3_MODE") && $TYPO3_CONF_VARS[TYPO3_MODE]["XCLASS"]["ext/crud/library/class.crud_parser.php"]) {
-	include_once($TYPO3_CONF_VARS[TYPO3_MODE]["XCLASS"]["ext/crud/library/class.crud_parser.php"]);
-}
 ?>

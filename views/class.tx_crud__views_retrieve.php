@@ -33,12 +33,41 @@
 require_once(t3lib_extMgm::extPath('crud') . 'views/class.tx_crud__views_common.php');
 class tx_crud__views_retrieve extends tx_crud__views_common {
 	var $panelAction = "RETRIEVE";
-
+	
 	function printValueByType($item_value) {
 		return $this->getLL($item_value);
 	}
 	
-	function printBackLink($label="%%%back%%%") {
+/**
+	 * prints a page browser
+	 * 
+ 	 * @param	integer	$uid	the uid of the record to show
+  	 * @param 	string	$label	the label for the sorting link
+ 	 * @param 	boolean	$urlOnly	if set only the url will returned
+ 	 * @param 	string	$action	optional a special action 
+	 * @return	void
+	 */
+	function printAsSingleLink($uid, $label = "%%%show%%%", $urlOnly = false, $action = "retrieve") {
+		$pars = $this->controller->parameters->getArrayCopy ();
+		$pars ['retrieve'] = $uid;
+		$pars ['action'] = $action;
+		$pars ['saveContainer'] = 1;
+		$data = $pars;
+		$data ["ajaxTarget"] = $this->getAjaxTarget ( "printAsSingleLink" );
+		if (is_array ( $data ['search'] )) {
+			unset ( $data ['search'] );
+			$data ['track'] = 1;
+		}
+		if ($this->page >= 1) {
+			$data ['page'] = $this->page;
+		}
+		if ($urlOnly)
+			return $this->getUrl ( $data );
+		else
+			echo $this->getTag ( $label, $data );
+	}
+	
+	function printAsBackLink($label="%%%back%%%",$urlOnly=false) {
 		$pars = $this->controller->parameters->getArrayCopy();
 		$data=$pars;
 		unset($data['action']);
@@ -49,8 +78,8 @@ class tx_crud__views_retrieve extends tx_crud__views_common {
 		}
 		$data['restoreContainer']=1;
 		$data['ajaxTarget'] = $this->getAjaxTarget("printbackLink");
-		$out = $this->getTag($label,$data);
-		echo $out;
+		if(!$urlOnly) echo $this->getTag($label,$data);
+		else return $this->getUrl($data);
 	}
 	
 	function renderPreview($data=false) {
@@ -58,6 +87,7 @@ class tx_crud__views_retrieve extends tx_crud__views_common {
 		$params = $this->controller->parameters->getArrayCopy();
 		$setup=$typoscript['view.']['setup'];
 		if(!$data) $data=$typoscript['view.']['data'];
+	//	t3lib_div::debug($data);
 		if(is_array($setup) && is_array($data)) foreach($data as $uid=>$entry) {
 			foreach($entry as $key=>$value)
 			{
@@ -85,8 +115,8 @@ class tx_crud__views_retrieve extends tx_crud__views_common {
 					$value_exploded=explode(",",$value);
 					foreach($value_exploded as $file)
 					{
-						if(!isset($params['history']))
-						$preview[]=$this->makeFilePreview($setup[$key]['config.']['uploadfolder']."/".$file);
+						//if(!isset($params['history']))
+						//$preview[]=$this->makeFilePreview($setup[$key]['config.']['uploadfolder']."/".$file);
 					}
 					if(is_array($preview))$data[$uid][$key]=implode(",",$preview);
 				}
@@ -96,10 +126,8 @@ class tx_crud__views_retrieve extends tx_crud__views_common {
 				}
 				elseif($setup[$key]['config.']['type']=="check"){
 						$dataArray=array();
-						//echo "is was";
 						$entry=array();
 						$db = $data[$uid][$key];
-						//t3lib_div::debug($db,"db wert");
 						$y = 1;
 						for ($i = 1; $i <= count($setup[$key]['options.']); $i++) {
 							$dataArray[$y] = $y;
@@ -171,7 +199,27 @@ class tx_crud__views_retrieve extends tx_crud__views_common {
 				
 			}
 		}
-		return $data;
+		if($this->panelAction=="RETRIEVE") return $data[$uid];
+		else return $data;
+	}
+	
+	function printAsOptionLinks($item_key,$wrap=""){
+		$wrap=explode("|",$wrap);
+		$options=$this->get($item_key);
+		$config=$this->controller->configurations->getArrayCopy();
+		$options = explode(",",$config['view.']['data'][$config['storage.']['nodes']][$item_key]);
+		foreach($options as $key=>$option) {
+			$option_exploded = explode("__",$option);
+			if(count($option_exploded)>1) {
+				if($config['storage.']['nameSpace']==$option_exploded[0]) {
+					echo $wrap[0];$this->printAsSingleLink($option_exploded[1],$config['view.']['setup'][$item_key]['options.'][$option]);echo $wrap[1];
+				}
+				elseif($option_exploded[0]=="pages") {
+					echo $wrap[0].'<a href="index.php?id='.$option_exploded[1].'" />'.$config['view.']['setup'][$item_key]['options.'][$option].'</a>'.$wrap[1];
+				}
+			}
+			
+		}
 	}
 }
 ?>

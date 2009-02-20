@@ -80,7 +80,7 @@ if ($this->get('mode') == 'PROCESS') {
 	?>
 	<?php 
 		// TODO: Localization
-		$this->printBackLink("Back",$config['pidBrowse']);
+		$this->printAsBackLink("Back",$config['pidBrowse']);
 	}
 	}
 	else require_once("histories.php");

@@ -68,7 +68,8 @@ class tx_crud__views_common extends tx_lib_phpTemplateEngine {
 		$this->set("keyOfPathToLanguageFile",$config['view.']['keyOfPathToLanguageFile']);
 		if(stristr($_SERVER['REQUEST_URI'],"index.php")) $hash.="norealurl".$GLOBALS['TSFE']->config['config']['sys_language_uid'];
 		else $hash.="withrealurl".$GLOBALS['TSFE']->config['config']['sys_language_uid'];
-		$hash = md5($config['setup.']['marker']."-VIEW".$hash);
+		$hash = md5($config['setup.']['marker'].$config['storage.']['action']."-VIEW".$hash);
+		
 		$this->cached=tx_crud__cache::get($hash);
 		$this->generateUrls();
 		if (is_array($pars['search']) && !$pars['track']) {
@@ -351,7 +352,7 @@ class tx_crud__views_common extends tx_lib_phpTemplateEngine {
 			if(is_array($localLang)) {
 				$language=trim($GLOBALS['TSFE']->config['config']['language']);
 				if (strlen($localLang[$language][$string[3]])>=5) {
-					$translated =  $localLang["default"][$string[3]];
+					$translated =  $localLang[$language][$string[3]];
 				}
 				elseif ($localLang["default"][$string[3]]) {
 					$translated =  $localLang['default'][$string[3]];
@@ -373,7 +374,6 @@ class tx_crud__views_common extends tx_lib_phpTemplateEngine {
 		}
 	}
 	
-
 	// -------------------------------------------------------------------------------------
 	// HELPER API
 	// -------------------------------------------------------------------------------------
@@ -430,6 +430,7 @@ class tx_crud__views_common extends tx_lib_phpTemplateEngine {
 		}
 	}
 	
+	
 	/**
 	 * renders images from a setup automatic
 	 *
@@ -442,16 +443,20 @@ class tx_crud__views_common extends tx_lib_phpTemplateEngine {
 	 * @param	string		$wrapImage	wrap some html about every single image
 	 * @return	string
 	 */
-	function printAsImage($item_key,$height=30,$width=30,$maxImages=100,$lightbox=1,$wrapAll="",$wrapImage="") {
-		$setup = $this->setup;
-		$pars = $this->controller->parameters->getArrayCopy();
-		$img = $item_key;
+	function printAsImage($item_key,$height=30,$width=30,$altText=false,$urlOnly=false,$maxImages=100,$lightbox=false,$wrapAll="",$wrapImage="") {
+		$setup = $this->controller->configurations->getArrayCopy();
+		$img = explode(",",$this->get($item_key));
+		//t3lib_div::debug($img);
 		$wrapImage = explode("|",$wrapImage);
-		if (is_array($img)) {
+		if (strlen($img[0])>1) {
 			$i = 0;
 			foreach ($img as $key=>$val) {
-				$url = $val;
-				if (file_exists($url) && $i < $maxImages) {
+				$url = $setup['view.']['setup'][$item_key]['config.']['uploadfolder']."/".$val;
+				if($this->cached['images'][$url]) {
+					$img = '<img src="'.$this->cached['images'][$url].'" alt="'.$this->cached['images'][$url].'"/>';
+					echo $img;
+				}
+				elseif (file_exists($url) && $i < $maxImages) {
 					$size = getimagesize($url);
 					if ($size[1] > $height) {
 						$size[1] = $height;
@@ -464,24 +469,36 @@ class tx_crud__views_common extends tx_lib_phpTemplateEngine {
 					require_once(PATH_site.'typo3/sysext/cms/tslib/class.tslib_gifbuilder.php');
 					$imageClassName = tx_div::makeInstanceClassName('tx_lib_image');
 					$image = new $imageClassName();
-					$image->alt($setup[$key]['label']);//TODO img label
+					if(strlen($altText)>1) $image->alt($altText);
+					else $image->alt($val);
 					$image->maxWidth($size[0]);
 					$image->maxHeight($size[1]);
 					$image->path($url);
+				
 					if ($lightbox) {
 						$images .= '<a href="' . $url . '" rel="lightbox[lb26]">' . $wrapImage[0] . $image->make() . $wrapImage[1] . '</a>'; //TODO: [lb26]
 					} else {
-						$images .= $wrapImage[0] . $image->make() . $wrapImage[1];
+						if(!$urlOnly) $images .= $wrapImage[0] . $image->make() . $wrapImage[1];
+						else  $images .= $image->make();
 					}
+					$img_exploded=explode('src="',$images);
+					$img_exploded=explode('"',$img_exploded[1]);
+					$this->cache['images'][$url]=$img_exploded[0];
 					unset($image); 
 				} else {
 					echo "%%%error_no-image%%%";
 				}
 				$i++;
+				if($urlOnly) {
+					$img=explode('src="',$images);
+					$img=explode('"',$img[1]);
+					echo $img[0];
+					return null;
+				}
 			}
 			$wrapAll = explode("|",$wrapAll);
 			if ($images) {
-				return $wrapAll[0] . $images . $wrapAll[1];
+				echo $wrapAll[0] . $images . $wrapAll[1];
 			}
 		}
 	}
@@ -572,7 +589,7 @@ class tx_crud__views_common extends tx_lib_phpTemplateEngine {
 		$config = $this->controller->configurations->getArrayCopy();
 		if(stristr($_SERVER['REQUEST_URI'],"index.php")) $hash.="norealurl".$GLOBALS['TSFE']->config['config']['sys_language_uid'];
 		else $hash.="withrealurl".$GLOBALS['TSFE']->config['config']['sys_language_uid'];
-		$hash = md5($config['setup.']['marker']."-VIEW".$hash);
+		$hash = md5($config['setup.']['marker'].$config['storage.']['action']."-VIEW".$hash);
 		if(is_array($this->cache)) {
 			tx_crud__cache::write($hash,$this->cache);
 		}

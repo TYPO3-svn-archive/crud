@@ -76,6 +76,7 @@ class tx_crud__models_retrieve extends tx_crud__models_common{
 				$uid=$result['uid'];
 				unset($result['uid']);
 				$this->processData[$uid] = $result;
+				//t3lib_div::debug($result);
 				$config = $this->controller->configurations->getArrayCopy();
 				if ($config['enable.']['logging'] == 1) {
 					tx_crud__log::write($config['storage.']['action'], $this->panelRecord, $config['storage.']['nameSpace'],$config['logging.']);
@@ -104,10 +105,6 @@ class tx_crud__models_retrieve extends tx_crud__models_common{
 	 */	
 	public function setupValues() {
 	
-	}
-	
-	public function _getValue($item_key) {
-		return $this->processData[$this->panelRecord][$item_key];
 	}
 	
 	/**
@@ -142,6 +139,15 @@ class tx_crud__models_retrieve extends tx_crud__models_common{
 	// -------------------------------------------------------------------------------------
 	
 	/**
+	 * returns the single value for an setup key
+	 * 
+	 * @return void
+	 */
+	public function _getValue($item_key) {
+		return $this->processData[$this->panelRecord][$item_key];
+	}
+	
+	/**
 	 * returns the data for the retrieve include mm values
 	 * 
 	 * @return void
@@ -153,8 +159,9 @@ class tx_crud__models_retrieve extends tx_crud__models_common{
 		$daten = $this->processData;
 		if (is_array($this->processData)) foreach ($this->processData as $num=>$array) {
 			foreach ($array as $key=>$result) {
-				if ($this->html[$key]['config.']['MM']) {
+				if ($this->html[$key]['config.']['MM'] && $daten[$num][$key]>=1) {
 					$array = $this->getDataMM($num,$key);
+					//t3lib_div::debug($array,"dta");
 					$mmValues = array();
 					if (is_array($array)) {
 						foreach ($array as $uid=>$mm) {
@@ -166,6 +173,7 @@ class tx_crud__models_retrieve extends tx_crud__models_common{
 			}
 			
 		}
+	//	t3lib_div::debug($daten);
 		return $daten;
 	}
 	

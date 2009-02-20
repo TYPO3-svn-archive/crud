@@ -93,6 +93,9 @@ class tx_crud__views_create extends tx_crud__views_common {
 		$form .= '<input type="hidden" name="' . $this->getDesignator () . '[form]" value="' . tx_crud__div::getActionID ( $conf ) . '" />';
 		$form .= '<input type="hidden" name="' . $this->getDesignator () . '[process]" value="preview" />';
 		$form .= '<input type="submit" name="' . $this->getDesignator () . '[submit]" value="1" alt="'.$label.'" />';
+		if(isset($_REQUEST['xID'])) $form .= '<input type="hidden" name="xID" value="'.$_REQUEST['xID'].'" />' . "\n\t";
+		if(isset($_POST['mID'])) $form .= '<input type="hidden" name="mID" value="'.$_POST['mID'].'" />' . "\n\t";
+		//$form .= '<input type="hidden" name="mID" value="'.$setup ['setup.'] ['marker'].'" />' . "\n\t";
 		$conf = $this->get ( "setup" );
 		if ($tinymce ['enable'] == 1 && is_array ( $conf )) {
 			foreach ( $conf as $key => $val ) {

@@ -27,7 +27,7 @@
  *
  * @author Frank Thelemann <f.thelemann@yellowmed.com>
  * @package TYPO3
- * @subpackage tx_cruds
+ * @subpackage tx_crud
  */
 
 require_once (t3lib_extMgm::extPath ( 'crud' ) . 'views/class.tx_crud__views_retrieve.php');
@@ -52,6 +52,7 @@ class tx_crud__views_browse extends tx_crud__views_retrieve {
 		$this->page = $this->config ['page'];
 		$this->count = $this->config ['count'];
 		$this->start = $this->config ['start'];
+		
 	}
 	
 	// -------------------------------------------------------------------------------------
@@ -262,35 +263,6 @@ class tx_crud__views_browse extends tx_crud__views_retrieve {
 		$rev = str_replace ( $this->getDesignator () . "[ajaxTarget]", "ajaxTarget", $rev );
 		$forward = str_replace ( $this->getDesignator () . "[ajaxTarget]", "ajaxTarget", $forward );
 		echo $label . $rev . $now . $forward;
-	}
-	
-	/**
-	 * prints a page browser
-	 * 
- 	 * @param	integer	$uid	the uid of the record to show
-  	 * @param 	string	$label	the label for the sorting link
- 	 * @param 	boolean	$urlOnly	if set only the url will returned
- 	 * @param 	string	$action	optional a special action 
-	 * @return	void
-	 */
-	function printAsSingleLink($uid, $label = "%%%show%%%", $urlOnly = false, $action = "retrieve") {
-		$pars = $this->controller->parameters->getArrayCopy ();
-		$pars ['retrieve'] = $uid;
-		$pars ['action'] = $action;
-		$pars ['saveContainer'] = 1;
-		$data = $pars;
-		$data ["ajaxTarget"] = $this->getAjaxTarget ( "printAsSingleLink" );
-		if (is_array ( $data ['search'] )) {
-			unset ( $data ['search'] );
-			$data ['track'] = 1;
-		}
-		if ($this->page >= 1) {
-			$data ['page'] = $this->page;
-		}
-		if ($urlOnly)
-			return $this->getUrl ( $data );
-		else
-			echo $this->getTag ( $label, $data );
 	}
 	
 	/**

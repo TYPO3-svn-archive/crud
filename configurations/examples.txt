@@ -212,3 +212,37 @@ plugin.update-tt_content.configurations.updateAction {
 		}
 	}
 }
+
+plugin.tt_news_show < lib.tx_crud_show
+plugin.tt_news_show.configurations.browseAction {
+	view {
+		template = browse
+		keyOfPathToLanguageFile = EXT:crud/templates/tt_news/locallang.xml
+		templatePath = EXT:crud/templates/tt_news/
+		ajaxTargets {
+			default = news-browser
+		}
+	}
+	enable {
+		rights=
+	}
+	storage {
+		fields = title,datetime,image,imagecaption,imagealttext,imagetitletext,related,short,bodytext,author,author_email,category,news_files,links,type,page,keywords,archivedate,ext_url
+		action = browse
+	}
+}
+plugin.tt_news_show.configurations.autocompleteAction < plugin.tt_news_show.configurations.browseAction
+plugin.tt_news_show.configurations.autocompleteAction {
+	storage {
+		action = browse
+	}
+}
+plugin.tt_news_show.configurations.retrieveAction < plugin.tt_news_show.configurations.browseAction
+plugin.tt_news_show.configurations.retrieveAction {
+	view {
+		template = retrieve
+	}
+	storage {
+		action = retrieve
+	}
+}

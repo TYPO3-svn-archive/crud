@@ -3,7 +3,7 @@
 /***************************************************************
  *  Copyright notice
  *
- *  (c) 2006 Frank Thelemann
+ *  (c) 2009 Frank Thelemann
  *  Contact: f.thelemann@yellowmed.com
  *  All rights reserved
  *
