@@ -48,16 +48,19 @@ class tx_crud__formBase extends tx_lib_formBase {
 	 * @param 	array	$attributes	optional attributes like a style for the form
 	 * @return	string	the form start tag
 	 */
-	function begin($key, $attributes = array()) {
+	function begin($key, $attributes = array(),$url=false,$class=false) {
 		$this->setIdPrefix ( $this->getDesignator () );
 		$attributes ['id'] = $key;
 		$attributes ['action'] = $this->action ();
+		if($class) $style=' class="'.$class.'"';
 		$attributes ['method'] = $this->method ();
 		$attributes ['name'] = $this->prefixId . "form";
 		$attrutes ['enctype'] = "multipart/form-data";
-		$url = $this->action ();
-		$url = str_replace ( "no_cache=1", "", $url );
-		echo "\r\n" . '<form method="post" action="' . $url . '" enctype="multipart/form-data">' . "\r\n";
+		if(!$url) {
+			$url = $this->action ();
+			$url = str_replace ( "no_cache=1", "", $url );
+		}
+		echo "\r\n" . '<form '.$style.' method="post" action="'.$url.'" enctype="multipart/form-data">' . "\r\n";
 	}
 	
 	/**

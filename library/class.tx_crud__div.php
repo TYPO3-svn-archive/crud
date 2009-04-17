@@ -41,14 +41,22 @@ final class tx_crud__div {
 	static function _GP($extKey) {
 		$POST = t3lib_div::_POST ( $extKey );
 		$GET = t3lib_div::_GET ( $extKey );
+		//t3lib_div::debug($GET);
 		if (is_array ( $POST ) and is_array ( $GET )) {
 			foreach ( $POST as $key => $val )
 				$GET [$key] = $val;
 			$pars = $GET;
 		} elseif (is_array ( $POST ))
 			$pars = $POST;
-		elseif (is_array ( $GET ))
-			$pars = $GET;
+		elseif (is_array ( $GET )) $pars = $GET;
+		//t3lib_div::debug($_POST,$extKey);
+		if(is_array($pars)) foreach($pars as $key=>$val) {
+			if(is_array($val)) foreach($val as $key2=>$val2) {
+				if(is_string($val2)) $pars[$key][$key2]=urldecode($val2);
+			}
+			elseif(is_string($val)) $pars[$key]=urldecode($val);
+		}
+		//t3lib_div::debug($pars,"pars");
 		return $pars;
 	}
 	
@@ -62,8 +70,10 @@ final class tx_crud__div {
 	static function getActionID($setup = array(), $marker = false) {
 		if ($marker)
 			return md5 ( $marker );
-		else
-			return md5 ( $setup ['setup.'] ['marker'] );
+		else {
+			if(isset($setup['setup.']['target'])) return md5($setup['setup.']['target']);
+			else return md5 ( $setup ['setup.'] ['marker'] );
+		}	
 	}
 	
 	/**
@@ -724,7 +734,7 @@ class tx_crud__cache {
 		} else {
 			$insert ['uid'] = "";
 			$insert ['tstamp'] = time ();
-			$insert ['uuid'] = $hash;
+			$insert ['uuid'] =md5($hash);
 			$insert ['cached'] = serialize ( $data );
 			if ($GLOBALS ['TYPO3_DB']->exec_INSERTquery ( "tx_crud_cached", $insert ))
 				return true;
@@ -1211,7 +1221,7 @@ final class tx_crud__log {
 			return false;
 		}
 		if (isset ( $config ['view.'] ['logs'] [$action] [0] )) {
-			return strftime ( $this->getLLfromKey ( "datetimeTCA.output" ), $config ['view.'] ['logs'] [$action] [0] ['tstamp'] );
+			return  $config ['view.'] ['logs'] [$action] [0] ['tstamp'] ;
 		} else {
 			return false;
 		}

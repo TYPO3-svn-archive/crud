@@ -89,11 +89,13 @@ class tx_crud__models_common extends tx_lib_object {
 			$this->logs = tx_crud__log::read ( $storage ['action'], $storage ['nodes'], $storage ['nameSpace'], $config ['logging.'] );
 		}
 		$hash = md5 ( $this->getCacheHash () . "-MODEL" );
-		if ($config ['enable.'] ['caching'] == 1)
-			$this->cached = tx_crud__cache::get ( $hash );
+		if ($config ['enable.'] ['caching'] == 1) {
+			$this->cached=tx_crud__cache::get($hash);
+		}
+		//t3lib_div::debug($this->cached);
 		$this->load ();
-		$stop=microtime(true);
-		//echo "</br>model complete:".round($stop-$start,8);
+		
+	
 	}
 	
 	/**
@@ -281,9 +283,10 @@ class tx_crud__models_common extends tx_lib_object {
 				$this->mode = "ICON";
 			}
 		}
-		if (is_array ( $this->cType ) && $this->mode == "PROCESS")
+		if (is_array ( $this->cType ) && $this->mode == "PROCESS" || $this->mode == "PREVIEW" )
 			foreach ( $this->cType as $name => $val ) {
-				if ($this->controller->parameters->get ( $name ) && ! $this->controller->parameters->get ( "submit" )) {
+				$pars=$this->controller->parameters->getArrayCopy();
+				if (isset($pars[$name]) && ! $this->controller->parameters->get ( "submit" )) {
 					$this->mode = "EDIT";
 				}
 			}
@@ -488,6 +491,7 @@ class tx_crud__models_common extends tx_lib_object {
 			else $localLang=$this->LL[$hash];
 			$LLL[] = $localLangKey;
 			if (!is_array($localLang)) {
+		
 				foreach($LLL as $num=>$str) {
 					$action = $this->get("action");
 					$string = @explode(':',$str);
@@ -660,6 +664,7 @@ class tx_crud__models_common extends tx_lib_object {
 	 * 
 	 * @return  void
 	 */	
+	
 	protected final function load() {
 		$this->preLoad();
 		$this->prefixId = $this->getDesignator ();
@@ -690,10 +695,12 @@ class tx_crud__models_common extends tx_lib_object {
 		$back_id = $GLOBALS ['TSFE']->id;
 		$this->_checkBackValues ();
 		if ($fields = @implode ( ',', $rights [strtolower ( $table )] [strtolower ( $action )] )) {
-			
+			$start=microtime(true);
+			//t3lib_div::debug($config);
 			$cache = $this->cached ['TCA'];
 			if (is_array ( $cache )) {
 				$items = $cache ['TCA'];
+				//t3lib_div::debug($cache);
 				$this->TCA = $items;
 				$this->bigTCA = $cache ['CTRL'];
 				$this->divider = $cache ['DIVIDER'];
@@ -706,47 +713,45 @@ class tx_crud__models_common extends tx_lib_object {
 			} else {
 				$cache ['TITLE'] = $this->TCA ['ctrl'] ['title'];
 			}
-			if (is_array ( $this->cType ))
-				foreach ( $this->cType as $key => $iKey )
-					if ($pars [$key])
-						$reloadTCA = true;
+			if (is_array ( $this->cType ) && (strtolower($this->panelAction)=="create"  || strtolower($this->panelAction)=="update")) $reloadTCA = true;
 			if ($reloadTCA) {
-				//echo "tca neu laden";
 				$this->cached = false;
 				$items = false;
 				$cache = false;
 				$this->bigTCA = false;
 				$this->divider = false;
 			}
-			if (! is_array ( $items ) || $reloadTCA) {
-				//echo "process tca";
+			
+			if (! is_array ( $items ) || $reloadTCA) {	
 				$items = $this->_processTCA ( $table, $fields );
 			}
+			$config = $this->controller->configurations->getArrayCopy ();
+		    //t3lib_div::debug($items);
 			$this->table = $table;
 			$this->items = $items;
 			$this->setSubmit ();
-			if ($config ['enable.'] ['caching'])
-				$this->html = $this->cached ['HTML'];
-			if (! is_array ( $this->html )) {
+			if ($config ['enable.'] ['caching'] && is_array($this->cached ['HTML'])) $this->html = $this->cached ['HTML'];
+			if (!is_array($this->html )) {
 				$this->_processAll ();
 				if ($config ['enable.'] ['caching'])
 					$this->cache ['HTML'] = $this->html;
 			}
-			$start = microtime ( true );
 			$data = $this->getData ();
-			//t3lib_div::Debug($data);
-			$stop=microtime(true);
-			//echo "</br>get data complete:".round($stop-$start,8);
+			//t3lib_div::debug($data);
 			$config = $this->controller->configurations->getArrayCopy ();
+			//t3lib_div::debug($config);
+			//t3lib_div::debug($this->html);
+			//die();
 			$this->_processOptions ();
 			$this->setupValues ();
 			$this->setMode ();
+			$config = $this->controller->configurations->getArrayCopy ();
 			$config ['view.'] ['mode'] = $this->mode;
 			$config ['view.'] ['errors'] = $this->errors;
 			$config ['view.'] ['setup'] = $this->html;
 			$config ['view.'] ['title'] = $this->recordTitle;
 			$config ['view.'] ['backValues'] = $this->backValues;
-			if (isset ( $_REQUEST ['q'] )) {
+			if (isset ( $_GET['q'] )) {
 				$this->data = $this->sortAutocomplete ( $data );
 			} else
 				$this->data = $data;
@@ -758,13 +763,20 @@ class tx_crud__models_common extends tx_lib_object {
 				$this->mode = "EDIT";
 				$config ['view.'] ['mode'] = $this->mode;
 			}
+			if(!isset($_REQUEST['q']) && isset($config['getExistingValues.'])) {
+			
+				$config['view.']['existingValues']= $this->getStaticValues();
+				//t3lib_div::debug($config['view.']['existingValues']);
+			}
+
 			$this->controller->configurations = new tx_lib_object ( $config );
 			if ($this->mode == 'PROCESS') {
 				$this->processQuery ();
+				$config = $this->controller->configurations->getArrayCopy ();
 				$config ['view.'] ['mode'] = $this->mode;
-				if ($config ['enable.'] ['histories'] == 1 && is_array ( $this->histories ))
-					$config ['view.'] ['histories'] = $this->histories;
-					$config ['view.'] ['data'] = $data;
+				if(is_array($this->additionalData)) $config ['view.'] ['additionalData'] = $this->additionalData;
+				if ($config ['enable.'] ['histories'] == 1 && is_array ( $this->histories )) $config ['view.'] ['histories'] = $this->histories;
+				$config ['view.'] ['data'] = $data;
 				$this->controller->configurations = new tx_lib_object ( $config );
 				$this->_nextStep ();
 			}
@@ -824,6 +836,7 @@ class tx_crud__models_common extends tx_lib_object {
 			}
 			t3lib_div::loadTCA ( $table );
 			$this->TCA = $GLOBALS ["TCA"] [$table];
+			//t3lib_div::debug($this->TCA);
 			if (! is_array ( $this->TCA )) die ( "Could not load TCA from table:" . $table );
 			$this->bigTCA = $GLOBALS ["TCA"] [$table];
 			$this->recordTitle = $this->TCA ['ctrl'] ['title'];
@@ -865,6 +878,7 @@ class tx_crud__models_common extends tx_lib_object {
 				}
 			}
 			$TCA = $GLOBALS ["TCA"] [$table] ['columns'];
+			
 			if ($setup ["storage."] ['virtual.'] [strtolower ( $this->panelTable ) . "."]) {
 				foreach ( $setup ["storage."] ['virtual.'] [strtolower ( $this->panelTable ) . "."] as $key => $val ) {
 					if (is_array ( $val )) {
@@ -886,13 +900,17 @@ class tx_crud__models_common extends tx_lib_object {
 					}
 				}
 			}
+			
 			$TCA ['deleted'] = array ('delete' => 1 );
 			$rights = $this->rights;
-			foreach ( $fields as $key => $val ) {
-				if (! empty ( $rights [strtolower ( $table )] [strtolower ( $this->panelAction )] [$val] )) {
-					$newTCA [$val] = $TCA [$val];
-				}
+			foreach ( $TCA as $key => $val ) $TCA[trim($key)]=$val;
+			foreach ( $fields as $key => $val ) $fields[trim($key)]=$val;
+			foreach ( $TCA as $key => $val ) {
+					if(!isset($fields[$key]))unset($TCA[$key]);
 			}
+			$newTCA=$TCA;
+			
+			$setup = $this->controller->configurations->getArrayCopy ();
 			if (strtoupper ( $this->panelAction ) != 'DELETE') {
 				unset ( $newTCA ['deleted'] );
 			}
@@ -904,14 +922,33 @@ class tx_crud__models_common extends tx_lib_object {
 			} else {
 				$this->types = $cType [$control];
 			}
-			$setup = $this->controller->configurations->getArrayCopy ();
-			if (is_array ( $setup ["storage."] ["modifications."] [strtolower ( $this->panelTable ) . "."] ['divider.'] )) {
-				$divider = $setup ["storage."] ["modifications."] [strtolower ( $this->panelTable ) . "."] ['divider.'];
-				$orgDivider = $divider;
-				//print_r($divider);
-				foreach ( $divider as $key => $val ) {
-					$name = str_replace ( ".", "", $key );
-					foreach ( $val as $breaker => $values ) {
+			$tryTCA=$newTCA;
+			foreach($tryTCA as $key=>$config) {
+				if (is_array ( $setup ["storage."] ["modifications."] [strtolower ( $this->panelTable ) . "."] [$key.'.'] )) {
+					foreach($setup ["storage."] ["modifications."] [strtolower ( $this->panelTable ) . "."] [$key.'.'] as $name=>$value) {
+						$name=str_replace(".","",$name);
+						if(is_array($value)) foreach($value as $name2=>$value2) {
+							$name2=str_replace(".","",$name2);
+							if($value2=="unset") {
+								unset($newTCA[$key][$name][$name2]);
+							}
+							else $newTCA[$key][$name][$name2]=$value2;
+						}
+						else {
+							if(trim($value)=="unset") unset($newTCA[$key][$name]);
+							else $newTCA[$key][$name]=$value;
+						}
+					}
+				}
+			}
+			if (strtolower($this->panelAction)=="update" || strtolower($this->panelAction)=="create") {
+				if(is_array ( $setup ["storage."] ["modifications."] [strtolower ( $this->panelTable ) . "."] ['divider.'] )) {
+					$divider = $setup ["storage."] ["modifications."] [strtolower ( $this->panelTable ) . "."] ['divider.'];
+					$orgDivider = $divider;
+					//print_r($divider);
+					foreach ( $divider as $key => $val ) {
+						$name = str_replace ( ".", "", $key );
+						foreach ( $val as $breaker => $values ) {
 						$fFields = explode ( ",", $values );
 						$sectionFields = false;
 						foreach ( $fFields as $fName ) {
@@ -926,7 +963,9 @@ class tx_crud__models_common extends tx_lib_object {
 					}
 				}
 				$newTCA = $sectionTCA;
+				
 			} 
+			
 			else {
 				$tabs = explode ( "--div--", $GLOBALS ['TCA'] [$table] ['types'] [$this->types] ['showitem'] );
 				if (sizeof ( $tabs >= 1 )) {
@@ -953,6 +992,7 @@ class tx_crud__models_common extends tx_lib_object {
 					}
 				}
 			}
+			}
 		$this->cType = $cType;
 		$this->types = $cType [$control];
 		$cache ['TCA'] = $newTCA;
@@ -963,6 +1003,7 @@ class tx_crud__models_common extends tx_lib_object {
 		$cache ['CTYPE'] = $this->cType;
 		$cache ['TITLE'] = $this->recordTitle;
 		$this->cache ['TCA'] = $cache;
+		//t3lib_div::debug($newTCA);
 		return $newTCA;
 	}
 	
@@ -1073,7 +1114,7 @@ class tx_crud__models_common extends tx_lib_object {
 	private function _processText($item_key) {
 		$pars = $this->parameters;
 		$conf = $this->configurations;
-		$TCA = $this->_processModifications ( $this->items [$item_key], $item_key );
+		$TCA = $this->items [$item_key];
 		if (! isset ( $TCA ['config'] ['type'] )) {
 			$TCA ['config'] = $GLOBALS ["TCA"] [$this->table] ["columns"] [$item_key] ['config'];
 		}
@@ -1103,11 +1144,11 @@ class tx_crud__models_common extends tx_lib_object {
 	 * @return  array 	the rendered entry without options and values
 	 */	
 	private function _processFiles($item_key) {
-		$TCA = $this->_processModifications ( $this->items [$item_key], $item_key );
+		$TCA = $this->items [$item_key];
 		if (! isset ( $TCA ['config'] ['type'] )) {
 			$TCA = $GLOBALS ["TCA"] [$this->table] ["columns"] [$item_key];
 		}
-		$item = $this->_processModifications ( $this->items [$item_key], $item_key );
+		$item = $this->items [$item_key];
 		;
 		$html = $this->_processEval ( $item_key );
 		$html ["key"] = $item_key;
@@ -1132,7 +1173,7 @@ class tx_crud__models_common extends tx_lib_object {
 	 */	
 	private function _processInput($item_key) {
 		$this->preProcessField ( $item_key );
-		$TCA = $this->_processModifications ( $this->items [$item_key], $item_key );
+		$TCA = $this->items [$item_key];
 		if (! isset ( $TCA ['config'] ['type'] )) {
 			$TCA = $GLOBALS ["TCA"] [$this->table] ["columns"] [$item_key];
 		}
@@ -1195,7 +1236,7 @@ class tx_crud__models_common extends tx_lib_object {
 	 * @return  array 	the rendered entry without options and values
 	 */	
 	private function _processSelect($item_key) {
-		$TCA = $this->_processModifications ( $this->items [$item_key], $item_key );
+		$TCA = $this->items [$item_key];
 		$item = $TCA;
 		$html = array ();
 		$html ["label"] = $TCA ["label"];
@@ -1227,21 +1268,16 @@ class tx_crud__models_common extends tx_lib_object {
 	 * @return  array 	the rendered entry without options and values
 	 */
 	private function _processCheck($item_key) {
-		$TCA = $this->_processModifications ( $this->items [$item_key], $item_key );
+		$TCA = $this->items [$item_key];
 		$pars = $this->controller->parameters->get ( $item_key );
 		if (! isset ( $TCA ['config'] ['type'] )) {
 			$TCA = $GLOBALS ["TCA"] [$this->table] ["columns"] [$item_key];
 		}
-		$item = $this->_processModifications ( $this->items [$item_key], $item_key );
+		$item =  $this->items [$item_key];
 		$item_value = $this->_getValue ( $item_key );
 		$html = $this->_processEval ( $item_key );
 		$html ["config."] = $TCA ["config"];
 		$html ["key"] = $item_key;
-		//if (is_array ( $TCA ['config'] ['items'] )) {
-		//	foreach ( $TCA ["config"] ["items"] as $key => $val ) {
-		//		$html ['options.'] [$key] = $val [0];
-		//	}
-		//}
 		$this->html [$item_key] = $html;
 		$this->_processDivider ( $item_key );
 		return $html;
@@ -1254,11 +1290,11 @@ class tx_crud__models_common extends tx_lib_object {
 	 * @return  array 	the rendered entry without options and values
 	 */
 	private  function _processRadio($item_key) {
-		$TCA = $this->_processModifications ( $this->items [$item_key], $item_key );
+		$TCA =  $this->items [$item_key];
 		if (! isset ( $TCA ['config'] ['type'] )) {
 			$TCA = $GLOBALS ["TCA"] [$this->table] ["columns"] [$item_key];
 		}
-		$item = $this->_processModifications ( $this->items [$item_key], $item_key );
+		$item  = $this->items [$item_key];
 		$html ["label"] = $TCA ["label"];
 		$html ["config."] = $TCA ['config'];
 		$items = $TCA ['config'] ['items'];
@@ -1285,7 +1321,7 @@ class tx_crud__models_common extends tx_lib_object {
 	 * @return  array 	the rendered entry without options and values
 	 */
 	private function _processGroup($item_key) {
-		$TCA = $this->_processModifications ( $this->items [$item_key], $item_key );
+		$TCA = $this->items [$item_key];
 		$item = $TCA;
 		$html = $this->_processEval ( $item_key );
 		if ($TCA ['config'] ['maxitems'] > 1) {
@@ -1419,11 +1455,15 @@ class tx_crud__models_common extends tx_lib_object {
 	private function _processOptions() {
 		$setup = $this->controller->configurations->getArrayCopy ();
 		$maxOptions = $setup ['caching.'] ['options'];
+		//t3lib_div::debug($this->cached);
 		if (is_array ( $this->html ))
 			foreach ( $this->html as $item_key => $item ) {
 				$options = array ();
-				if ((! is_array ( $item ['options.'] )) and ($item ['element'] == "selectRow" or $item ['element'] == "multiselectRow")) {
-					$TCA = $this->_processModifications ( $this->items [$item_key], $item_key );
+				
+				
+				if (! is_array ( $item ['options.'] ) and ($item ['element'] == "selectRow" or $item ['element'] == "multiselectRow")) {
+					//t3lib_div::debug($item['options.'],$item_key);
+					$TCA = $this->items [$item_key];
 					if (! isset ( $TCA ['config'] ['type'] )) {
 						$TCA = $GLOBALS ["TCA"] [$this->panelTable] ["columns"] [$item_key];
 					}
@@ -1498,13 +1538,16 @@ class tx_crud__models_common extends tx_lib_object {
 								}
 							}
 						}
-						if (count ( $options ) >= $maxOptions)
-							$this->dontCacheOptions [$item_key] = 1;
-						if (is_array ( $this->cache ['HTML'] [$item_key] ))
-							$this->cache ['HTML'] [$item_key] ["options."] = $options;
-						$this->html [$item_key] ["options."] = $options;
+						//if (count ( $options ) >= $maxOptions)
+						
 					}
+					if (is_array ( $this->cache ['HTML'] [$item_key] )) $this->cache ['HTML'] [$item_key] ["options."] = $options;
+					$this->html [$item_key] ["options."] = $options;
+					//t3lib_div::Debug($options,$item_key);
 				}
+				//	$this->dontCacheOptions [$item_key] = 1;
+						
+				
 			}
 	}
 	
@@ -1516,13 +1559,13 @@ class tx_crud__models_common extends tx_lib_object {
 	 * @return  array	the options array
 	 */
 	private function _processForeignTable($item_key) {
+		$setup = $this->controller->configurations->getArrayCopy ();
 		$TCA = $this->_processModifications ( $this->items [$item_key], $item_key );
 		if (! isset ( $TCA ['config'] ['type'] )) {
 			$TCA = $GLOBALS ["TCA"] [$this->table] ["columns"] [$item_key];
 		}
 		$table = $TCA ['config'] ['foreign_table'];
-		t3lib_div::loadTCA ( $table );
-		//echo "lade tca von".$table;
+		if($table!=$this->panelTable) t3lib_div::loadTCA ( $table );
 		$orgTCA = $GLOBALS ["TCA"] [$table];
 		if (isset ( $GLOBALS ["TCA"] [$table] ['ctrl'] ['delete'] )) {
 			$where = $table . "." . $GLOBALS ["TCA"] [$table] ['ctrl'] ['delete'] . "=0 ";
@@ -1546,7 +1589,14 @@ class tx_crud__models_common extends tx_lib_object {
 		} else {
 			$field = $GLOBALS ["TCA"] [$table] ['ctrl'] ['label'];
 		}
+		if(is_array($setup['storage.']['relations.'][$item_key."."][$table."."])) $relation = $setup['storage.']['relations.'][$item_key."."][$table."."];
+		else $relation=false;
+		if($relation['title']) $field=$relation['title'];
 		$what = $table . ".uid" . ',' . $table . "." . $field;
+		if($relation['fields']) {
+			$extraFields=explode(",",$relation['fields']);
+			foreach($extraFields as $extraField) $what.= ",".$table.".".$extraField;
+		}
 		if ($orgTCA ['columns'] ['fe_group']) {
 			$where .= " AND (NOT $table.fe_group";
 			if ($GLOBALS ['TSFE']->fe_user->user ['usergroup']) {
@@ -1562,11 +1612,17 @@ class tx_crud__models_common extends tx_lib_object {
 		for($i = 0; $i < $size; $i ++) {
 			$GLOBALS ['TYPO3_DB']->sql_data_seek ( $res, $i );
 			$row = $GLOBALS ['TYPO3_DB']->sql_fetch_assoc ( $res );
+			if(isset($extraFields)) {
+					foreach($extraFields as $extraField) {
+						if($row[$extraField]) $this->html[$item_key]['additionalData'][$extraField]=$row[$extraField];
+					}
+				}
 			if ($TCA ['config'] ['MM'])
 				$data [$table . "__" . $row ['uid']] = $row [$field];
 			else
 				$data [$row ['uid']] = $row [$field];
 		}
+		//t3lib_div::debug($data);
 		return $data;
 	}
 	
@@ -1577,6 +1633,7 @@ class tx_crud__models_common extends tx_lib_object {
 	 * @return  array	the options array
 	 */
 	function _processAllowed($item_key, $key = 'uid') {
+	
 		$setup = $this->controller->configurations->getArrayCopy ();
 		$config = $setup ["storage."] [$this->panelTable . "."] [$item_key . "."];
 		$TCA = $this->_processModifications ( $this->items [$item_key], $item_key );
@@ -1591,15 +1648,20 @@ class tx_crud__models_common extends tx_lib_object {
 			} else {
 				$field = 'title';
 			}
+			if(is_array($setup['storage.']['relations.'][$item_key."."][$table."."])) $relation = $setup['storage.']['relations.'][$item_key."."][$table."."];
+			else $relation=false;
+			if($relation['title']) $field=$relation['title'];
 			$what = 'uid,pid,' . $field;
 			if ($key != 'uid' && $key != $field) {
 				$what .= ',' . $key;
 			}
-			t3lib_div::loadTCA ( $table );
-			//echo "lade tca von ".$table;
+			if($relation['fields']) {
+				$extraFields=explode(",",$relation['fields']);
+				foreach($extraFields as $extraField) $what.= ",".$extraField;
+			}
 			$orgTCA = $GLOBALS ["TCA"] [$table];
 			if ($GLOBALS ["TCA"] [$table] ['ctrl'] ['delete']) {
-				$where = $GLOBALS ["TCA"] [$table] ['ctrl'] ['delete'] . '=0';
+				$where = " ".$GLOBALS ["TCA"] [$table] ['ctrl'] ['delete'] . '=0';
 			}
 			if ($GLOBALS ["TCA"] [$table] ['colums'] ['hidden']) {
 				$where .= ' AND hidden=0';
@@ -1644,12 +1706,21 @@ class tx_crud__models_common extends tx_lib_object {
 					}
 				}
 			}
+			if(strtoupper($this->panelAction)=="BROWSE") {
+				$where =  $this->getFilterWhere();
+			}
 			$res = $GLOBALS ['TYPO3_DB']->exec_SELECTquery ( $what, $table, $where, "", $sorting );
 			$size = $GLOBALS ['TYPO3_DB']->sql_affected_rows ( $res );
 			$pageTree = array ();
 			for($i = 0; $i < $size; $i ++) {
 				$GLOBALS ['TYPO3_DB']->sql_data_seek ( $res, $i );
 				$row = $GLOBALS ['TYPO3_DB']->sql_fetch_assoc ( $res );
+				if(isset($extraFields)) {
+					foreach($extraFields as $extraField) {
+						if($row[$extraField]) $this->html[$item_key]['additionalData'][$extraField]=$row[$extraField];
+					}
+				}
+				//t3lib_div::debug($row);
 				if ($TCA ['config'] ['MM'])
 					$data [$table . "__" . $row [$key]] = $row [$field];
 				elseif (sizeof ( $tables ) > 1)
@@ -1703,6 +1774,7 @@ class tx_crud__models_common extends tx_lib_object {
 				}
 			}
 		}
+		//t3lib_div::debug($data);
 		return array ("data" => $data, "sorting" => $pageTree );
 	}
 	
@@ -1828,7 +1900,6 @@ class tx_crud__models_common extends tx_lib_object {
 		
 		} elseif ($eval ['date'] && ! $this->submit && ! empty ( $item_value ))
 			$html ['process'] = $item_value;
-			//echo $this->submit."sub";
 		if ($eval ['datetime'] && $this->submit) {
 			$pars = $this->controller->parameters->getArrayCopy ();
 			$item_value = $pars [$item_key];
@@ -2136,41 +2207,71 @@ class tx_crud__models_common extends tx_lib_object {
 			$tables = $config ['foreign_table'];
 		else $tables = $config ['allowed'];
 		$tables_exploded = explode ( ",", $tables );
+		$setup =$this->controller->configurations->getArrayCopy();
+		//if(is_array($setup['storage.']['relations.'][$key."."])) $relation = $setup['storage.']['relations.'][$key."."];
 		foreach ( $tables_exploded as $table ) {
 			if (isset ( $config ['foreign_table'] ))
 				$tableNames = "";
 			else
 				$tableNames = ' AND tablenames="' . $table . '"';
-			if (! is_array ( $this->cached ['MM'] [$table] )) {
-				if (! is_array ( $this->cache ['MM'] [$table] )) {
-					t3lib_div::loadTCA ( $table );
-					if (! is_array ( $this->cached ['MM'] [$table] ))
-						$noCache = true;
-					else
-						$noCache = false;
-					$this->cache ['MM'] [$table] = $GLOBALS ["TCA"] [$table] ['ctrl'];
-				}
+			if(is_array($setup['storage.']['relations.'][$key."."][$table."."])) $relation = $setup['storage.']['relations.'][$key."."][$table."."];
+			else $relation=false;
+			if (! is_array ( $this->cache ['MM'] [$table] )) {
+				t3lib_div::loadTCA ( $table );
+				if (! is_array ( $this->cached ['MM'] [$table] ))
+					$noCache = true;
+				else
+					$noCache = false;
+				//$this->cache ['MM'] [$table] = $GLOBALS ["TCA"] [$table] ['ctrl'];
 			}
 			if ($noCache)
 				$TCA = $this->cache ['MM'] [$table];
-			else
+			elseif(!$relation);
 				$TCA = $this->cached ['MM'] [$table];
 			if (strlen ( $TCA ['label'] ) > 3) {
 				$field = $TCA ['label'];
 			} else {
 				$field = 'title';
 			}
-			$query = $GLOBALS ['TYPO3_DB']->exec_SELECT_mm_query ( $table . "." . $field . "," . $table . ".uid,".$config ['MM'].".uid_foreign", $this->panelTable, $config ['MM'], $table, " AND " . $config ['MM'] . ".uid_local=" . $uid . $tableNames ); //$where=false;
+			if($relation['title']) $field=$relation['title'];
+			$what=$table . "." . $field . "," . $table . ".uid";
+			$query = $GLOBALS ['TYPO3_DB']->exec_SELECT_mm_query ($what.",".$config ['MM'].".uid_foreign", $this->panelTable, $config ['MM'], $table, " AND " . $config ['MM'] . ".uid_local=" . $uid . $tableNames ); //$where=false;
 			if ($query) {
 				$size = $GLOBALS ['TYPO3_DB']->sql_affected_rows ( $query );
 				for($i = 0; $i < $size; $i ++) {
 					$GLOBALS ['TYPO3_DB']->sql_data_seek ( $query, $i );
 					$result = $GLOBALS ['TYPO3_DB']->sql_fetch_assoc ( $query );
-					//t3lib_div::debug($result);
 					$mm [$table . "__" . $result ['uid_foreign']] = $result [$field];
 				}
 			}
+			
 		}
+		if(is_array($setup['storage.']['relations.'][$key."."])) { 
+			foreach($mm as $uid=>$val) {
+				$record=explode("__",$uid);
+				$extra[$record[0]][$record[1]]=$record[1];	
+			}
+			if(is_array($extra)) foreach($extra as $table=>$uids) {
+				if(isset($setup['storage.']['relations.'][$key."."][$table."."]['fields'])) {
+					$where="";
+					//$fields = $setup['storage.']['relations.'][$key."."][$table."."]['fields'];
+					foreach($uids as $uid) {
+						$where.=$OR."uid=".$uid;
+						$OR=" OR ";
+					}
+					$fields=$setup['storage.']['relations.'][$key."."][$table."."]['fields'];
+					$extraQuery=$GLOBALS['TYPO3_DB']->exec_SELECTquery("uid,pid,".$fields,$table,$where);
+					if($extraQuery) {
+						$size = $GLOBALS ['TYPO3_DB']->sql_affected_rows ( $extraQuery );
+						for($i = 0; $i < $size; $i ++) {
+							$GLOBALS ['TYPO3_DB']->sql_data_seek ( $extraQuery, $i );
+							$result = $GLOBALS ['TYPO3_DB']->sql_fetch_assoc ( $extraQuery );
+							$this->additionalData[$key][$table."__".$result['uid']]=$result;
+						}
+					}
+				}
+			}
+		}	
 		return $mm;
 	}
 	
@@ -2226,7 +2327,6 @@ class tx_crud__models_common extends tx_lib_object {
 		}
 		*/
 		if (! $this->postNextStep ()) {
-			//echo $url."&ajax=1&ajaxTarget=crud-tabs-form";
 		//session_write_close();
 		//header('Location: ' . t3lib_div::getIndpEnv('TYPO3_REQUEST_DIR') . $url."?refresh=1&ajax=1&ajaxTarget=crud-tabs-form");
 		//header('Redirect: 1 url= ' . t3lib_div::getIndpEnv('TYPO3_REQUEST_DIR') . $url);
@@ -2254,19 +2354,23 @@ class tx_crud__models_common extends tx_lib_object {
 		$config = $this->controller->configurations->getArrayCopy ();
 		$hash = md5 ( $this->getCacheHash () . "-MODEL" );
 		if (is_array ( $this->cache ) && $config ['enable.'] ['caching'] == 1) {
+			//t3lib_div::debug($this->cache,"neuer chache");
 			if (is_array ( $this->dontCacheOptions ))
 				foreach ( $this->dontCacheOptions as $item_key => $item ) {
 					unset ( $this->cache ['HTML'] [$item_key] ['options.'] );
 					unset ( $this->cache ['HTML'] [$item_key] ['attributes.'] ['options.'] );
 				}
+			//t3lib_div::debug($this->cache);
 			if (is_array ( $this->cached )) {
-				foreach ( $this->cached as $key => $val )
-					if (is_array ( $value ))
-						$this->cache [$key] = $val;
+				if (is_array ( $this->cached )) foreach ( $this->cached as $key => $val ) if (is_array ( $val )) foreach($val as $k=>$v)$this->cache [$key][$k] = $v;
+				tx_crud__cache::write ( $hash, $this->cache );
 			}
+		///t3lib_div::debug($this->cache,"schreibe chache komplett");
 			tx_crud__cache::write ( $hash, $this->cache );
 		}
 	}
+	
+	
 
 }
 

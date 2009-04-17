@@ -72,11 +72,12 @@ class tx_crud__models_retrieve extends tx_crud__models_common{
 				}
 				$where.=")";
 			}
+			//echo $where;
 			if($query = $GLOBALS['TYPO3_DB']->exec_SELECTquery("uid," . $this->getStorageFields(),strtolower($this->panelTable),$where) AND $result=$GLOBALS['TYPO3_DB']->sql_fetch_assoc($query)){
 				$uid=$result['uid'];
 				unset($result['uid']);
 				$this->processData[$uid] = $result;
-				//t3lib_div::debug($result);
+			//	t3lib_div::debug($result);
 				$config = $this->controller->configurations->getArrayCopy();
 				if ($config['enable.']['logging'] == 1) {
 					tx_crud__log::write($config['storage.']['action'], $this->panelRecord, $config['storage.']['nameSpace'],$config['logging.']);
@@ -173,7 +174,7 @@ class tx_crud__models_retrieve extends tx_crud__models_common{
 			}
 			
 		}
-	//	t3lib_div::debug($daten);
+		//t3lib_div::debug($daten);
 		return $daten;
 	}
 	

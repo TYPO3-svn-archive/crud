@@ -78,17 +78,6 @@ table.crud-browser-table th input:hover { /* TODO: cross-browser */
   * Pagebrowser in List-/tableview
   * 
   */ /*
-<ul class="pagebrowser clearfix">
-	<li class="first"></li>
-	<li class="prev"></li>
-	<li class="pages">Pages<strong></strong><a href="de/browse/?ajaxTarget=crud-browser&amp;cHash=7b90ac055a" >1</a><a href="de/browse/page/1/?ajaxTarget=crud-browser&amp;cHash=f731917b49" >2</a></li>
-	<li class="next"><form action="de/browse/page/1/" method="post"><div>
-				<input type="hidden" name="ajaxTarget" value="crud-browser" />
-				<input type="submit" value="Next" /></div></form></li>
-	<li class="last"><form action="de/browse/page/1/" method="post"><div>
-				<input type="hidden" name="ajaxTarget" value="crud-browser" />
-				<input type="submit" value="&raquo;" /></div></form></li>
-</ul>
 */
 ul.pagebrowser {
 	clear: both;
@@ -128,7 +117,7 @@ ul.pagebrowser li.current {
 	background: #fff;
 	color: #000;
 	height: 24px;
-	padding: 6px 15px 0 15px;
+	padding: 8px 15px 0 15px;
 } 
 
 ul.pagebrowser form {
@@ -185,19 +174,19 @@ ins {
 
 .thickbox {
 	position: fixed;
-	background: #ffffff;
 	z-index: 102;
-	color:#000000;
-	display:none;
+	background: #ffffff;
+	color: #000000;
+	display: none;
 	border: 4px solid #525252;
-	text-align:left;
-	top:50%;
-	left:50%;
+	text-align: left;
+	top: 50%;
+	left: 50%;
 	margin-left: -30%;
-	margin-top: -10em;
+	margin-top: -20em;
 	padding: 1em;
 	width: 60%;
-	height: 20em;
+	height: 40em;
 	overflow: auto;
 }
 
@@ -213,4 +202,82 @@ img#loadAjaxGif {
 	margin-top: -9px;
 	left: 50%;
 	margin-left: -110px;
+}
+
+ /**
+  * @section searchbox autocomplete
+  *
+  * Enter section description
+  * @see     Enter an optional reference url
+  */
+
+.hidden { display: none; }
+
+.ac_results ul, .ac_results li {
+	margin: 0 !important;
+	padding: 0 !important;
+}
+
+.ac_results li div {
+	border-bottom: 1px dotted #999;
+	padding: .3em .2em .3em 1em;
+}
+
+.ac_results li div.result {
+	border-top: 2px solid #3b3e53;
+	border-bottom: 1px solid #868a9e;
+	background: #c7c9d3;
+	font-weight: bold;
+	color: #1d2032;
+}
+
+.ac_results li div.headline {
+	border-bottom: none;
+	font-weight: bold;
+	padding-left: .2em;
+	background: #e9e7e7 url('images/arrow-sorting-down.gif') 98% 5px no-repeat;
+}
+
+.ac_results li u {
+	font-style: italic;
+	font-size: .9em;
+}
+
+ /**
+  * @section filter list
+  *
+  * @see     Enter an optional reference url
+  */
+
+.filters {
+	height: 2.3em;
+	border: 1px solid #dedede;
+	margin-left: 0;
+	padding-left: 0;
+}
+
+.filters li {
+	float: left;
+	line-height: 2.3em;
+	color: #777;
+	padding-left: .75em;
+}
+
+.filters li a {
+	background: url(images/bg_filter.png) no-repeat;
+	display: block;
+	padding: 0 35px 0 0;
+	line-height: 2.3em;
+	font-size: 100%;
+}
+
+.filters li a:link, .filters li a:visited {
+	color: #777;
+	text-decoration: none;
+	background-position:  100% -434px;
+}
+
+.filters li a:hover, .filters li a:focus {
+	color: #dd2c0d;
+	background-position:  100% -139px;
 }

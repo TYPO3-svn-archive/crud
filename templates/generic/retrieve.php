@@ -5,7 +5,7 @@ if ($this->get('mode') == 'PROCESS') {
 	if(!isset($params[history])) {
 		if($_POST['ajaxTarget']!="thickbox") {
 			
-			$data = $this->renderPreview();
+			$data[1] = $this->renderPreview($this->get("data"));
 			echo "<ul>";
 			foreach ($data as $uid=>$record) {
 				foreach ($record as $key=>$val) {
@@ -33,7 +33,6 @@ if ($this->get('mode') == 'PROCESS') {
 				}
 				}
 				echo "</ul>";
-			
 		}
 	//	echo '<div class="crud-form">{{{UPDATE~'.$config['storage.']['nameSpace']."~".$params['retrieve']."~LIB.TX_CRUD_UPDATE~".$config['storage.']['fields']."}}}</div>\n";
 		if($_POST['ajaxTarget']!="thickbox") {
@@ -54,7 +53,7 @@ if ($this->get('mode') == 'PROCESS') {
 					$lastVistor = '%%%retrieve_guest%%%';
 				}
 				echo ' - %%%atlast%%% %%%on%%% ' . tx_crud__log::getLastLogDate('retrieve') . 
-					' %%%by%%% ' . $lastVistor . "<br/>\n";
+					' %%%by%%% ' . $lastVistor . "<br />\n";
 			}
 		}
 		if (isset($updateCount)) {
@@ -71,17 +70,15 @@ if ($this->get('mode') == 'PROCESS') {
 					$lastUpdater = '%%%retrieve_guest%%%';
 				}
 				echo ' - %%%atlast%%% %%%on%%% ' . tx_crud__log::getLastLogDate('update') . 
-					' %%%by%%% ' . $lastUpdater . "<br/>\n";
+					' %%%by%%% ' . $lastUpdater . "<br />\n";
 				if(count($config['view.']['histories']) > 0)
 					echo '</a>';
 			}
 		}
-	
 	?>
-	<?php 
-		// TODO: Localization
-		$this->printAsBackLink("Back",$config['pidBrowse']);
-	}
+<?php 
+		$this->printAsBackLink("%%%back%%%",$config['pidBrowse']);
+		}
 	}
 	else require_once("histories.php");
 }

@@ -79,6 +79,8 @@
 			<label index="no_rights_create">Your are not allowed to create this content.</label>
 			<label index="no_rights_update">Your are not allowed to update this content.</label>
 			<label index="no_rights_delete">Your are not allowed to delete this content.</label>
+			<label index="autocompleteResults">results for</label>
+			<label index="autocompleteIn">in</label>
 		</languageKey>
 		<languageKey index="de" type="array">
 			<label index="create">Element erstellen.</label>
@@ -112,14 +114,14 @@
 			<label index="dateTCA.output">%m/%d/%Y</label>
 			<label index="datetimeTCA.output"> %d.%m.%Y um %H:%M Uhr</label>
 			<label index="error_unlink">Diese Datei kann nicht gelöscht werden.</label>
-			<label index="error_captcha">Ihre eingabe stimmt nicht mit der Vorgabe überein. Bitte überprüfen Sie die Eingabe oder laden sie das Bild neu.</label>
+			<label index="error_captcha">Ihre Eingabe stimmt nicht mit der Vorgabe überein. Bitte überprüfen Sie die Eingabe oder laden sie das Bild neu.</label>
 			<label index="error_nothing-found">Irgendetwas stimmt nicht: es wurde nichts gefunden!</label>
 			<label index="error_no-image">Das Bild kann nicht angezeigt werden.</label>
 			<label index="error_captcha-HTML-output">Die HTML-Seite kann nicht ausgegeben werden.</label>
 			<label index="error_crud-log-query">Die Daten können nicht a die Datenbank übergeben werden.</label>
 			<label index="create_preview">Der Datensatz wurde erfolgreich erstellt!</label>
 			<label index="create_record_failed">Ein Fehler ist aufgetreten! Bitte kontaktieren Sie den Administrator der Seite.</label>
-			<label index="retrieve_guest">Gastt</label>
+			<label index="retrieve_guest">Gast</label>
 			<label index="update_preview">Der Datensatz wurde erfolgreich aktualisiert!</label>
 			<label index="update_record_failed">Ein Fehler ist aufgetreten! Bitte kontaktieren Sie den Administrator der Seite.</label>
 			<label index="delete_preview">Die Daten werden gelöscht. Dies kann einen Moment dauern.</label>
@@ -136,7 +138,7 @@
 			<label index="show">Anzeigen</label>
 			<label index="noResults">keine Ergebnisse</label>
 			<label index="freeSearch">freie Suche</label>
-			<label index="search">Search</label>
+			<label index="search">Suche</label>
 			<label index="records">Datensätze</label>
 			<label index="General">Allgemein</label>
 			<label index="created">erstellt</label>
@@ -154,6 +156,8 @@
 			<label index="no_rights_create">Sie verfügen nicht über die nötigen Rechte, Inhalte zu erstellen.</label>
 			<label index="no_rights_update">Sie verfügen nicht über die nötigen Rechte, die Daten zu aktualisieren.</label>
 			<label index="no_rights_delete">Sie verfügen nicht über die nötigen Rechte, die Daten zu löschen.</label>
+			<label index="autocompleteResults">Ergebnisse fur</label>
+			<label index="autocompleteIn">in</label>
 		</languageKey>
 	</data>
 </T3locallang>

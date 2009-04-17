@@ -68,6 +68,7 @@ class tx_crud__views_browse extends tx_crud__views_retrieve {
 	 * @return	void
 	 */
 	function printAsForward($label = "%%%next%%%", $urlOnly = false, $wrap="") {
+		$config=$this->controller->configurations->getArrayCopy();
 		$wrap=explode("|",$wrap);
 		$pars = $this->parameters;
 		$anz = ceil ( $this->config ['count'] / $this->config ['limit'] );
@@ -102,11 +103,9 @@ class tx_crud__views_browse extends tx_crud__views_retrieve {
 		$data ['ajaxTarget'] = $this->getAjaxTarget ( "printAsReverse" );
 		if (is_array ( $pars ['search'] ))
 			$data ['track'] = 1;
-		if ($data ['page'] >= 0) {
-			if ($urlOnly)
-				echo $this->getUrl ( $data );
-			else
-				echo $wrap[0].$this->getTag ( $label, $data ).$wrap[1];
+		if ($data ['page'] > 0) {
+			if ($urlOnly) echo $this->getUrl ( $data );
+			else echo $wrap[0].$this->getTag ( $label, $data ).$wrap[1];
 		}
 	}
 	
@@ -119,19 +118,19 @@ class tx_crud__views_browse extends tx_crud__views_retrieve {
 	 * @return	void
 	 */
 	function printAsBegin($label = "&laquo;", $urlOnly = false, $wrap="") {
+		$pars=$this->controller->parameters->getArrayCopy();
 		$wrap=explode("|",$wrap);
 		$data = $pars;
-		$data ["page"] = 0;
+		unset($data["page"]);
 		$data ['ajaxTarget'] = $this->getAjaxTarget ( "printAsBegin" );
 		if (is_array ( $pars ['search'] ))
 			$data ['track'] = 1;
-		if ($data ['page'] > 0) {
+		if ($pars['page'] >= 1) {
 			if ($urlOnly)
 				echo $this->getUrl ( $data );
 			else
 				echo $wrap[0].$this->getTag ( $label, $data ).$wrap[1];
-		} else
-			return false;
+		}
 	}
 	
 	/**
@@ -168,8 +167,8 @@ class tx_crud__views_browse extends tx_crud__views_retrieve {
  	 * @param 	boolean	$urlOnly	if set only the url will returned
 	 * @return	void
 	 */
-	function printAsSorting($what, $label = "%%%sort%%%", $urlOnly = false) {
-		$pars = $this->parameters;
+	function printAsSorting($what, $label = "%%%sort%%%", $urlOnly = false,$pars=false) {
+		if(!$pars) $pars=$this->controller->parameters->getArrayCopy();
 		$typoscript = $this->controller->configurations->getArrayCopy ();
 		$anz = ceil ( $this->config ['count'] / $this->config ['limit'] );
 		$data = $pars;
@@ -186,22 +185,22 @@ class tx_crud__views_browse extends tx_crud__views_retrieve {
 			unset ( $data ['upper'] );
 			$data ["lower"] = $what;
 			if ($what == $pars ['upper'])
-				$image = '<img src="' . $typoscript ['setup.'] ['baseURL'] . 'typo3conf/ext/crud/resources/icons/sort_asc.gif" alt="%%%sort%%% ' . $what . '"/>';
+				$sorting="sort-up";
 			else
-				$image = '<img src="' . $typoscript ['setup.'] ['baseURL'] . 'typo3conf/ext/crud/resources/icons/sort.gif" alt="%%%sort%%% ' . $what . '"/>';
+				$sorting="sort";
 		} elseif ($pars ['lower']) {
 			unset ( $data ['lower'] );
 			$data ["upper"] = $what;
 			if ($what == $pars ['lower'])
-				$image = '<img src="' . $typoscript ['setup.'] ['baseURL'] . 'typo3conf/ext/crud/resources/icons/sort_desc.gif" alt="%%%sort%%% ' . $what . '"/>';
+				$sorting="sort-down";
 			else
-				$image = '<img src="' . $typoscript ['setup.'] ['baseURL'] . 'typo3conf/ext/crud/resources/icons/sort.gif" alt="%%%sort%%% ' . $what . '"/>';
+				$sorting="sort";
 		} else {
 			$data ["lower"] = $what;
-			$image = '<img src="' . $typoscript ['setup.'] ['baseURL'] . 'typo3conf/ext/crud/resources/icons/sort.gif" alt="%%%sort%%% ' . $what . '"/>';
+			$sorting="sort";
 		}
 		if (! $urlOnly)
-			echo $this->getTag ( $image . $label, $data );
+			echo $this->getTag ( $label, $data , $sorting);
 		else
 			echo $this->getUrl ( $data );
 	
@@ -275,6 +274,8 @@ class tx_crud__views_browse extends tx_crud__views_retrieve {
 	 */
 	function printAsLimit($steps = "10", $max = "50", $wrap = "") {
 		$pars = $this->controller->parameters->getArrayCopy ();
+		$config = $this->controller->configurations->getArrayCopy();
+		//t3lib_div::debug($config['view.']);
 		$data = $pars;
 		unset ( $data ['page'] );
 		if (strlen ( $data ['search'] ) < 1) {
@@ -297,7 +298,7 @@ class tx_crud__views_browse extends tx_crud__views_retrieve {
 			<select name="' . $this->getDesignator () . '[limit]" onchange="ajax4onClick(this)">';
 		$step = $steps;
 		if (! isset ( $pars ['limit'] ))
-			$pars ['limit'] = $this->count;
+			$pars ['limit'] = $config['view.']['limit'];
 		for($i = 0; $i <= $this->count + 1; $i ++) {
 			if ($step <= $this->count && $step <= $max) {
 				if ($step == $pars ['limit']) {
@@ -385,8 +386,8 @@ class tx_crud__views_browse extends tx_crud__views_retrieve {
  	 * @param	string	$fields	the db fieldnames
 	 * @return	boolean	
 	 */
-	function printAsSearch($label = "%%%search%%%", $wrap = "", $class = false) {
-		$pars = $this->controller->parameters->getArrayCopy ();
+	function printAsSearch($label = "%%%search%%%", $wrap = "", $class = "autocomplete",$id=false,$pars=false) {
+		if(!$pars) $pars = $this->controller->parameters->getArrayCopy ();
 		$data = $pars;
 		unset ( $data ['track'] );
 		unset ( $data ['page'] );
@@ -396,10 +397,12 @@ class tx_crud__views_browse extends tx_crud__views_retrieve {
 		$wrap = explode ( "|", $wrap );
 		if (isset ( $class ))
 			$class = ' class="' . $class . '" ';
+		if (isset ( $id ))
+			$id = ' id="' . $id . '" ';
 		$out = $wrap [0] . '<form method="post" action="' . $this->getUrl ( $data ) . '">
 			<input type="hidden" name="ajaxTarget" value="' . $this->getAjaxTarget ( "printAsSearch" ) . '" />
-			<input id="autocomplete" size="30" type="text" name="' . $this->getDesignator () . '[search]" value="' . $pars ['search'] . '" />
-			<input ' . $class . ' type="submit" value="' . $label . '" />';
+			<input ' . $class . $id.' size="30" type="text" name="' . $this->getDesignator () . '[search]" value="' . $pars ['search'] . '" />
+			<input type="submit" value="' . $label . '" />';
 		$out .= $hidden . '</form>' . $wrap [1];
 		echo $out;
 	}
@@ -438,7 +441,7 @@ class tx_crud__views_browse extends tx_crud__views_retrieve {
 	// BROWSE FILTER HELPER
 	// -------------------------------------------------------------------------------------
 	
-	/**
+/**
 	 * returns a link to filter the listing with a value
 	 * 
  	 * @param	string	$value	the value to filter
@@ -448,6 +451,7 @@ class tx_crud__views_browse extends tx_crud__views_retrieve {
 	function getSortingLink($value, $item) {
 		$pars = $this->controller->parameters->getArrayCopy ();
 		$pars ['ajaxTarget'] = $this->getAjaxTarget ( "getSortingLink" );
+		//unset($pars['search']);
 		$value_exploded = explode ( ",", $value );
 		$item_key = $item ['key'];
 		if ($item ['config.'] ['type'] == 'check' && is_array ( $item ['options.'] )) {
@@ -465,11 +469,18 @@ class tx_crud__views_browse extends tx_crud__views_retrieve {
 				$checkValue += ($options [$checkbox [$check]]);
 				$data [] = $this->getLL ( $item ['options.'] [$checkbox [$check]], 1 );
 			}
-			$url = $this->getUrl ( $pars ) . '&' . $this->getDesignator () . '[search][' . $item ['key'] . '][is]=' . $checkValue;
-			$url = str_replace ( "&", "&amp;", $url );
+			if(isset($pars['page']))unset($pars['page']);
+			unset($pars['search'][$item['key']]);
+			$url = $this->getUrl ( $pars);// . '&' . $this->getDesignator () . '[search][' . $item ['key'] . '][is]=' . $checkValue;
+		
 		} elseif (strlen ( $value ) >= 1)
+		
 			foreach ( $value_exploded as $val ) {
-				$url = "";
+			//	unset($pars['search'][$item['key']]);
+				///$url = $this->getUrl ( $pars ,$GLOBALS['TSFE']->id,1);
+				///t3lib_div::debug($url);
+				$renderPars=$pars;
+				unset($renderPars['search']);
 				if (is_array ( $item ['options.'] ) && in_array ( $val, $item ['options.'] )) {
 					$keys = array_keys ( $item ['options.'], $val );
 					if (is_array ( $pars ['search'] [$item_key] ) && strlen ( $pars ['search'] [$item_key] ['is'] ) >= 1)
@@ -482,27 +493,24 @@ class tx_crud__views_browse extends tx_crud__views_retrieve {
 						$value = $this->getLL ( $val, 1 );
 						unset ( $pars ['track'] );
 						unset ( $pars ['page'] );
-						$pars ['ajaxTarget'] = $this->getAjaxTarget ( "getSortingLink" );
-						if (isset ( $item ['config.'] ['MM'] ))
-							$url = $this->getUrl ( $pars ) . '&' . $this->getDesignator () . '[search][' . $item ['key'] . '][mm]=' . $keys [0];
-						else
-							$url = $this->getUrl ( $pars ) . '&' . $this->getDesignator () . '[search][' . $item ['key'] . '][is]=' . $keys [0];
+						if (isset ( $item ['config.'] ['MM'] )) $renderPars['search'][$item['key']]['mm']=$keys[0];
+						else $renderPars['search'][$item['key']]['is']=$keys[0];
 						if (isset ( $pars ['search'] [$item_key] ['is'] ) && $pars ['search'] [$item_key] ['is'] != $keys [0]) {
-							$url .= "," . $pars ['search'] [$item_key] ['is'];
+							$renderPars['search'][$item['key']]['is'] .= "," . $pars ['search'] [$item_key] ['is'];
 						}
 						if (isset ( $pars ['search'] [$item_key] ['mm'] ) && $pars ['search'] [$item_key] ['mm'] != $keys [0]) {
-							$url .= "," . $pars ['search'] [$item_key] ['mm'];
+							$renderPars['search'][$item['key']]['mm'] .= "," . $pars ['search'] [$item_key] ['mm'];
 						}
 						$orgPars = $pars;
 						if (is_array ( $orgPars ['search'] [$item_key] ))
 							unset ( $orgPars ['search'] [$item_key] );
-						if (is_array ( $orgPars ['search'] ))
-							foreach ( $orgPars ['search'] as $name => $val ) {
-								if (isset ( $val ['mm'] )) {
-									$url .= '&' . $this->getDesignator () . '[search][' . $name . '][mm]=' . $val ['mm'];
-								} elseif (isset ( $val ["is"] ))
-									$url .= '&' . $this->getDesignator () . '[search][' . $name . '][is]=' . $val ['is'];
-							}
+						if (is_array ( $orgPars ['search'] )) foreach ( $orgPars ['search'] as $name => $val ) {
+							if (isset ( $val ['mm'] )) $renderPars['search'][$name]['mm']=$val['mm'];
+							elseif (isset ( $val ["is"] )) $renderPars['search'][$name]['is']=$val['is'];
+						}
+						if(isset($renderPars['page']))unset($renderPars['page']);
+						$url= $this->getUrl($renderPars,$GLOBALS['TSFE']->id,1)	;
+						$url = str_replace ("&amp;","&", $url );
 						$url = str_replace ( "&", "&amp;", $url );
 						$data [] = '<a href="' . $url . '">' . $value . "</a>";
 					}
@@ -510,7 +518,10 @@ class tx_crud__views_browse extends tx_crud__views_retrieve {
 			}
 		if(is_array($data)) return implode ( ", ", $data );
 	}
-		
+	
+
+	
+
 	/**
 	 * returns an array with all active filter
 	 * 
@@ -520,62 +531,96 @@ class tx_crud__views_browse extends tx_crud__views_retrieve {
 		$pars = $this->controller->parameters->getArrayCopy ();
 		$pars ['ajaxTarget'] = $this->getAjaxTarget ( "getActiveFilters" );
 		unset ( $pars ['track'] );
+		unset ( $pars ['page'] );
 		$setup = $this->get ( "setup" );
-		if (is_array ( $pars ['search'] ))
-			foreach ( $pars ['search'] as $item_key => $value ) {
-				$parsCopy = $pars;
-				unset ( $parsCopy ['search'] [$item_key] );
-				$v = "";
-				$v_array = array ();
-				if (! isset ( $value ['mm'] ))
-					$value_exploded = explode ( ",", $value ['is'] );
-				else
-					$value_exploded = explode ( ",", $value ['mm'] );
-				foreach ( $value_exploded as $value_single ) {
-					if (isset ( $setup [$item_key] ['options.'] [$value_single] )) {
-						$active [$item_key] [$value_single] = $this->getLL ( $setup [$item_key] ['options.'] [$value_single], 1 );
-					}
+		///t3lib_div::debug($setup);
+		if (is_array ( $pars ['search'] )) foreach ( $pars ['search'] as $item_key => $value ) {
+			$parsCopy = $pars;
+			unset ( $parsCopy ['search'] [$item_key] );
+			$v = "";
+			$v_array = array ();
+			if (isset ( $value ['is'] )) $value_exploded = explode ( ",", $value ['is'] );
+			elseif (isset ( $value ['mm'] )) $value_exploded = explode ( ",", $value ['mm'] );
+			else $value_exploded = explode ( ",", $value );
+			foreach($value_exploded as $key=>$val) {
+				if (isset ( $setup [$item_key] ['options.'][$val] )) {
+					$active [$item_key] [$val] = $this->getLL ( $setup [$item_key] ['options.'] [$val], 1 );
 				}
+				elseif(strlen($value)>=1 && !is_array($value)) $active [$item_key] [$value] = $value;
 			}
+		}
 		if (is_array ( $active ))
 			foreach ( $active as $key => $data ) {
 				foreach ( $data as $value => $label ) {
-					$urlData = array ();
-					$copy = $data;
-					unset ( $copy [$value] );
-					if (count ( $data ) >= 1) {			
-						unset ( $copy [$value] );
-						foreach ( $copy as $value_copy => $label_copy ) {
-							$urlData [] = $value_copy;
-						}
+					$pars = $this->controller->parameters->getArrayCopy ();
+					unset($pars['page']);
+					$orgData=$data;
+					unset($orgData[$value]);
+					$extras="";
+					if(is_array($orgData)) foreach ($orgData as $v2=>$label2) {
+						$extras[]=$v2;
 					}
 					unset ( $pars ['track'] );
-					$pars ['ajaxTarget'] = $this->getAjaxTarget ( "getActiveFilters" );
-					$url = $this->getUrl ( $pars );
-					if (count ( $urlData ) >= 1) {
-						if (isset ( $setup [$key] ['config.'] ['MM'] ))
-							$url .= "&" . $this->getDesignator () . "[search][" . $key . "][mm]=" . implode ( ",", $urlData );
-						else
-							$url .= "&" . $this->getDesignator () . "[search][" . $key . "][is]=" . implode ( ",", $urlData );
+					unset ( $pars ['search'][$key] );
+					if(is_array($extras)) {
+						if(isset($setup[$key]['config.']['MM'])) $pars['search'][$key]['mm']=implode(",",$extras);
+						else $pars['search'][$key]['is']=implode(",",$extras);
 					}
-					$parsCopy = $pars = $this->controller->parameters->getArrayCopy ();
-					unset ( $parsCopy ['search'] [$key] );
-					if (is_array ( $parsCopy ))
-						foreach ( $parsCopy ['search'] as $item_key => $val ) {
-							if (isset ( $setup [$item_key] ['config.'] ['MM'] ))
-								$url .= "&" . $this->getDesignator () . "[search][" . $item_key . "][mm]=" . $val ['mm'];
-							else
-								$url .= "&" . $this->getDesignator () . "[search][" . $item_key . "][is]=" . $val ['is'];
-						}
-					$return [$this->getLL ( $setup [$key] ['label'], 1 )] [$url] = $label;
+					$pars ['ajaxTarget'] = $this->getAjaxTarget ( "getActiveFilters" );
+					$url = $this->getUrl ( $pars ,$GLOBALS['TSFE']->id,1);
+					$return [$this->getLL ( $setup [$key] ['label'], 1 )][] [$url] = $label;
 				}
-			}
-		if ($return)
-			return $return;
-		else
-			return false;
+			}	
+		if ($return) return $return;
+		else return false;
 	}
 	
+	/**
+	 * print a filter select with values set by the typoscript getExistValues
+	 * 
+ 	 * @param	string	$field	the db fieldname 
+  	 * @param 	string	$label	the label for the select
+  	 * @param 	integer	$pid	the target page id for the select
+	 * @return	string	the filter select from
+	 */
+	function printAsFilterList($table,$field, $label, $pid,$start=0,$limit=20,$wrapAll="<ul>|</ul>",$wrapElement="<li>|</li>",$returnOnly=false) {
+		$setup = $this->controller->configurations->getArrayCopy ();
+		$data =$setup['view.']["existingValues"][$table];
+		$pars = $this->controller->parameters->getArrayCopy ();
+		unset ( $pars ['page'] );
+		unset ( $pars ['track'] );
+		$tca = $setup['view.']['setup'] ['setup'] [$field];
+		$pars['ajaxTarget']=$this->getAjaxTarget("printAsFilterList");
+		if(is_array($pars['search']) && isset($pars['search'][$field])) unset($pars['search'][$field]);
+		$wrapElement=explode("|",$wrapElement);
+		$wrapAll=explode("|",$wrapAll);
+		$url=$this->getUrl($pars,$GLOBALS['TSFE']->id,1);
+		if (is_array ( $data [$field] )) {
+			$select = $wrapAll[0];
+			foreach (  array_slice($data[$field],$start,$limit,true)   as $string => $count ) {
+				$select .= $wrapElement[0];
+				if(is_array($setup['view.']['setup'][$field]['options.']) && strlen($setup['view.']['setup'][$field]['options.'][$string])<=1) {
+					$select .= '<a href="' . $url. "&".$this->getDesignator()."[search][".$field."]=".urlencode($string). '" ' . $selected . '>nicht angegeben (' . $count . ")" . '</a>' . "\n\t";
+				}
+				elseif($setup['view.']['setup'][$field]['config.']['MM']) {
+					$select .= '<a href="' .  $url. "&".$this->getDesignator()."[search][".$field."][mm]=".urlencode($string). '">' .$setup['view.']['setup'][$field]['options.'][$string] . " (" . $count . ")" . '</a>' . "\n\t";
+				}
+				elseif(is_array($setup['view.']['setup'][$field]['options.'])) {
+					
+					$select .= '<a href="' .  $url. "&".$this->getDesignator()."[search][".$field."][is]=".urlencode($string). '">' .$this->getLL($setup['view.']['setup'][$field]['options.'][$string],1) . " (" . $count . ")" . '</a>' . "\n\t";
+				}
+				else $select .= '<a href="' .  $url. "&".$this->getDesignator()."[search][".$field."]=".urlencode($string). '">' . $string . " (" . $count . ")" . '</a>' . "\n\t";
+				$select .= $wrapElement[1];
+				
+			}	
+			$select = str_replace ("&amp;","&", $select );
+			$select = str_replace ( "&", "&amp;", $select );
+			echo $select.$wrapAll[1];
+				
+		}
+			
+			
+	}
 		
 	/**
 	 * print a filter select with values set by the typoscript getExistValues
@@ -585,18 +630,18 @@ class tx_crud__views_browse extends tx_crud__views_retrieve {
   	 * @param 	integer	$pid	the target page id for the select
 	 * @return	string	the filter select from
 	 */
-	function getFilterSelect($field, $label, $pid) {
+	function printAsFilterSelect($table,$field, $label, $pid,$start=0, $limit=20) {
 		$setup = $this->controller->configurations->getArrayCopy ();
-		$host = 'http://' . $_SERVER ['HTTP_HOST'] . str_replace ( "index.php", "", $_SERVER ['SCRIPT_NAME'] );
-		$path = str_replace ( "/index.php", "", $_SERVER ['SCRIPT_NAME'] );
-		$data = $this->get ( "existingValues" );
+		$data =$setup['view.']["existingValues"][$table];
 		$pars = $this->controller->parameters->getArrayCopy ();
 		unset ( $pars ['page'] );
-		$tca = $data ['setup'] [$field];
-		$url = $this->getSearchUrl ( $pid, $pars, array (), 1 );
-		$select = '<form action="' . $url . '" name="selector" method="post">';
-		if (is_array ( $data [$field] ) && count ( $data [$field] ) > 1) {
-			$select = '<select onchange="top.location=options[selectedIndex].value" name="partner[country]">';
+		unset ( $pars ['track'] );
+		$tca = $setup['view.']['setup'] ['setup'] [$field];
+		$pars['ajaxTarget']=$this->getAjaxTarget("printAsFilterSelect");
+		$url = $this->getUrl ($pars,$GLOBALS['TSFE']->id,1);
+		$select = '<form action="" name="selector" method="post">';
+		if (is_array ( $data [$field] )) {
+			$select .= '<select onchange="top.location=options[selectedIndex].value" name="select">';
 			if ($pars [$field]) {
 				$params = $pars;
 				unset ( $params [$field] );
@@ -605,95 +650,25 @@ class tx_crud__views_browse extends tx_crud__views_retrieve {
 				$first ['value'] = $label;
 			}
 			$select .= '<option value="' . $first ['option'] . '">' . $first ['value'] . '</option>';
-			foreach ( $data [$field] as $uid => $value ) {
-				if ($tca ['config.'] ['type'] == "input") {
-					$target = $this->getSearchUrl ( $pid, $pars, array ($field => $value ['title'] ), 1 );
-					if ($pars [$field] == $value ['title']) {
-						$selected = " selected";
-					} else {
-						$selected = "";
-					}
-				} elseif ($tca ['config.'] ['type'] == "select") {
-					$target = $this->getSearchUrl ( $pid, $pars, array ($field => $uid ), 1 );
-					if ($pars [$field] == $uid) {
-						$selected = " selected";
-					} else {
-						$selected = "";
-					}
+			$i=0;
+			foreach ( array_slice($data[$field],$start,$limit,true)  as $string => $count ) {
+				$i++;
+				if(is_array($setup['view.']['setup'][$field]['options.']) && strlen($setup['view.']['setup'][$field]['options.'][$string])<=1) {
+					$select .= '<option value="' .  $url. "&".$this->getDesignator()."[search][".$field."][is]=".urlencode($string). '" ' . $selected . '>nicht angegeben (' . $count . ")" . '</option>' . "\n\t";
 				}
-				$select .= '<option value="' . $host . $target . '" ' . $selected . '>' . $value ['title'] . " (" . $value ['count'] . ")" . '</option>' . "\n\t";
-			}
-			$select .= '</select>' . "\n" . '</form>';
-			return $select;
-		}
-	}
-	
-	/**
-	 * prints a list for deselect an filter set by the typoscript getExistValues
-	 * 
- 	 * @param	string	$field	the db fieldname 
-  	 * @param 	string	$label	the label for the select
-  	 * @param 	integer	$pid	the target page id for the select
-	 * @return	string	the filter deselect html
-	 */
-	function getFilterUnselect($field, $label, $pid) {
-		$setup = $this->controller->configurations->getArrayCopy ();
-		$host = 'http://' . $_SERVER ['HTTP_HOST'] . str_replace ( "index.php", "", $_SERVER ['SCRIPT_NAME'] );
-		$path = str_replace ( "/index.php", "", $_SERVER ['SCRIPT_NAME'] );
-		$pars = $this->controller->parameters->getArrayCopy ();
-		$data = $this->get ( "existingValues" );
-		$tca = $data ['setup'] [$field];
-		if ($pars [$field]) {
-			if ($tca ['config.'] ['type'] == "select") {
-				$value = $tca ['options.'] [$pars [$field]];
-				unset ( $pars [$field] );
-				$url = $this->getSearchUrl ( $pid, $pars, array (), 1 );
-				if (count ( $data ) >= 1) {
-					foreach ( $data [$field] as $key => $val ) {
-						if ($val ['title'] == $value) {
-							$count = $val ['count'];
-							break;
-						}
-					}
+				elseif($setup['view.']['setup'][$field]['config.']['MM']) {
+					$select .= '<option value="' .  $url. "&".$this->getDesignator()."[search][".$field."][mm]=".urlencode($string). '" ' . $selected . '>' .$setup['view.']['setup'][$field]['options.'][$string] . " (" . $count . ")" . '</option>' . "\n\t";
 				}
-			}
-			$out = $label . $value . " (" . $count . ")" . '<a href="' . $url . '"><img src="typo3conf/ext/partner__listing/resources/images/list_remove_btn.gif" border="0" alt="" /></a>';
-			echo $out;
-		} else {
-			$value = $pars [$field];
-			unset ( $pars [$field] );
-			$url = $this->getSearchUrl ( $pid, $pars, array (), 1 );
-			$typoscript = $this->controller->configurations->getArrayCopy ();
-			$count = $typoscript [$this->controller->action . "."] ["view."] ["count"];
-			$out = $label . $value . " (" . $count . ")" . '<a href="' . $url . '"><img src="typo3conf/ext/partner__listing/resources/images/list_remove_btn.gif" border="0" alt="" /></a>';
-			echo $out;
-		}
-	}
-	
-	/**
-	 * checks if an extingValues filter is set
-	 * 
- 	 * @param	string	$fields	the db fieldnames
-	 * @return	boolean	
-	 */
-	function existSelect($fields) {
-		$fields = explode ( ",", $fields );
-		$size = count ( $fields );
-		$pars = $this->controller->parameters->getArrayCopy ();
-		$parsCounter = 0;
-		if (is_array ( $fields )) {
-			foreach ( $fields as $field ) {
-				if (! $this->getFilterSelect ( $field, $field, 1 )) {
-					$size --;
+				elseif(is_array($setup['view.']['setup'][$field]['options.'])) {
+					$select .= '<option value="' .  $url. "&".$this->getDesignator()."[search][".$field."][is]=".urlencode($string). '" ' . $selected . '>' .$this->getLL($setup['view.']['setup'][$field]['options.'][$string],1) . " (" . $count . ")" . '</option>' . "\n\t";
 				}
-				if ($pars [$field]) {
-					$parsCounter ++;
-				}
+				else $select .= '<option value="' .  $url. "&".$this->getDesignator()."[search][".$field."]=".urlencode($string). '" ' . $selected . '>' . $string . " (" . $count . ")" . '</option>' . "\n\t";
 			}
 		}
-		if ($parsCounter < $size) {
-			return true;
-		}
+		$select = str_replace ("&amp;","&", $select );
+		$select = str_replace ( "&", "&amp;", $select );
+		$select .= '</select>' . "\n" . '</form>';
+		if($i>=1)echo $select;
 	}
 	
 }

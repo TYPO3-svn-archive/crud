@@ -45,7 +45,7 @@ class tx_crud__views_create extends tx_crud__views_common {
 	 *
 	 * @return	string	form start tag
 	 */
-	function printAsFormHeader() {
+	function printAsFormHeader($url=false,$class=false) {
 		$setup = $this->controller->configurations->getArrayCopy ();
 		if (! is_object ( $this->form )) {
 			$formEngineClassName = tx_div::makeInstanceClassName ( "tx_crud__formBase" );
@@ -53,7 +53,7 @@ class tx_crud__views_create extends tx_crud__views_common {
 			$this->form->setup = $this->get ( "setup" );
 			$this->form->controller = $this->controller;
 		}
-		echo $this->form->begin ( $this->getDesignator (), array ("name" => $this->getDesignator () ) );
+		echo $this->form->begin ( $this->getDesignator (), array ("name" => $this->getDesignator () ),$url ,$class);
 	}
 	
 	/**
@@ -92,10 +92,9 @@ class tx_crud__views_create extends tx_crud__views_common {
 		$storage = $conf ['storage.'];
 		$form .= '<input type="hidden" name="' . $this->getDesignator () . '[form]" value="' . tx_crud__div::getActionID ( $conf ) . '" />';
 		$form .= '<input type="hidden" name="' . $this->getDesignator () . '[process]" value="preview" />';
-		$form .= '<input type="submit" name="' . $this->getDesignator () . '[submit]" value="1" alt="'.$label.'" />';
+		$form .= '<input type="submit" name="' . $this->getDesignator () . '[submit]" value="'.$label.'" alt="'.$label.'" />';
 		if(isset($_REQUEST['xID'])) $form .= '<input type="hidden" name="xID" value="'.$_REQUEST['xID'].'" />' . "\n\t";
 		if(isset($_POST['mID'])) $form .= '<input type="hidden" name="mID" value="'.$_POST['mID'].'" />' . "\n\t";
-		//$form .= '<input type="hidden" name="mID" value="'.$setup ['setup.'] ['marker'].'" />' . "\n\t";
 		$conf = $this->get ( "setup" );
 		if ($tinymce ['enable'] == 1 && is_array ( $conf )) {
 			foreach ( $conf as $key => $val ) {
@@ -152,48 +151,8 @@ class tx_crud__views_create extends tx_crud__views_common {
 		$out = '<a href="' . $this->getUrl ( $pars ) . '">' . $label . '</a>';
 		return $out;
 	}
-	
-	/**
-	 * prints the javascript for the tabs and check for an error in a tab
-	 *
-	 * @param	array	$entryList	the form setup 
-	 * @param 	string	$call	the jquery tab call. example: $('#crud-tabs-form > ul')
-	 * @return	void
-	 */
-	function enableTabs($entryList, $call) {
-		$tab = 1;
-		foreach ( $entryList as $divider => $dividers ) {
-			foreach ( $dividers as $section => $sections ) {
-				foreach ( $sections as $key => $entry ) {
-					if ($entry ['error']) {
-						$tabError = $tab;
-						break;
-					}
-				}
-				if ($tabError) {
-					break;
-				}
-			}
-			if ($tabError) {
-				break;
-			} else {
-				$tab ++;
-			}
-		}
-		
-		if ($tabError) {
-			$tab = $tabError;
-		} else {
-			$tab = 1;
-		}
-		$tab = $tab - 1;
-		$js = '<script type="text/javascript">
-				function enableTabs(){';
-		$js .= $call . '.tabs({ selected: ' . $tab . ' });' . "\n";
-		$js .= '};' . "\n" . '</script>';
-		echo $js;
-	}
-	
+
+
 	// -------------------------------------------------------------------------------------
 	// SETUP HELPER
 	// -------------------------------------------------------------------------------------

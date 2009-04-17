@@ -1,5 +1,6 @@
 <?php 
 if (!defined ('TYPO3_MODE')) die ('Access denied.');
+t3lib_div::debug($this->controller->configurations->getArrayCopy(),"debug");
 if ($this->get('mode') == 'EDIT') {
 	$entryList = $this->get('setup');
 	$entryList = $this->renderSetup($entryList);
@@ -54,14 +55,12 @@ if ($this->get('mode') == 'EDIT') {
 	$this->loadHeaderData("libraries","jquery-ui-tabs");
 	$this->loadHeaderData("libraries","tiny-mce");
 	$this->loadHeaderData("libraries","crudscript");
-	$this->enableTabs($entryList,"$('#crud-tabs-form > ul')");
+	$this->enableTabs("$('#crud-tabs-form > ul')",$entryList);
 	$this->printAsFormSubmit();
 	echo "</div>";
 	$this->printAsFormFooter();
-
-	
-
 	$this->printAsFormCancel();
+	
 	} elseif ($this->get('mode') == 'ICON') {
 		$this->printActionLink("update") . "";
 	} elseif ($this->get('mode') == 'PROCESS') {

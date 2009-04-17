@@ -71,7 +71,7 @@ jQuery.autocomplete = function(input, options) {
 	}
 
 	$input
-	.keydown(function(e) {
+	.keypress(function(e) {
 		// track last key pressed
 		lastKeyPressCode = e.keyCode;
 		switch(e.keyCode) {
@@ -118,8 +118,17 @@ jQuery.autocomplete = function(input, options) {
 		prev = v;
 		if (v.length >= options.minChars) {
 			$input.addClass(options.loadingClass);
+			// disable submit button
+			$form=$(".autocomplete").parents("form");
+			$(":submit",$form).attr("disabled","disabled");
+			// start autocomplete proccess
+			
 			requestData(v);
 		} else {
+			// enable submit button
+			$form=$(".autocomplete").parents("form");
+			$(":submit",$form).attr("disabled","");
+			// kill autocomplete process
 			$input.removeClass(options.loadingClass);
 			$results.hide();
 		}
@@ -129,7 +138,13 @@ jQuery.autocomplete = function(input, options) {
 
 		var lis = $("li", results);
 		if (!lis) return;
+		
+		// init for autocomplete div is over the input
+		if(active==-1 && options.direction=="over")
+			active=lis.size();
+
 		var oldActive=active;
+		
 	
 		do{
 			active += step;
@@ -138,7 +153,7 @@ jQuery.autocomplete = function(input, options) {
 				active=oldActive;
 				return;
 			}
-		}while($(lis[active]).children("div").attr("class")=="#headline");
+		}while($(lis[active]).children("div").attr("class")=="headline" || $(lis[active]).children().attr("class")=="result");
 		
 		lis.removeClass("ac_over");
 
@@ -222,11 +237,20 @@ jQuery.autocomplete = function(input, options) {
 		// either use the specified width, or autocalculate based on form element
 		var iWidth = (options.width > 0) ? options.width : $input.width();
 		// reposition
-		$results.css({
-			width: parseInt(iWidth) + "px",
-			top: (pos.y + input.offsetHeight) + "px",
-			left: pos.x + "px"
-		}).show();
+		if(options.direction=="over"){
+			$results.css({
+				width: parseInt(iWidth) + "px",
+				top: (pos.y - $results.height()) + "px", //nach oben
+				left: pos.x + "px"
+			}).show();
+		} else {
+			$results.css({
+				width: parseInt(iWidth) + "px",
+				top: (pos.y + input.offsetHeight) + "px", // nach unten
+				left: pos.x + "px"
+			}).show();
+		}
+		
 	};
 
 	function hideResults() {
@@ -287,12 +311,58 @@ jQuery.autocomplete = function(input, options) {
 
 		// limited results to a max number
 		if( (options.maxItemsToShow > 0) && (options.maxItemsToShow < num) ) num = options.maxItemsToShow;
-
-		for (var i=0; i < num; i++) {
+		
+		var count=0; // hits at all
+		var k=0; // counter for categories
+		hitsPerCat=new Array(); // hits per category
+		hitsPerCat[0]=0; // init
+		// count all this shit
+		for (var i = 0; i < num; i++) {
+			if(data[i][3]){			
+				count += parseInt(data[i][2]);
+				hitsPerCat[k] += parseInt(data[i][2]);
+			}
+			else {
+				k++; // next category
+				hitsPerCat[k]=0; // init
+			}
+		}
+		k=0;
+		var catCount=0; // counter for category entries
+		var li = document.createElement("li");
+		for (var i = 0; i < num; i++) {
 			var row = data[i];
+			// manage counter for category entries
+			if(row[3])
+				catCount++;
+			else {
+				catCount=0;
+				k++;
+			}
 			if (!row) continue;
 			var li = document.createElement("li");
-			if (options.formatItem) {
+			// cut when mor the 3 entries for this category
+			if(catCount > 3) {
+				// entry to show all in this category
+				if(catCount == 4) {
+	
+					li.innerHTML='<div class="hidden ac_info1">'+row[1]+'</div><div class="hidden ac_info2">'+$input.val()+'</div><div><u>Alle anzeigen&hellip;('+hitsPerCat[k]+')</u></div>';
+					li.selectValue = $input.val();
+				}	
+				else continue;
+			}
+			// first entry is headline
+			else if(i == 0 && num > 1){
+				li.innerHTML='<div class="result">'+count+' '+row[1]+'</div>';
+				li.selectValue = row[0];
+			}
+			// last entry is show_all
+			else if(i==num-1 && num > 1){
+				li.innerHTML='<div class="hidden ac_info1">'+row[1]+'</div><div class="hidden ac_info2">'+$input.val()+'</div><div class="show_all">Alle anzeigen&hellip;</div>';
+				li.selectValue = $input.val();
+			}
+			// other entries will be managed outside (formatItem)
+			else if (options.formatItem) {
 				li.innerHTML = options.formatItem(row, i, num);
 				li.selectValue = row[0];
 			} else {
@@ -308,10 +378,11 @@ jQuery.autocomplete = function(input, options) {
 			}
 			li.extra = extra;
 			ul.appendChild(li);
+			// dont hover class result and headline 
 			$(li).hover(
-				function() { if($(this).children().attr("class")!="#headline"){$("li", ul).removeClass("ac_over"); $(this).addClass("ac_over"); active = $("li", ul).indexOf($(this).get(0)); }},
-				function() { if($(this).children().attr("class")!="#headline"){$(this).removeClass("ac_over"); }}
-			).click(function(e) {  if($(this).children().attr("class")!="#headline"){e.preventDefault(); e.stopPropagation(); selectItem(this) }});
+				function() { if($(this).children().attr("class")!="headline" && $(this).children().attr("class")!="result"){$("li", ul).removeClass("ac_over"); $(this).addClass("ac_over"); active = $("li", ul).indexOf($(this).get(0)); }},
+				function() { if($(this).children().attr("class")!="headline" && $(this).children().attr("class")!="result"){$(this).removeClass("ac_over"); }}
+			).click(function(e) {  if($(this).children().attr("class")!="headline" && $(this).children().attr("class")!="result"){e.preventDefault(); e.stopPropagation(); selectItem(this) }});
 		}
 		return ul;
 	};
@@ -465,6 +536,7 @@ jQuery.fn.autocomplete = function(url, options, data) {
 	options.data = ((typeof data == "object") && (data.constructor == Array)) ? data : null;
 
 	// Set default values for required options
+	options.direction = options.direction || "under";
 	options.inputClass = options.inputClass || "ac_input";
 	options.resultsClass = options.resultsClass || "ac_results";
 	options.lineSeparator = options.lineSeparator || "\n";

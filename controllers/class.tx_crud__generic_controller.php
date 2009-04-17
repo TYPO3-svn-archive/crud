@@ -137,6 +137,7 @@ class tx_crud__generic_controller extends tx_lib_controller{
 	 * @return	string	the content of the controller
 	 */
 	function browseAction() {
+		$start=microtime(true);
 		$config = $this->configurations;
 		$templateEngineClassName = $config['view.']['className'];
 		$translatorClassName = tx_div::makeInstanceClassName($config["view."]["translatorClassName"]);
@@ -154,23 +155,46 @@ class tx_crud__generic_controller extends tx_lib_controller{
 		return $translator->translateContent();
 	}
 	
-		
+	/**
+	 * generic filter action
+	 * 
+	 * @return	string	the content of the controller
+	 */
+	function pluginAction() {
+		$config = $this->configurations->getArrayCopy();
+		if(isset($config['view.']['className'])) {
+			$templateEngineClassName = $config['view.']['className'];
+			$view = new $templateEngineClassName($this); 
+			$view->setPathToTemplateDirectory($config["view."]["templatePath"]); 
+			return $view->render($config['view.']['template']);
+			$translatorClassName = tx_div::makeInstanceClassName($config["view."]["translatorClassName"]);
+			$translator = new $translatorClassName($view,$this);
+			$translator->setPathToLanguageFile($config["view."]["keyOfPathToLanguageFile"]);
+        	return $translator->translateContent();
+		}
+	}	
+	
 	/**
 	 * generic autocomplete action for the searchbox
 	 * 
 	 * @return	string	the content of the controller
 	 */
 	function autocompleteAction() {		
-		if($_REQUEST['q']) {
-			$config = $this->configurations;
-			$pars=$this->parameters->getArrayCopy();
-			$pars['search']=$_GET['q'];
-			$pars['autocomplete']="1";
-			$this->parameters=new tx_lib_object($pars);
-			$model = $this->model;
-			echo $model->data;
-			die();
-		}
+		$config = $this->configurations;
+		$templateEngineClassName = $config['view.']['className'];
+		$view = new $templateEngineClassName($this); 
+		$view->setPathToTemplateDirectory($config["view."]["templatePath"]); 
+		$model=$this->model;
+		$view->set("data",$model->data);
+		$view->render($config['view.']['template']);
+		$translatorClassName = tx_div::makeInstanceClassName($config["view."]["translatorClassName"]);
+		$translator = new $translatorClassName($view,$this);
+		$translator->setPathToLanguageFile($config["view."]["keyOfPathToLanguageFile"]);
+		$view->_iterator->array['_content'] = $translator->translateContent();
+		$translator = new $translatorClassName($view,$this);
+		$translator->setPathToLanguageFile("EXT:crud/locallang.xml");
+		echo $translator->translateContent();
+        die();
 	}
 }
 

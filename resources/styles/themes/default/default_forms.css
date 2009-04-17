@@ -81,7 +81,7 @@
 	{
 	background: #ffffff url(images/ffffff_40x100_textures_02_glass_65.png) 0 50% repeat-x;
 	color: #222222;
-	font-style:bold;
+	font-weight: bold;
 }
 
 .ui-tabs-panel { /*resets*/
@@ -147,9 +147,9 @@ fieldset.crud-section {
 	margin-top:2px;
 	padding:2px;
 	width:100%;
-	border: 0px solid #000;	
 	background-color:#ff6363;
 }
+
 fieldset.crud-section input, fieldset.crud-section textarea {
 	border: 1px solid #999;
 	background: #fff url(images/bg-input.png) repeat-x top left;

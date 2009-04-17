@@ -1,4 +1,7 @@
 <?php
+
+
+
 if ($this->get('mode') == 'PROCESS') {
 	//t3lib_div::debug($this->controller->configurations->getArrayCopy(),"Setup Browse");
 	//$this->renderPreview();
@@ -19,7 +22,7 @@ if ($this->get('mode') == 'PROCESS') {
 			$to = $typoscript['count'];
 		}
 	}
-		$cols = count($typoscript['setup']) + 1;
+	$cols = count($typoscript['setup']) + 1;
 	$this->loadHeaderData("css","tables");
 	//$this->loadHeaderData("css","forms");
 	$this->loadHeaderData("libraries","jquery");
@@ -31,6 +34,11 @@ if ($this->get('mode') == 'PROCESS') {
 	$this->loadHeaderData("libraries","tiny-mce");
 	//$this->enableTabs($entryList,"$('#crud-tabs-form > ul')");;
 	$this->loadHeaderData("css","autocomplete");
+		$this->printAsFilterList("tx_partner_main","locality","Stadt",$GLOBALS['TSFE']->id,0,6);
+ $this->printAsFilterSelect("tx_partner_main","locality","Stadt",$GLOBALS['TSFE']->id,6,60);
+ 		$this->printAsFilterList("tx_partner_main","org_legal_form","Rechtsform",$GLOBALS['TSFE']->id,0,6);
+ $this->printAsFilterSelect("tx_partner_main","org_legal_form","Rechtsform",$GLOBALS['TSFE']->id,6,60);
+ $this->printAsFilterSelect("tx_partner_main","hobbies","Hobbies",$GLOBALS['TSFE']->id,6,60);
 	if (!$typoscript['count']) {
 		echo "%%%error_nothing-found%%%";
 	} else {
@@ -42,17 +50,15 @@ if ($this->get('mode') == 'PROCESS') {
 		<?php $this->printAsSearch(); $this->printAsNoSearch(); ?>
 
 <p>%%%youbrowse%%% <?php echo $now . " - " . $to . " %%%from%%% <strong>" . $typoscript['count'] ?>
- %%%records%%%</strong>
- <br/></p>
+ %%%records%%%</strong></p>
 <?php if(is_array($filter=$this->getActiveFilters())) {
 	//t3lib_div::debug($filter);
-	echo '<strong>Disable Filters:</strong><ul>' . "\n\t"; //TODO: Localization
-	foreach($filter as $label=>$value) {
-		echo '<li>'.$label .": ";
-		foreach ($value as $url=>$name) {
-			echo ' <a href="'.$url.'">'.$name."</a> ";
+	echo '<ul class="filters">' . "\n\t"; //TODO: Localization
+	foreach ($filter as $label=>$value) {
+		echo '<li class="filtersLabel">' . $label . ':</li>' . "\n\t";
+		foreach ($value as $uid=>$val) foreach ($val as $url=>$name) {
+			echo '<li><a href="' . $url . '">' . $name . '</a></li>' . "\n\t";
 		}
-		echo '</li>' . "\n\t" ;
 	}
 	echo '</ul>' . "\n";
 }
@@ -114,8 +120,8 @@ if ($this->get('mode') == 'PROCESS') {
 	</tbody>
 </table>
 <ul class="pagebrowser clearfix">
-	<?php $this->printAsReverse("%%%prev%%%", 0, '<li class="first">|</li>'); ?>
-	<?php $this->printAsBegin('&laquo;', 0, '<li class="prev">|</li>'); ?>
+	<?php $this->printAsBegin('&laquo;', 0, '<li class="first">|</li>'); ?>
+	<?php $this->printAsReverse("%%%prev%%%", 0, '<li class="prev">|</li>'); ?>
 	<?php $this->printAsBrowse($pages="3|3",$label=""); ?>
 	<?php $this->printAsForward('%%%next%%%', 0, '<li class="next">|</li>'); ?>
 	<?php  $this->printAsEnd('&raquo;', 0, '<li class="last">|</li>'); ?>

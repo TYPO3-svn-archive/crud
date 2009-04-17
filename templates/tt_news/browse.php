@@ -4,17 +4,22 @@ $this->loadHeaderData("css","autocomplete");//add the css for the autocomplete s
 $this->loadHeaderData("libraries","jquery");//include jquery lib
 $this->loadHeaderData("libraries","jquery-forms");//include jquery forms lib needed by the autocomplete
 $this->loadHeaderData("libraries","jquery-autocomplete");//include the autocomplete lib
+$this->loadHeaderData("libraries","jquery-ui-tabs");
+$this->loadHeaderData("libraries","tiny-mce");
 $this->loadHeaderData("libraries","crudscript");//include the crud js for ajax loading and browser histories
+$this->loadHeaderData("css","tables");
+$this->loadHeaderData("css","forms");
 
 if ($this->get('mode') == 'PROCESS') { //check the mode. if PROCESS than all ok
 	$newslist = $this->renderPreview($this->get("data")); //renders the preview of the data
 	$config = $this->controller->configurations->getArrayCopy();
-	$i = 0; //we want an extra style change every 3 records
+	$i = 0; //start counter for an style change every 3 records
+	 echo $this->printAsFilterSelect("tx_partner_main","locality","Author",$GLOBALS['TSFE']->id);
+	 echo $this->printAsFilterSelect("tt_news","category","Kategorie",$GLOBALS['TSFE']->id);
+	 echo $this->printAsFilterSelect("tt_news","type","Type",$GLOBALS['TSFE']->id);
 ?>
-	
 	<h2>Unsere News</h2>
-	
-	<?php $this->printAsSearch("%%%newsSearch%%%") . $this->printAsNoSearch();//prints the searchbox ?>
+	<?php $this->printAsSearch("%%%newsSearch%%%","","autocomplete","newscomplete") . $this->printAsNoSearch();//prints the searchbox ?>
 	<div class="news-list">
 		<?php foreach ($newslist as $uid=>$news) { //loop for the news data
 			if (empty($news['short'])) {
@@ -51,8 +56,8 @@ if ($this->get('mode') == 'PROCESS') { //check the mode. if PROCESS than all ok
 	</div>
 	<ul class="pagebrowser">
 		<li class="label">Seiten: </li>
-		<?php $this->printAsReverse("%%%prev%%%", 0, '<li class="first">|</li>'); ?>
-		<?php $this->printAsBegin('&laquo;', 0, '<li class="prev">|</li>'); ?>
+		<?php $this->printAsBegin('&laquo;', 0, '<li class="first">|</li>'); ?>
+		<?php $this->printAsReverse("%%%prev%%%", 0, '<li class="prev">|</li>'); ?>
 		<?php $this->printAsBrowse($pages="6|6",$label=""); ?>
 		<?php $this->printAsForward('%%%next%%%', 0, '<li class="next">|</li>'); ?>
 		<?php  $this->printAsEnd('&raquo;', 0, '<li class="last">|</li>'); ?>

@@ -6,18 +6,20 @@ $this->loadHeaderData("libraries","jquery-forms");
 $this->loadHeaderData("libraries","jquery-ui-tabs");
 $this->loadHeaderData("libraries","tiny-mce");
 $this->loadHeaderData("libraries","crudscript");
+
+
 $pars = $this->controller->parameters->getArrayCopy();
-	
+$config = $this->controller->configurations->getArrayCopy();
+$extras = $config['view.']['additionalData'];
+
 if ($this->get('mode') == 'PROCESS') { 
 	$newslist = $this->renderPreview();
 	$this->exchangeArray($newslist);
 ?>
-
 <div class="news">	
 	<h2><?php $this->printAsRaw("title"); ?></h2>
-
-	<?php //$this->printAsBackLink(); ?>
-	<a href="<?php $this->printAsBackLink("",1); ?>" class="news_backlink" title="%%%backtitle%%%">%%%back%%%</a>
+	<?php $this->setTitleTag("-  ".$this->get("title"));?>
+	<?php $this->printAsBackLink(); ?>
 	<ul class="news-meta">
 		<li class="news_date"><em>%%%datetime%%%:</em> <?php echo strftime($this->getLL("LLL:EXT:crud/locallang.xml:datetimeTCA.output"),$this->get("datetime")); ?></li>
 		<li class="news_author"><em>%%%author%%%:</em> <?php $this->printAsRaw("author"); ?></li>
@@ -67,18 +69,25 @@ if ($this->get('mode') == 'PROCESS') {
 	<div class="news_addit_info">
 		<h4>%%%relatednews%%%:</h4>
 		<ul>
-			<?php $this->printAsOptionLinks("related","<li>|</li>");?>
+			<?php  $related=$this->printAsOptionLinks("related","<li>|</li>",1);
+			foreach($related as $key=>$array) {
+				echo '<li><a href="'.$array['url'].'">'.$array['label']."</a>";
+				if($extras["related"][$key]['author']) echo " von ".$extras["related"][$key]['author']." geschrieben am ".strftime($this->getLL("LLL:EXT:crud/locallang.xml:datetimeTCA.output"),$extras["related"][$key]['datetime']);
+				echo "</li>";
+			}?>
 		</ul>
 	</div>
-<?php
-	}
-?>
+<?php }?>
+<?php if (tx_crud__log::getLogUserCount('update')>=2) {
+	if (($lastUpdater=tx_crud__log::getLastLogUser('retrieve'))>1);
+	else $lastUpdater="%%%retrieve_guest%%%";?>
 	<p class="news_edit">
-		Bearbeitet von Maik Musterman, am 24.12.2008 um 08:24 Uhr<br />
+		insgesamt <?php echo tx_crud__log::getLogUserCount('update')?> mal Bearbeitet zuletzt von <?php echo $lastUpdater?> am  <?php  echo strftime($this->getLL("LLL:EXT:crud/locallang.xml:datetimeTCA.output"),tx_crud__log::getLastLogDate('update'));?> <br />
 		<div id="edit-news" class="news-edit">
 			{{{UPDATE~TT_NEWS~<?php echo $pars['retrieve'];?>~PLUGIN.TT_NEWS_SHOW}}}
 		</div>
 	</p>
+<?php }?>
 </div>
 
 <?php
