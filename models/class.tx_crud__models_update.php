@@ -67,11 +67,18 @@ class tx_crud__models_update extends tx_crud__models_create{
 				$this->processData[$key] = $val['process'];
 			}
 		}
+		if (is_array($this->controller->configurations['storage.']['defaultQuery.'][$this->panelTable."."])) {
+			foreach($this->controller->configurations['storage.']['defaultQuery.'][$this->panelTable."."] as $field=>$value) {
+				$this->processData[$field]=$value;
+			}
+			
+		}
 		$this->preQuery();
 		$update = $this->processData;
 		$update['tstamp'] = time();
 		$where = 'uid=' . $this->panelRecord;
 		$table = strtolower($this->panelTable);	
+		//t3lib_div::Debug($update);die();
 		$config=$this->controller->configurations->getArrayCopy();
 		if ($this->mode == 'PROCESS') {
 			if($config['enable.']['histories']) {
@@ -84,7 +91,10 @@ class tx_crud__models_update extends tx_crud__models_create{
 					}
 				}
 			}
+		//	t3lib_div::debug($update,$where);
+			//die();
 			$query = $GLOBALS['TYPO3_DB']->exec_UPDATEquery($table,$where,$update);
+			$this->lastQueryID=$this->panelRecord;
 		}
 		if (!$query) {
 			$this->mode='QUERY_ERROR';
@@ -174,8 +184,8 @@ class tx_crud__models_update extends tx_crud__models_create{
 			else {
 				$fields = $this->getStorageFields();
 				$where = 'uid=' . $this->panelRecord;
-				if ($query = $GLOBALS['TYPO3_DB']->exec_SELECTquery($fields,strtolower($this->panelTable),$where)) {
-					$result = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($query);
+				if (strlen($fields)>1 && $query = $GLOBALS['TYPO3_DB']->exec_SELECTquery($fields,strtolower($this->panelTable),$where)) {
+					if($query) $result = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($query);
 				}
 				if ($result && $TCA['config']['maxitems'] > 1) {
 					if(strlen($result[$item_key])>=1)$result[$item_key] = explode(",",$result[$item_key]);

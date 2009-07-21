@@ -86,7 +86,7 @@ final class tx_crud__div {
 		$action = $setup ['storage.'] ['action'];
 		tx_crud__acl::setup ( $setup );
 	
-		$path = $_SERVER ['REQUEST_URI'];
+		$path = "index.php?id=".$GLOBALS['TSFE']->id;
 		if (strlen ( $setup ['setup.'] ['baseURL'] ) >= 3) {
 			$baseUrl = explode ( "/", $setup ['setup.'] ['baseURL'] );
 			foreach ( $baseUrl as $part ) {
@@ -112,20 +112,25 @@ final class tx_crud__div {
 		} elseif (is_array ( tx_crud__acl::getOptions () ))
 			$access = true;
 		if ($access) {
-			$url = explode ( "&ajaxTarget", $url );
-			$url = $url [0];
-			$url = explode ( "?ajaxTarget", $url );
-			$url = $url [0];
+			$url="index.php?id=".$GLOBALS['TSFE']->id;
+			//t3lib_div::Debug($url);
+			//$url = explode ( "&ajaxTarget", $url );
+			//$url = $url [0];
+			//$url = explode ( "?ajaxTarget", $url );
+			//$url = $url [0];
 			$url = str_replace ( "&amp;", "&", $url );
 			$url = str_replace ( "&", "&amp;", $url );
-			$form = '<div class="crud-icon">' . "\n\t" . '<form  action="' . $url . '" method="post"><div>';
-			$image = $setup ['setup.'] ['baseURL'] . 'typo3conf/ext/crud/resources/icons/' . $action . '.gif';
+			$form = '
+			<div class="crud-icon">' . "\n\t" . '
+				<form  action="' . $url . '" method="post">
+					<div>';
+			$image = $setup ['setup.'] ['baseURL'] . $setup['resources.']['icons'] . $action . '.gif';
 			$form .= '<input type="hidden" name="ajaxTarget" value="' . tx_crud__div::getAjaxTarget ( $setup, "printActionLink" ) . '" />' . "\n\t";
 			$form .= '<input type="hidden" name="' . $setup ['setup.'] ['extension'] . '[form]" value="' . tx_crud__div::getActionID ( $setup ) . '" />' . "\n\t";
 			$form .= '<input type="hidden" name="aID" value="' . tx_crud__div::getActionID ( $setup ) . '" />' . "\n\t";
-			if(isset($_REQUEST['aID']) && !isset($_REQUEST['xID'])) $form .= '<input type="hidden" name="xID" value="'.$_REQUEST['aID'].'" />' . "\n\t";
-			elseif(isset($_REQUEST['xID'])) $form .= '<input type="hidden" name="xID" value="'.$_REQUEST['xID'].'" />' . "\n\t";
-			$form .= '<input type="hidden" name="mID" value="'.$setup ['setup.'] ['marker'].'" />' . "\n\t";
+			//if(isset($_REQUEST['aID']) && !isset($_REQUEST['xID'])) $form .= '<input type="hidden" name="xID" value="'.$_REQUEST['aID'].'" />' . "\n\t";
+			//elseif(isset($_REQUEST['xID'])) $form .= '<input type="hidden" name="xID" value="'.$_REQUEST['xID'].'" />' . "\n\t";
+			//$form .= '<input type="hidden" name="mID" value="'.$setup ['setup.'] ['marker'].'" />' . "\n\t";
 			$form .= '<input type="hidden" name="' . $setup ['setup.'] ['extension'] . '[icon]" value="1" />' . "\n\t";
 			$form .= '<input type="hidden" name="' . $setup ['setup.'] ['extension'] . '[process]" value="' . strtolower ( $action ) . '" />' . "\n\t";
 			$form .= '<input type="image" alt="' . $action . '" name="' . $setup ['setup.'] ['extension'] . '[submit]" value="Submit" src="' . $image . '" />' . "</div>\n\t</form>\n</div>\n"; //TODO: Localization
@@ -141,12 +146,13 @@ final class tx_crud__div {
 	 * @param 	string	$function	the name of the function fotr the ajaxTarget
 	 * @return  array	params array
 	 */
-	static function getAjaxTarget($setup, $function) {
+	static function getAjaxTarget($setup, $function="default") {
 		if ($setup ['view.'] ['ajaxTargets.'] [$function]) {
 			return $setup ['view.'] ['ajaxTargets.'] [$function];
 		} else {
 			return $setup ['view.'] ['ajaxTargets.'] ["default"];
 		}
+		
 	}
 	
 	/**
@@ -191,6 +197,39 @@ final class tx_crud__div {
 				$ret .= $k . ' ';
 		}
 		return $ret;
+	}
+	
+	static function sendEmail($config, $emailSection, $to, $extraParams = array()) {
+		//t3lib_div::debug($extraParams, $to);
+		if (is_array($extraParams)) foreach($extraParams AS $key => $value) {
+			$this->userdata[$key] = $value;
+		}
+		
+		$conf=$config[$setupSection];
+		//t3lib_div::debug($conf, $to);
+		if(is_array($conf)) {
+			///debug($conf);
+			$subject = $conf['subject'];
+			$viewClassName=$conf['className'];
+			$translatorClassName = $config['view.']['translatorClassName'];
+			require_once($conf['classPath']);
+
+			$view = new $viewClassName(); 
+			//$view->setup($this->controller);
+			$view->setPathToTemplateDirectory($conf["templatePath"]); 
+			$view->exchangeArray($this->userdata);
+			$view->render($conf['template']);
+						
+			$translator = new $translatorClassName($view);
+			$translator->setPathToLanguageFile($conf['keyOfPathToLanguageFile']);
+        	$msg = $translator->translateContent();
+			$headers = 'From: '.$conf['from'] . "\r\n";
+			$headers .= 'Content-Type: multipart/alternative; boundary=ym63sdjfr780cff1z4';
+			
+			//t3lib_div::debug($msg);
+			echo $to.' mail wurde nich geschickt';
+			//mail($to, $subject, $msg, $headers);
+		}
 	}
 }
 
@@ -713,6 +752,7 @@ class tx_crud__cache {
 			if (strlen ( $result ['cached'] ) > 3) {
 				return unserialize ( $result ['cached'] );
 			} else {
+				
 				return false;
 			}
 		}
@@ -726,18 +766,30 @@ class tx_crud__cache {
 	 * @return	void
 	 */
 	public static function write($hash, $data) {
+		
 		if (t3lib_div::compat_version ( "4.3" )) {
+			//t3lib_div::debug($data,"schreibe cache");
 			if (is_array ( $data ) && strlen ( $hash ) >= 3)
-		//	t3lib_div::debug($data,"schreibe cache");
+			
 				$GLOBALS ['TSFE']->sys_page->storeHash ( md5 ( $hash ), $data, $hash );
 		
 		} else {
-			$insert ['uid'] = "";
-			$insert ['tstamp'] = time ();
-			$insert ['uuid'] =md5($hash);
-			$insert ['cached'] = serialize ( $data );
-			if ($GLOBALS ['TYPO3_DB']->exec_INSERTquery ( "tx_crud_cached", $insert ))
-				return true;
+			$query = $GLOBALS['TYPO3_DB']->exec_SELECTquery("*","tx_crud_cached",'uuid="'.md5($hash).'"');
+			if($query AND is_array($result=$GLOBALS['TYPO3_DB']->sql_fetch_assoc($query))) {
+					$result['cached']=serialize($data);
+					$result['tstamp']=time();
+					if($GLOBALS['TYPO3_DB']->exec_UPDATEquery("tx_crud_cached","uid=".$result['uid'],$result)) return true;
+					
+				//else 
+			}
+			else {
+				$insert ['uid'] = "";
+				$insert ['tstamp'] = time ();
+				$insert ['uuid'] =md5($hash);
+				$insert ['cached'] = serialize ( $data );
+				
+				if ($GLOBALS ['TYPO3_DB']->exec_INSERTquery ( "tx_crud_cached", $insert )) return true;
+			}
 		}
 	}
 }
@@ -932,7 +984,7 @@ final class tx_crud__lock {
 			crud_table = "' . $table . '" AND crud_record = ' . $record );
 		$numLocks = $GLOBALS ['TYPO3_DB']->sql_affected_rows ( $queryIsLocked );
 		
-		if ($numLocks == 0) {
+		if ($numLocks<1) {
 			return false;
 		} else {
 			$result = $GLOBALS ['TYPO3_DB']->sql_fetch_assoc ( $queryIsLocked );
@@ -999,7 +1051,35 @@ final class tx_crud__lock {
  * @subpackage tx_crud
  */
 final class tx_crud__log {
+	public function getRecordsByOwner($table,$ownerId) {
+		$query = $GLOBALS ['TYPO3_DB']->sql_query ( 'SELECT crud_record FROM tx_crud_log WHERE crud_action="create" AND crud_table="' . $table . '" AND cruser_id=' . $ownerId );
+		if($query)while($row = $GLOBALS ['TYPO3_DB']->sql_fetch_assoc ( $query ))
+			$result[$row['crud_record']]=$row['crud_record'];
+		return $result;
+	}
 	
+	public function getMostRecent($table, $limit=10, $action='retrieve',$fields,$where){
+		if($where!=""){
+			$queryFilter = $GLOBALS ['TYPO3_DB']->sql_query ( 'SELECT uid FROM '.$table.' WHERE '.$where);
+			if($queryFilter)while($row = $GLOBALS ['TYPO3_DB']->sql_fetch_assoc ( $queryFilter )){
+				$uid.=" OR crud_record=".$row['uid'];
+			}
+			$query = $GLOBALS ['TYPO3_DB']->sql_query ( 'SELECT SUM(crud_cardinality) AS anzahl, crud_record FROM tx_crud_log WHERE
+				crud_table="' . $table . '" AND crud_action="'.$action.'" AND ('.substr($uid,4).') GROUP BY crud_record ORDER BY SUM(crud_cardinality) DESC LIMIT 0,'.$limit);
+		}
+		else $query = $GLOBALS ['TYPO3_DB']->sql_query ( 'SELECT SUM(crud_cardinality) AS anzahl, crud_record FROM tx_crud_log WHERE
+			crud_table="' . $table . '" AND crud_action="'.$action.'" GROUP BY crud_record ORDER BY SUM(crud_cardinality) DESC LIMIT 0,'.$limit);
+
+		if($query)while($row = $GLOBALS ['TYPO3_DB']->sql_fetch_assoc ( $query )){
+			$result[$row['crud_record']]['count']=$row['anzahl'];
+			$uids.=" OR uid=".$row['crud_record'];
+		}
+		$queryData = $GLOBALS ['TYPO3_DB']->sql_query ( 'SELECT uid,'.$fields.' FROM '.$table.' WHERE '.substr($uids,4));
+		if($queryData)while($row = $GLOBALS ['TYPO3_DB']->sql_fetch_assoc ( $queryData ))
+			$result[$row['uid']]['data']=$row;
+		//t3lib_div::debug($result);
+		return $result;
+	}
 	/**
 	 * read an log entry
 	 * 
@@ -1184,6 +1264,7 @@ final class tx_crud__log {
 		if (! $config ['enable.'] ['logging']) {
 			return false;
 		}
+	//	t3lib_div::debug( $config ['view.'] ['logs']);
 		if (isset ( $config ['view.'] ['logs'] [$action] )) {
 			return $config ['view.'] ['logs'] [$action] ['count'];
 		} else {
@@ -1202,6 +1283,7 @@ final class tx_crud__log {
 		if (! $config ['enable.'] ['logging']) {
 			return false;
 		}
+	//	t3lib_div::debug( $config ['view.'] ['logs']);
 		if (isset ( $config ['view.'] ['logs'] [$action] [0] )) {
 			return $config ['view.'] ['logs'] [$action] [0] ['user'];
 		} else {
@@ -1221,11 +1303,54 @@ final class tx_crud__log {
 			return false;
 		}
 		if (isset ( $config ['view.'] ['logs'] [$action] [0] )) {
-			return  $config ['view.'] ['logs'] [$action] [0] ['tstamp'] ;
+			return strftime ( $this->getLLfromKey ( "datetimeTCA.output" ), $config ['view.'] ['logs'] [$action] [0] ['tstamp']);
 		} else {
 			return false;
 		}
 	}
+}
+final class tx_crud_googleMap {
+	public static $key = "ABQIAAAAREPo_y3PCzQYPh8IBcu5mRS7Dkq9HY6n8CMiahEC_n6StnoDDxRWnjtGOWHGuJpvpJOG--dmw7aPMQ";// FIXME: -> config & versch. Domains abfangen
+	public static $coordList;
+	
+	public static function addAddress($address) {
+		$coords = tx_crud_googleMap::getLatLngFromAddress($address);
+		if($coords)
+			tx_crud_googleMap::$coordList[] = $coords;
+	}
+	
+	public static function printStaticMapFromList($width = 300, $height = 400) {
+		foreach(tx_crud_googleMap::$coordList AS $value){
+			$markers .= $value . ",red|";
+		}
+		$markers = substr($markers, 0, strlen($markers) - 1);
+		
+		echo '<img src="http://maps.google.com/staticmap?markers='.$markers.'&key='.tx_crud_googleMap::$key.'&size=' . $width . 'x' . $height . '" alt=""/>';	
+	}
+	
+	public static function printStaticMap($coordinates, $zoomFactor = 13, $width = 300, $height = 400) {
+		echo '<img src="http://maps.google.com/staticmap?center='.$coordinates.'&zoom='.$zoomFactor.'&markers='.$coordinates.',red&key='.tx_crud_googleMap::$key.'&size=' . $width . 'x' . $height . '" alt="Google Map" />';
+	}
+	
+	
+	
+	public static function getLatLngFromAddress($address){
+		$addressArray = explode("#", $address);
+		$count = count($addressArray);
+		while($count > 0) {
+			$address = '';
+			for($i = 0; $i < $count; $i++)
+				$address .= rawurlencode($addressArray[$i]) . "+"; 
+			$geo = file('http://maps.google.com/maps/geo?q=' . substr($address, 0, strlen($address) - 1) . '&output=csv&key='.tx_crud_googleMap::$key);
+			$geoArray = explode(",",$geo[0]);
+			if($geoArray[0] == 200)
+				return $geoArray[2] . "," . $geoArray[3];
+			else $count--;
+		}
+		return false;
+	}
+	
+	public static function printGoogleMap(){}
 }
 
 ?>

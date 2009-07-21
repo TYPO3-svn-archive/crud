@@ -39,7 +39,7 @@ class tx_crud__views_create extends tx_crud__views_common {
 	// -------------------------------------------------------------------------------------
 	// FORM HELPER
 	// -------------------------------------------------------------------------------------
-
+	
 	/**
 	 * Prints the form start tag and makes an instance of tx_crud__formBase
 	 *
@@ -47,12 +47,12 @@ class tx_crud__views_create extends tx_crud__views_common {
 	 */
 	function printAsFormHeader($url=false,$class=false) {
 		$setup = $this->controller->configurations->getArrayCopy ();
-		if (! is_object ( $this->form )) {
+		//if (! is_object ( $this->form )) {
 			$formEngineClassName = tx_div::makeInstanceClassName ( "tx_crud__formBase" );
 			$this->form = new $formEngineClassName ( $this->controller );
 			$this->form->setup = $this->get ( "setup" );
 			$this->form->controller = $this->controller;
-		}
+		//}
 		echo $this->form->begin ( $this->getDesignator (), array ("name" => $this->getDesignator () ),$url ,$class);
 	}
 	
@@ -62,18 +62,19 @@ class tx_crud__views_create extends tx_crud__views_common {
 	 * @param	$label	the label
 	 * @return	string	link to cancel the form action
 	 */
-	function printAsFormCancel($label = "Cancel") {
+	function printAsFormCancel($label = "Cancel",$ajax=true,$mID=false) {
 		$pars = $this->controller->parameters->getArrayCopy ();
 		$data = $pars;
 		unset ( $data ['action'] );
 		unset ( $data ['retrieve'] );
-		$data ['ajaxTarget'] = $this->getAjaxTarget ( "printAsFormCancel" );
+		///$data ['ajaxTarget'] = $this->getAjaxTarget ( "printAsFormCancel" );
 		if ($pars ['track'] >= 1)
 			$data ['track'] = 1;
 		if ($this->page >= 1) {
 			$data ['page'] = $this->page;
 		}
-		$out = $this->getTag ( $label, $data );
+		if($ajax) $onClick=$this->getAjaxOnClick(tx_crud__div::getAjaxTarget($config,"printAsFormCancel"),tx_crud__div::getActionID($config,$mID),false,false);
+		$out = '<a href="'.$this->getUrl($data).'" '.$onClick.'>'.$label.'</a>';
 		echo $out;
 	}
 	
@@ -83,18 +84,20 @@ class tx_crud__views_create extends tx_crud__views_common {
 	 * @param	$label	the label
 	 * @return	string	submit button for the form
 	 */
-	function printAsFormSubmit($label="%%%submit%%%") {
+	function printAsFormSubmit($label="%%%submit%%%",$wrap="",$type="submit",$ajax=true) {
 		$image = 'typo3conf/ext/crud/resources/icons/preview.gif';
-		$form .= '<input type="hidden" name="ajaxTarget" value="' . $this->getAjaxTarget ( "printAsFormSubmit" ) . '" />';
-		$form .= '<input type="hidden" name="aID" value="' . tx_crud__div::getActionID ( $this->controller->configurations->getArrayCopy () ) . '" />';
+		$wrap=explode("|",$wrap);
+		//if($ajax) $form .= '<input type="hidden" name="ajax" value="1" />';
+		if($ajax) $form .= '<input type="hidden" name="ajaxTarget" value="' . $this->getAjaxTarget ( "printAsFormSubmit" ) . '" />';
+		if($ajax) $form .= '<input type="hidden" name="aID" value="' . tx_crud__div::getActionID ( $this->controller->configurations->getArrayCopy () ) . '" />';
 		$conf = $this->controller->configurations->getArrayCopy ();
 		$tinymce = $conf ['view.'] ['tinymce.'];
 		$storage = $conf ['storage.'];
 		$form .= '<input type="hidden" name="' . $this->getDesignator () . '[form]" value="' . tx_crud__div::getActionID ( $conf ) . '" />';
 		$form .= '<input type="hidden" name="' . $this->getDesignator () . '[process]" value="preview" />';
-		$form .= '<input type="submit" name="' . $this->getDesignator () . '[submit]" value="'.$label.'" alt="'.$label.'" />';
-		if(isset($_REQUEST['xID'])) $form .= '<input type="hidden" name="xID" value="'.$_REQUEST['xID'].'" />' . "\n\t";
-		if(isset($_POST['mID'])) $form .= '<input type="hidden" name="mID" value="'.$_POST['mID'].'" />' . "\n\t";
+		
+		if($type=="button") $form .= '<button type="submit" name="' . $this->getDesignator () . '[submit]">'.$wrap[0].$label.$wrap[1].'</button>';
+		else $form .= '<input type="submit" name="' . $this->getDesignator () . '[submit]" value="'.$label.'" alt="'.$label.'" />';
 		$conf = $this->get ( "setup" );
 		if ($tinymce ['enable'] == 1 && is_array ( $conf )) {
 			foreach ( $conf as $key => $val ) {
@@ -145,13 +148,25 @@ class tx_crud__views_create extends tx_crud__views_common {
 	 * @param	$label	the label
 	 * @return	string	link to cancel the form action
 	 */
-	function printAsExitLink($label) {
+	function printAsExitLink($label="back") {
 		$pars = $this->controller->parameters->getArrayCopy ();
-		$pars ['ajaxTarget'] = $this->getAjaxTarget ( "getExitLink" );
+	//	$pars ['ajaxTarget'] = $this->getAjaxTarget ( "getExitLink" );
 		$out = '<a href="' . $this->getUrl ( $pars ) . '">' . $label . '</a>';
 		return $out;
 	}
-
+	/**
+	 * Prints an array as checkboxes
+	 *
+	 * @return	string	checkboxes
+	 */
+	function printAsCheckbox($array, $name, $start = 0, $stop = -1, $wrap = "|") {
+		$wrapExpl = explode("|", $wrap);
+		if($stop == -1)
+			$stop = count($array);
+		for($i = $start; $i < $stop; $i++)
+			$result .= $wrapExpl[0] . '<input type="checkbox" name="' . $this->getDesignator() . '['.$name.']" value="' . $i . '">' . $array[$i] . $wrapExpl[1];
+		return $result;
+	}
 
 	// -------------------------------------------------------------------------------------
 	// SETUP HELPER
@@ -165,12 +180,15 @@ class tx_crud__views_create extends tx_crud__views_common {
 	 */
 	function renderSetup($entryList) {
 		$setup = $this->controller->configurations->getArrayCopy ();
+	//	t3lib_div::debug($entryList);
+		unset($this->html);
 		$pars = $this->controller->configurations->getArrayCopy ();
 		if (! is_array ( $this->html )) {
 			foreach ( $entryList as $key => $entry ) {
 				$this->renderEntry ( $entry );
 			}
 		}
+	//	t3lib_div::debug($this->html);
 		return $this->html;
 	}
 	
@@ -210,6 +228,7 @@ class tx_crud__views_create extends tx_crud__views_common {
 			$eval [$val] = $val;
 		}
 		$this->html [$entry ['divider']] [$entry ['section']] [$entry ['key']] = $entry;
+	
 		if ($eval ['captcha']) {
 			$this->html [$entry ['divider']] [$entry ['section']] [$entry ['key']] ['html'] = $this->form->captchaRow ( $entry ['key'], $label, $entry ['attributes.'] );
 		} elseif ($entry ['element'] == "inputRow") {
@@ -226,10 +245,20 @@ class tx_crud__views_create extends tx_crud__views_common {
 			$this->html [$entry ['divider']] [$entry ['section']] [$entry ['key']] ['html'] = $this->form->radio ( $entry ['key'], $label, $entry ['attributes.'] );
 		} elseif ($entry ['element'] == "checkboxRow") {
 			$this->html [$entry ['divider']] [$entry ['section']] [$entry ['key']] ['html'] = $this->form->checkboxRow ( $entry ['key'], $label, $entry ['attributes.'] );
-		} elseif ($entry ['element'] == "selectRow") {
-			$this->html [$entry ['divider']] [$entry ['section']] [$entry ['key']] ['html'] = $this->form->selectRow ( $entry ['key'], $label, $entry ['attributes.'], $entry ['options.'] );
-		} elseif ($entry ['element'] == "multiselectRow") {
-			$this->html [$entry ['divider']] [$entry ['section']] [$entry ['key']] ['html'] = $this->form->multiselectRow ( $entry ['key'], $label, $entry ['attributes.'], $entry ['options.'] );
+		}
+		elseif ($entry ['element'] == "selectRow") {
+			if($entry['config.']['foreign_table'] == "tx_categories"){
+				$this->html [$entry ['divider']] [$entry ['section']] [$entry ['key']] ['html'] = $this->form->categoryRow ( $entry ['key'], $label, $entry ['attributes.'], $entry ['options.'] );
+			}
+			else $this->html [$entry ['divider']] [$entry ['section']] [$entry ['key']] ['html'] = $this->form->selectRow ( $entry ['key'], $label, $entry ['attributes.'], $entry ['options.'] );
+			//$this->html [$entry ['divider']] [$entry ['section']] [$entry ['key']] ['html'] = $this->form->selectRow ( $entry ['key'], $label, $entry ['attributes.'], $entry ['options.'] );
+		} 
+		elseif ($entry ['element'] == "multiselectRow") {
+			if($entry['config.']['foreign_table'] == "tx_categories"){
+				//echo "is kat";
+				$this->html [$entry ['divider']] [$entry ['section']] [$entry ['key']] ['html'] = $this->form->categoryRow ( $entry ['key'], $label, $entry ['attributes.'], $entry ['options.'] );
+			}
+			else $this->html [$entry ['divider']] [$entry ['section']] [$entry ['key']] ['html'] = $this->form->multiselectRow ( $entry ['key'], $label, $entry ['attributes.'], $entry ['options.'] );
 		} elseif ($entry ['element'] == "textareaRow") {
 			$this->html [$entry ['divider']] [$entry ['section']] [$entry ['key']] ['html'] = $this->form->textareaRow ( $entry ['key'], $label, $entry ['attributes.'] );
 		} elseif ($entry ['element'] == "fileRow") {
@@ -274,23 +303,35 @@ class tx_crud__views_create extends tx_crud__views_common {
 	 */
 	function getError($localLangKey, $key = false) {
 		$string = @explode ( ':', $localLangKey );
+		//t3lib_div::debug($string);
 		$config = $this->controller->configurations->getArrayCopy ();
 		$path = $string [1] . ":" . $string [2];
+		//echo $path;
 		if ($path != "EXT:crud/locallang.xml")
 			$pathFallback = "EXT:crud/locallang.xml";
 		$action = $this->controller->action;
 		$table = $config ['storage.'] ['nameSpace'];
+		//t3lib_div::Debug($string,$key);
+		//die();
 		if ($string [0] == "LLL") {
-			$what [0] = $table . "." . $action . "." . $key . "." . $string [3];
-			$what [1] = $table . "." . $key . "." . $string [3];
-			$what [2] = $key . "." . $string [3];
-			$what [3] = $string [3];
+			if(!isset($string[3])) $string[3]=$string[2];
+			//$what [0] = $table . "." . $action . "." . $key . "." . $string [3];
+			
+			//$what [1] = $table . "." . $key . "." . $string [3];
+			$what [0] = $key . "." . $string [3];
+			$what [1] = $string [3];
+			//t3lib_div::debug($what);
 			foreach ( $what as $key => $str ) {
 				$LLL = "LLL:" . $path . ":" . $str;
+				//echo $LLL;
+				//die();
 				if ($translated = $this->getLL ( $LLL ))
+					//echo $translated;
 					break;
 			}
 			if (! $translated && $pathFallback) {
+				//echo $pathFallback;
+			//	t3lib_div::debug($what);
 				$translated = $this->getLL ( "LLL:" . $pathFallback . ":" . $what [1] );
 			}
 		}
@@ -309,7 +350,10 @@ class tx_crud__views_create extends tx_crud__views_common {
 	 */
 	function getFormError($str, $key) {
 		$config = $this->controller->configurations->getArrayCopy ();
+		
 		$LLL = "LLL:" . $config ['view.'] ['keyOfPathToLanguageFile'] . ":" . $str;
+		//echo "str:".$LLL;
+		//die();
 		$str = $this->getError ( $LLL, $key );
 		return $this->getEvalConfig ( $str, $key );
 	}

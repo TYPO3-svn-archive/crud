@@ -50,8 +50,8 @@ class tx_crud__generic_controller extends tx_lib_controller{
 		$view = $this->view;
 		$view->setPathToTemplateDirectory($config["view."]["templatePath"]); 
 	    $view->render($config['view.']['template']);
-		$this->headerData = $view->headerData;
-		$this->footerData = $view->footerData;
+		///$this->headerData = $view->headerData;
+		//$this->footerData = $view->footerData;
 		$translator = new $translatorClassName($view);
 		$translator->setPathToLanguageFile($config["view."]["keyOfPathToLanguageFile"]);
 		$view->_iterator->array['_content'] = $translator->translateContent();
@@ -73,8 +73,8 @@ class tx_crud__generic_controller extends tx_lib_controller{
 		$view = $this->view;
 		$view->setPathToTemplateDirectory($config["view."]["templatePath"]); 
 		$view->render($config['view.']['template']);
-		$this->headerData = $view->headerData;
-		$this->footerData = $view->footerData;
+		//$this->headerData = $view->headerData;
+		//$this->footerData = $view->footerData;
 		$translator = new $translatorClassName($view);
 		$translator->setPathToLanguageFile($config["view."]["keyOfPathToLanguageFile"]);
 		$view->_iterator->array['_content'] = $translator->translateContent();
@@ -162,15 +162,12 @@ class tx_crud__generic_controller extends tx_lib_controller{
 	 */
 	function pluginAction() {
 		$config = $this->configurations->getArrayCopy();
+		//t3lib_div::Debug($config);
 		if(isset($config['view.']['className'])) {
 			$templateEngineClassName = $config['view.']['className'];
 			$view = new $templateEngineClassName($this); 
 			$view->setPathToTemplateDirectory($config["view."]["templatePath"]); 
 			return $view->render($config['view.']['template']);
-			$translatorClassName = tx_div::makeInstanceClassName($config["view."]["translatorClassName"]);
-			$translator = new $translatorClassName($view,$this);
-			$translator->setPathToLanguageFile($config["view."]["keyOfPathToLanguageFile"]);
-        	return $translator->translateContent();
 		}
 	}	
 	
@@ -180,21 +177,39 @@ class tx_crud__generic_controller extends tx_lib_controller{
 	 * @return	string	the content of the controller
 	 */
 	function autocompleteAction() {		
+
 		$config = $this->configurations;
 		$templateEngineClassName = $config['view.']['className'];
 		$view = new $templateEngineClassName($this); 
 		$view->setPathToTemplateDirectory($config["view."]["templatePath"]); 
 		$model=$this->model;
 		$view->set("data",$model->data);
-		$view->render($config['view.']['template']);
+		return $view->render($config['view.']['template']);
+		//die();
+		//$translatorClassName = tx_div::makeInstanceClassName($config["view."]["translatorClassName"]);
+		//$translator = new $translatorClassName($view,$this);
+		//$translator->setPathToLanguageFile($config["view."]["keyOfPathToLanguageFile"]);
+		//$view->_iterator->array['_content'] = $translator->translateContent();
+		//$translator = new $translatorClassName($view,$this);
+		//$translator->setPathToLanguageFile("EXT:crud/locallang.xml");
+		//echo $translator->translateContent();
+        //die();
+	}
+	
+	function rssAction(){
+		$config = $this->configurations;
 		$translatorClassName = tx_div::makeInstanceClassName($config["view."]["translatorClassName"]);
-		$translator = new $translatorClassName($view,$this);
+		$model = $this->model;
+		$view = $this->view;
+		$view->setPathToTemplateDirectory($config["view."]["templatePath"]); 
+	    $view->render($config['view.']['template']);
+		$translator = new $translatorClassName($view);
 		$translator->setPathToLanguageFile($config["view."]["keyOfPathToLanguageFile"]);
 		$view->_iterator->array['_content'] = $translator->translateContent();
-		$translator = new $translatorClassName($view,$this);
+		$translator = new $translatorClassName($view);
 		$translator->setPathToLanguageFile("EXT:crud/locallang.xml");
 		echo $translator->translateContent();
-        die();
+		die();
 	}
 }
 

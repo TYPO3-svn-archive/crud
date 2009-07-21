@@ -1,15 +1,14 @@
 <?php 
-
 if (!defined ('TYPO3_MODE')) die ('Access denied.');
 if ($this->get('mode') == 'EDIT') {
 	$entryList = $this->get('setup');
+	$this->printAsFormheader();
 	$entryList = $this->renderSetup($entryList);
-	$this->printAsFormHeader();
 	echo '<div id="crud-tabs-form">' . "\n\t";
 	echo '<ul>' . "\n\t";
 	$i = 1;
 	foreach ($entryList as $divider=>$sections) {
-		echo '<li><a href="'.$this->baseUrl.'#fragment-' . $i . '"><span>' . $this->getLL($divider,1) . '</span></a></li>' . "\n\t";
+		echo '<li><a href="#fragment-' . $i . '"><span>' . $this->getLL($divider,1) . '</span></a></li>' . "\n\t";
 		$i++;
 	}
 	echo "</ul>\n";
@@ -55,7 +54,7 @@ if ($this->get('mode') == 'EDIT') {
 	$this->loadHeaderData("libraries","jquery-ui-tabs");
 	$this->loadHeaderData("libraries","tiny-mce");
 	$this->loadHeaderData("libraries","crudscript");
-	$this->enableTabs($entryList,"$('#crud-tabs-form > ul')");
+	$this->enableTabs("$('#crud-tabs-form > ul')",$entryList);
 	$this->printAsFormSubmit();
 
 	echo "</div>";

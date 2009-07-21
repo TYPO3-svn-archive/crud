@@ -1,5 +1,4 @@
 <?php
-
 $this->loadHeaderData("css","news-css");
 $this->loadHeaderData("libraries","jquery");
 $this->loadHeaderData("libraries","jquery-forms");
@@ -17,11 +16,11 @@ if ($this->get('mode') == 'PROCESS') {
 	$this->exchangeArray($newslist);
 ?>
 <div class="news">	
-	<h2><?php $this->printAsRaw("title"); ?></h2>
-	<?php $this->setTitleTag("-  ".$this->get("title"));?>
+	<h2><?php $this->printAsRaw('title'); ?></h2>
+	<?php $this->setTitleTag('-  ' . $this->get('title'));?>
 	<?php $this->printAsBackLink(); ?>
 	<ul class="news-meta">
-		<li class="news_date"><em>%%%datetime%%%:</em> <?php echo strftime($this->getLL("LLL:EXT:crud/locallang.xml:datetimeTCA.output"),$this->get("datetime")); ?></li>
+		<li class="news_date"><em>%%%datetime%%%:</em> <?php echo strftime($this->getLL("LLL:EXT:crud/locallang.xml:dateTCA.output"),$this->get("datetime")); ?></li>
 		<li class="news_author"><em>%%%author%%%:</em> <?php $this->printAsRaw("author"); ?></li>
 		<?php if (tx_crud__log::getLogUserCount('retrieve')) { ?>
 			<li class="news_views">

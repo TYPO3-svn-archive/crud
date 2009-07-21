@@ -34,11 +34,11 @@ if ($this->get('mode') == 'PROCESS') {
 	$this->loadHeaderData("libraries","tiny-mce");
 	//$this->enableTabs($entryList,"$('#crud-tabs-form > ul')");;
 	$this->loadHeaderData("css","autocomplete");
-		$this->printAsFilterList("tx_partner_main","locality","Stadt",$GLOBALS['TSFE']->id,0,6);
- $this->printAsFilterSelect("tx_partner_main","locality","Stadt",$GLOBALS['TSFE']->id,6,60);
- 		$this->printAsFilterList("tx_partner_main","org_legal_form","Rechtsform",$GLOBALS['TSFE']->id,0,6);
- $this->printAsFilterSelect("tx_partner_main","org_legal_form","Rechtsform",$GLOBALS['TSFE']->id,6,60);
- $this->printAsFilterSelect("tx_partner_main","hobbies","Hobbies",$GLOBALS['TSFE']->id,6,60);
+	$this->printAsFilterList("tx_partner_main","locality","Stadt",$GLOBALS['TSFE']->id,0,6);
+ 	$this->printAsFilterSelect("tx_partner_main","locality","Stadt",$GLOBALS['TSFE']->id,6,60);
+ 	$this->printAsFilterList("tx_partner_main","org_legal_form","Rechtsform",$GLOBALS['TSFE']->id,0,6);
+ 	$this->printAsFilterSelect("tx_partner_main","org_legal_form","Rechtsform",$GLOBALS['TSFE']->id,6,60);
+ 	$this->printAsFilterSelect("tx_partner_main","hobbies","Hobbies",$GLOBALS['TSFE']->id,6,60);
 	if (!$typoscript['count']) {
 		echo "%%%error_nothing-found%%%";
 	} else {
@@ -57,7 +57,7 @@ if ($this->get('mode') == 'PROCESS') {
 	foreach ($filter as $label=>$value) {
 		echo '<li class="filtersLabel">' . $label . ':</li>' . "\n\t";
 		foreach ($value as $uid=>$val) foreach ($val as $url=>$name) {
-			echo '<li><a href="' . $url . '">' . $name . '</a></li>' . "\n\t";
+			echo '<li><a href="' . $url . '" '.$this->getAjaxOnClick().'>' . $name . '</a></li>' . "\n\t";
 		}
 	}
 	echo '</ul>' . "\n";

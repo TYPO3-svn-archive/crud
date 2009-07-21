@@ -10,6 +10,7 @@
 		<languageKey index="default" type="array">
 			<label index="title">FAC Manager</label>
 			<label index="function1">Generator</label>
+			<label index="function2">Caching</label>
 		</languageKey>
 	</data>
 </T3locallang>

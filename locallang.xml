@@ -33,6 +33,7 @@
 			<label index="error_filecopy">File copying failed.</label>
 			<label index="error_fileitems">Not enough files.</label>
 			<label index="dateTCA.splitter">.</label>
+			<label index="error_match">Not matching!</label>
 			<label index="dateTCA.format">dd.mm.yyyy</label>
 			<label index="dateTCA.output">%m/%d/%Y</label>
 			<label index="datetimeTCA.output"> %m/%d/%Y at %H:%M</label>
@@ -81,14 +82,15 @@
 			<label index="no_rights_delete">Your are not allowed to delete this content.</label>
 			<label index="autocompleteResults">results for</label>
 			<label index="autocompleteIn">in</label>
+			<label index="captcha">Captcha</label>
 		</languageKey>
 		<languageKey index="de" type="array">
 			<label index="create">Element erstellen.</label>
 			<label index="retrieve">Element abrufen.</label>
 			<label index="update">Element aktualisieren.</label>
 			<label index="delete">Element löschen.</label>
-			<label index="back">Zurück</label>
-			<label index="error_required">Dies ist ein Pflichtpfeld.</label>
+			<label index="back">zurück</label>
+			<label index="error_required">Dies ist ein Pflichtfeld.</label>
 			<label index="error_max">Zeichenlänge überschritten. Es sind nur ###MAX### Zeichen erlaubt.</label>
 			<label index="error_min">Zu wenige Zeichen eingegeben. Sie müssen mindestens ###MIN### Zeichen verwenden.</label>
 			<label index="error_date_complete">Bitte geben Sie ein Datum ein.</label>
@@ -109,9 +111,10 @@
 			<label index="error_filetype">Dieses Dateiformat ist nicht zulässig. Zulässige Formate sind: ###ALLOWED###.</label>
 			<label index="error_filecopy">Der Kopiervorgang war leider nicht erfolgreich.</label>
 			<label index="error_fileitems">Die Dateien sind nicht vollständig.</label>
+			<label index="error_match">Stimmt nicht!</label>
 			<label index="dateTCA.splitter">.</label>
 			<label index="dateTCA.format">dd.mm.yyyy</label>
-			<label index="dateTCA.output">%m/%d/%Y</label>
+			<label index="dateTCA.output">%d.%m.%Y</label>
 			<label index="datetimeTCA.output"> %d.%m.%Y um %H:%M Uhr</label>
 			<label index="error_unlink">Diese Datei kann nicht gelöscht werden.</label>
 			<label index="error_captcha">Ihre Eingabe stimmt nicht mit der Vorgabe überein. Bitte überprüfen Sie die Eingabe oder laden sie das Bild neu.</label>
@@ -128,7 +131,7 @@
 			<label index="delete_not_exist">Der angegebene Speicherort existiert nicht.</label>
 			<label index="delete_query_failed">Ein Fehler ist aufgetreten! Bitte kontaktieren Sie den Administrator der Seite.</label>
 			<label index="youbrowse">Sie durchsuchen die Ergebnisse.</label>
-			<label index="resultsProPage">Anzahl der Einräge pro Seite:</label>
+			<label index="resultsProPage">Anzahl der Einträge pro Seite:</label>
 			<label index="from">von</label>
 			<label index="no">nein</label>
 			<label index="yes">ja</label>

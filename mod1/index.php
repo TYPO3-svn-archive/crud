@@ -75,6 +75,7 @@ class  tx_crud_module1 extends t3lib_SCbase {
 		$this->MOD_MENU = Array (
 		"function" => Array (
 		"1" => $LANG->getLL("function1"),
+		"2" => $LANG->getLL("function2"),
 		)
 		);
 		parent::menuConfig();
@@ -165,6 +166,10 @@ class  tx_crud_module1 extends t3lib_SCbase {
 				$content = $this->makeAclOptions();
 				$this->content .= $this->doc->section("Message #1:",$content,0,1);
 				break;
+			case 2:
+				$content = $this->deleteCache();
+				$this->content .= $this->doc->section("Message #1:",$content,0,1);
+				break;
 		}
 	}
 
@@ -191,6 +196,23 @@ class  tx_crud_module1 extends t3lib_SCbase {
 		}
 	}
 
+	function deleteCache() {
+		if($_POST['cache']) {
+			if($GLOBALS['TYPO3_DB']->exec_DELETEquery("tx_crud_cached","tstamp>1")) {
+				$form= "All Caches successfull deleted";
+			}
+			
+		}
+		$form .= '<form action="" method="post">
+				<table>
+					<tr>
+						<td><input type="submit" name="cache" value="empty CRUD Caches" /></td>
+					</tr>
+				</table>
+				</form>';
+	 	return $form;
+	}
+	
 	/**
 	 * Edit the ACL Options
 	 */

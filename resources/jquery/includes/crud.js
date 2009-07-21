@@ -1,5 +1,5 @@
 /*
-**  history for ajax/javascript history
+**  history for ajax/javascript history 
 **      0.4 easier to configure cache control iframe POST handler
 **      0.3 history events now setup in queue to ensure all entries reside in the history stack
 **      0.2 no more FORM GET submission, straight location.href instead + hold time for iframe load
@@ -97,23 +97,26 @@
 
 })(jQuery);
 
-
-
-
 // globals --------------------------------------------------------
-var ajaxIdle = false;
+var ajaxIdle;
 var tinyMCEpresent;
-savedContainer=new Array();
+var savedContainer;
 var baseUrl;
-var thickboxActive=false;
+var thickboxActive;
 var firstHistoryEntry;
+var ac_minChars=4;
+
+ajaxIdle = false;
+savedContainer=new Array();
+thickboxActive=false;
+
 
 $(document).ready(function() {
 	prepareSide();
-	$.history( baseUrl+'typo3conf/ext/crud/ajaxHistoryHeader.php' );
+//	$.history( baseUrl+'typo3conf/ext/crud/ajaxHistoryHeader.php' );
 	firstHistoryEntry=$('body').html();
 	$("body").append('<div class="thickbox" style="display:none;"><div class="thickbox-toolbar"><a id="hideThickbox" onclick="hideThickbox();return false;" href="">close</a></div><div id="thickbox" class="thickbox-content"></div></div>');
-	$("body").append('<div class="overlay" style="display:none;background-color:#000;position:fixed;z-index:9;top:0px;left:0px;height:100%;width:100%;filter:alpha(opacity=75);-moz-opacity:0.75;opacity:0.75;"></div>');
+	$("body").append('<div class="overlay" style="display:none;background-color:#000;position:fixed;z-index:9;top:0;left:0;height:100%;width:100%;filter:alpha(opacity=75);-moz-opacity:0.75;opacity:0.75;"></div>');
 });
 
 function prepareSide(){ 
@@ -121,12 +124,115 @@ function prepareSide(){
 	prepareHelp();
 	prepareAutoComplete(); 
 	prepareHistoryChecks();
+	prepareMultiSelects();
 	prepareThickbox();
+	prepareGoogleMap();
 	if(typeof enableTabs == 'function')
 		enableTabs();
 	if(typeof getBaseurl == 'function')
 		baseUrl=getBaseurl();
+	prepareHideables();
 }
+// hideable ------------------------------------------------------------
+function prepareHideables() {
+	$('.hideable').each(function(){
+		$(this).prev().html($(this).prev().html() + ' (<a href="#" onclick="return showHide(this);">show</a>)');
+		$(this).hide();
+	});
+}
+function showHide(elem){
+	$(elem).parent().next().toggle();
+	if($(elem).html() == 'show')
+		$(elem).html('hide');
+	else $(elem).html('show');
+	return false;
+}
+
+// googleMaps -----------------------------------------------------------
+function prepareGoogleMap() {
+	// Das Element für die Anzeige suchen
+	var m = $("#map_canvas")[0];
+	
+	// Die Landkarte auf der Webseite darstellen
+	if (m) {
+		var clArray = $(m).attr("class").split("###");
+		var coordClass = clArray[0];
+		var coord = new Array();
+		coord = coordClass.split(',');
+		var point = new GLatLng(coord[0],coord[1]);
+		var addArray = new Array();
+		addArray = clArray[1].split('#');
+		
+		var address = addArray[0]+", "+addArray[1]+" "+addArray[2]+", "+addArray[3]+" "+addArray[4];
+		//alert(point);
+		if (point && window.GBrowserIsCompatible()) {
+			$(m).empty();
+			var map = new GMap2(m);
+			map.setCenter(point, 13);
+			map.addControl(new GSmallMapControl());
+			var marker = new GMarker(point);
+			map.addOverlay(marker);
+			marker.openInfoWindowHtml(address);
+		} else {
+			$(m).remove();
+		}
+	}
+}
+
+
+// optgroups - multiselect-----------------------------------------------
+function prepareMultiSelects() {
+	var $sels = new Array();
+	
+	$("select[multiple]").each(function(){
+		var selString = '';
+		for (var i = 0; i < this.options.length; i++) {
+			if(this.options[i].selected)		
+				selString += '<li>' + $(this.options[i]).html() + ' <a class="deselect" href="#" onclick="return deselect(\''+$(this.options[i]).attr('value')+'\',\''+$(this).attr('id')+'\',this)">x</a></li>';	
+		}
+		var className = $(this).attr('id');
+		$(this).after('<br /><b>Auswahl:</b><div class="' + className + ' multiselection"><ul>' + selString + '</ul></div>');
+	});
+	
+	$('select[multiple]').mouseover(function() {
+		$sels = $(this.options + '[selected]');
+	});
+	
+	$('select[multiple]').mouseout($sels.length = 0);
+	
+	$('select[multiple]').click(function() {
+		var ind = this.selectedIndex;
+		var tag = $(this.options[ind]).html();
+		var indexOfTag = $('div.' + $(this).attr('id')).html().indexOf(tag);			
+		$sels.each(function(){
+			this.selected=true;
+		});
+		if(indexOfTag > -1) {			
+			$('div.' + $(this).attr('id')+' > ul > li').each(function(){
+				if($(this).html().indexOf(tag) > -1)
+					$(this).remove();
+			});
+			this.options[ind].selected = false;
+		}
+		else { 
+			$('div.' + $(this).attr('id')+' > ul').append('<li>' + tag + ' <a class="deselect" href="#" onclick="return deselect(\''+$(this.options[ind]).attr('value')+'\',\''+$(this).attr('id')+'\',this)">x</a></li>');
+			this.options[ind].selected = true;
+		}
+		$sels.length = 0;
+		$sels = $(this.options + '[selected]');
+		return false;
+	});
+} 
+
+function deselect( optVal, idName, elem){
+	$('#'+idName+' option:selected').each(function(){
+		if($(this).attr('value') == optVal)
+			this.selected = false;
+	});
+	$(elem).parents('li').remove();
+	return false;
+}
+
 // helpcontext divs------------------------------------------------------
 function prepareHelp() {
 	$('.csh').css('display', 'none');
@@ -214,7 +320,8 @@ function serialize2Array($form) {
 		//alert(field.name+"="+field.value);
         result[field.name]=field.value;
       });
-     return result;
+	result['ajax']=1;
+    return result;
     
 }
 function selectItem(li,$elem) {
@@ -223,8 +330,13 @@ function selectItem(li,$elem) {
 	$elem.parents('form').submit();
 }
 function formatItem(row) {
-	if(row[2])
-		return '<div class="hidden ac_info1">'+row[1]+'</div><div class="hidden ac_info2">'+row[3]+'</div><div>'+row[0]+' ('+row[2]+')</div>';
+	if(row[2]){
+		if(ac_showHitCount)
+			var show = row[0]+' ('+row[2]+')';
+		else
+			var show = row[0];
+		return '<div class="hidden ac_info1">'+row[1]+'</div><div class="hidden ac_info2">'+row[3]+'</div><div>'+show+'</div>';
+	}
 	else return '<div class="headline">'+row[1]+'</div>';
 }
 function prepareAutoComplete(){
@@ -233,11 +345,11 @@ function prepareAutoComplete(){
 	//	$(":submit",$form).attr("disabled","disabled");
 	//	alert(serialize2Array($form));
 		$(".autocomplete").each( function(){
-			$(this).autocomplete(document.URL,{
+			$(this).autocomplete($form.attr('action'),{
 				delay:1,
 				//direction:"over",
 				extraParams:serialize2Array($form),
-				minChars:4,
+				minChars:ac_minChars,
 				matchSubset:4,
 				matchContains:1,
 				cacheLength:4,
@@ -245,13 +357,42 @@ function prepareAutoComplete(){
 				onItemSelect:selectItem,
 				formatItem:formatItem
 			});
-		});
+		});if(!ajaxIdle){
+			// der verweis
+			ajaxLink = $(this).attr("href");
+			if(ajaxLoad(ajaxLink, "ajax=1",$(this),true,"")==false) return true; 	
+		}
+		return false;
 	}
 }
 // ajax -----------------------------------------------------------------
-function ajax4onClick(elem){
-	if(ajaxedForm($(elem).parents('form'),"",true)==true) $(elem).parents('form').submit();
+function ajaxlink(elem, ajaxTarget, aId, saveContainer, restoreContainer) {
+	if(!ajaxIdle){
+		var params;
+		params = "ajax=1&ajaxTarget="+ajaxTarget+"&aID="+aId;
+		if(saveContainer) {
+			params += "&saveContainer="+saveContainer;
+		}
+		if(restoreContainer) {
+			params += "&restoreContainer="+restoreContainer;
+		}
+		// der verweis
+		ajaxLink = $(elem).attr("href");
+		//alert(ajaxLoad(ajaxLink,params,$(elem),true,""));
+		if(ajaxLoad(ajaxLink,params,$(elem),true,"")==false) {
+		//	alert('huhu');
+			return true;
+		
+		}
+	}
+	return false;
 }
+
+function ajax4onClick(elem) {
+	if(ajaxedForm($(elem).parents('form'),"",true)==true) 
+		$(elem).parents('form').submit();
+}
+
 function ajaxedForm($form,$container,saveHist){
 	if(!ajaxIdle){
 		var ajaxLink = $form.attr("action");
@@ -266,12 +407,13 @@ function getAjaxContainer(ajaxLink,ajaxParams,$elem){
 	var string = ajaxLink +"&"+ ajaxParams;
 	if(string.indexOf("ajaxTarget") == -1)
 		return false;
-	var ajaxTarget = string.substr(string.indexOf("ajaxTarget")+11);
+	var ajaxTarget= string.substr(string.indexOf("ajaxTarget")+11);
+	if(ajaxTarget.charAt(0)=='=')
+		ajaxTarget = ajaxTarget.substr(1);
 	if(ajaxTarget.indexOf("&")>=0)
 		ajaxTarget = ajaxTarget.substr(0, ajaxTarget.indexOf("&"));
 	if(ajaxTarget.length < 1)
 		return false;
-	ajaxIdle = true;
 	if(ajaxTarget=="thickbox"){
 		ajaxTarget="thickbox-content";
 		if(!thickboxActive)
@@ -284,48 +426,64 @@ function getAjaxContainer(ajaxLink,ajaxParams,$elem){
 		$container=$("div."+ajaxTarget);
 	if($container.length < 1)
 		return false;
+	ajaxIdle = true;		
 	if($container.length > 1)
 		$container=$container[0]; 
 	if(string.indexOf("saveContainer")!=-1)
 		savedContainer[$container.attr('id')]=$container.html();
-	if(typeof(savedContainer[$container.attr('id')])=='string' && string.indexOf("restoreContainer")!=-1){
-		$.history( {'containerId':$container.attr('id'),'link':ajaxLink,'pars':ajaxParams} );
-		$container.html(savedContainer[$container.attr('id')]);
+	if(string.indexOf("restoreContainer")!=-1){
 		ajaxIdle=false;
-		prepareSide();
-		return true;
+		if(typeof(savedContainer[$container.attr('id')])=='string'){ 
+			$.history( {'containerId':$container.attr('id'),'link':ajaxLink,'pars':ajaxParams} );
+			//alert('huhu');
+			$container.html(savedContainer[$container.attr('id')]);
+			prepareSide();
+			return true;
+		} else return false;
 	}
 	if(string.indexOf("http:")==0)
 		baseUrl="";
 	return $container;
 }
 function ajaxLoadForm(ajaxLink, ajaxParams, $elem, saveHist, $container){
+	var callUrl;
 	if($container.length < 1)
 		$container=getAjaxContainer(ajaxLink, ajaxParams, $elem);
 	if($container==false||$container==true)return $container;
 	$elem.prepend('<input type="hidden" name="ajax" value="1"/>');
 	$container.prepend('<img id="loadAjaxGif" src="'+baseUrl+'typo3conf/ext/crud/resources/jquery/images/ajaxload.gif" alt="Loading content" />');
+	if(ajaxLink.indexOf("http") > -1)
+		callUrl=ajaxLink;
+	else
+		callUrl=baseUrl+ajaxLink;
+	
 	$elem.ajaxSubmit({
-		url: baseUrl+ajaxLink,
+		url: callUrl,
 		target: $container,
 		success: function (r){
 			if(saveHist)
 			$.history( {'containerId':$container.attr('id'),'$elem':$elem} );	
 			ajaxIdle=false;
 			prepareSide();
-		}
+		} 
 	});
 }
 function ajaxLoad(ajaxLink, ajaxParams, $elem, saveHist, $container){
-	if($container.length < 1)
-		$container=getAjaxContainer(ajaxLink, "", $elem);
-	if($container==false||$container==true)return $container;
+	var callUrl;
+	if($container.length < 1)	
+		$container=getAjaxContainer(ajaxLink+ajaxParams, "", $elem);
+	if($container==false||$container==true)
+		return $container;
+	if(ajaxLink.indexOf("http") > -1)
+		callUrl=ajaxLink;
+	else
+		callUrl=baseUrl+ajaxLink;
 	
 	$container.prepend('<img id="loadAjaxGif" src="'+baseUrl+'typo3conf/ext/crud/resources/jquery/images/ajaxload.gif" alt="Loading content" />');
 	$.ajax({
 		type: "GET",
 		data: ajaxParams,
-		url: baseUrl+ajaxLink,
+		url: callUrl,
 		timeout: 200000,
 		success: function(r) {
 			$container.html(r);
@@ -333,9 +491,15 @@ function ajaxLoad(ajaxLink, ajaxParams, $elem, saveHist, $container){
 				$.history( {'containerId':$container.attr('id'),'link':ajaxLink,'pars':ajaxParams} );
 			ajaxIdle = false;
 			prepareSide();
-		}
+		},
+		error:function (xhr, ajaxOptions, thrownError){
+            //alert(thrownError);
+            ajaxIdle = false;
+			return false;	
+		} 
 	});
 }
+
 function observeLinks(){
 	var ajaxLink;
 	$(':submit, :image').click(function() {
@@ -353,3 +517,4 @@ function observeLinks(){
 		return false;
 	});
 }
+

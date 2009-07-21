@@ -47,43 +47,50 @@ class tx_crud__views_retrieve extends tx_crud__views_common {
  	 * @param 	string	$action	optional a special action 
 	 * @return	void
 	 */
-	function printAsSingleLink($uid, $label = "%%%show%%%", $urlOnly = false, $action = "retrieve") {
+	function printAsSingleLink($uid, $label = "%%%show%%%",$urlOnly=false,$action = "retrieve",$pid=false,$ajax=true,$saveContainer=true) {
 		$pars = $this->controller->parameters->getArrayCopy ();
 		$pars ['retrieve'] = $uid;
 		$pars ['action'] = $action;
-		$pars ['saveContainer'] = 1;
+		if(!$pid) $pid=$GLOBALS['TSFE']->id;
+		$config=$this->controller->configurations->getArrayCopy();
 		$data = $pars;
-		$data ["ajaxTarget"] = $this->getAjaxTarget("printAsSingleLink");
-		if (is_array ( $data ['search'] )) {
+		if (is_array($data ['search'] )) {
 			unset ( $data ['search'] );
 			$data ['track'] = 1;
 		}
 		if ($this->page >= 1) {
 			$data ['page'] = $this->page;
 		}
-		if ($urlOnly) {
-			return $this->getUrl ( $data );
-		} else {
-			echo $this->getTag ( $label, $data );
-		}
+		//if($_GET['debug'])t3lib_div::Debug($pid,"oid");
+		//if($_GET['debug'])t3lib_div::Debug($data,"oid");
+		if($urlOnly) return $this->getUrl ( $data,$pid);
+		
+		if($ajax) $onClick=$this->getAjaxOnClick(tx_crud__div::getAjaxTarget($config,"printAsSingleLink"),tx_crud__div::getActionID($config),false,$saveContainer); 
+		$link='<a href="'.$this->getUrl ( $data,$pid).'" '.$onClick.'>'.$label.'</a>';
+		echo $link;
 	}
 	
-	function printAsBackLink($label="%%%back%%%",$urlOnly=false,$pars=false) {
-		if(!$pars) {
-			$pars= $this->controller->parameters->getArrayCopy();
-			unset($pars['action']);
-		}
+	function printAsBackLink($label="%%%back%%%",$pid=false,$pars=false,$ajax=true,$saveContainer=true,$restoreContainer=true) {
+		if(!$pars) $pars=$this->controller->parameters->getArrayCopy();
+		unset($pars['retrieve']);
+		unset($pars['action']);
 		$data=$pars;
-		unset($data['retrieve']);
-		if($data['track']>=1)$data['track']=1;
+		if(!$pid) $pid=$GLOBALS['TSFE']->id;
+		
+		$config=$this->controller->configurations->getArrayCopy();
+		if(is_array($pars['search'])) {
+			$data['track']=1;
+			unset($data['search']);
+		}
 		if ($this->page >= 1) {
 			$data['page'] = $this->page;
 		}
-		$data['restoreContainer']=1;
-	//	t3lib_div::debug($data);
-		$data['ajaxTarget'] = $this->getAjaxTarget("printAsBackLink");
-		if(!$urlOnly) echo $this->getTag($label,$data);
-		else return $this->getUrl($data);
+		if($ajax) $onClick=$this->getAjaxOnClick(tx_crud__div::getAjaxTarget($config,"printAsSingleLink"),tx_crud__div::getActionID($config),$restoreContainer,false); 
+		//t3lib_div::debug($data);
+		//$data['action']="list";
+		$url='<a '.$onClick.' href="'.$this->getUrl($data,$pid,1).'">'.$label.'</a>';
+		//t3lib_div::debug($this->getUrl($data,$pid,1));
+		echo $url;
 	}
 	
 	function renderPreview($data=false) {
@@ -91,7 +98,7 @@ class tx_crud__views_retrieve extends tx_crud__views_common {
 		$params = $this->controller->parameters->getArrayCopy();
 		$setup = $typoscript['view.']['setup'];
 		if (!$data) $data = $typoscript['view.']['data'];
-		//st3lib_div::Debug($setup);
+		//t3lib_div::Debug($setup);
 		if (is_array($setup) && is_array($data)) {
 			foreach($data as $uid=>$entry) {
 				foreach($entry as $key=>$value) {
@@ -119,6 +126,7 @@ class tx_crud__views_retrieve extends tx_crud__views_common {
 						$value_exploded = explode(",",$value);
 						foreach ($value_exploded as $file) {
 							//if(!isset($params['history']))
+							$preview[]=$file;
 							//$preview[]=$this->makeFilePreview($setup[$key]['config.']['uploadfolder']."/".$file);
 						}
 						if (is_array($preview)) {
@@ -210,21 +218,22 @@ class tx_crud__views_retrieve extends tx_crud__views_common {
 		}
 	}
 	
-	function printAsOptionLinks($item_key,$wrap="",$urlOnly=false){
+	function printAsOptionLinks($item_key,$wrap="",$urlOnly=false){//($uid, $label = "%%%show%%%",$urlOnly=false,$action = "retrieve",$pid=false,$ajax=true,$saveContainer=true
 		$wrap = explode("|",$wrap);
 		$options = $this->get($item_key);
 		$config = $this->controller->configurations->getArrayCopy();
 		$options = explode(",",$config['view.']['data'][$config['storage.']['nodes']][$item_key]);
+		//t3lib_div::Debug($options);
 		foreach ($options as $key=>$option) {
 			$option_exploded = explode("__",$option);
 			if (count($option_exploded) > 1) {
 				if ($config['storage.']['nameSpace'] == $option_exploded[0]) {
 					if (!$urlOnly) {
 						echo $wrap[0];
-						$this->printAsSingleLink($option_exploded[1],$config['view.']['setup'][$item_key]['options.'][$option]);
+						$this->printAsSingleLink($option_exploded[1],$config['view.']['setup'][$item_key]['options.'][$option],0,"retrieve",$config['setup.']['singlePid'],0);
 						echo $wrap[1];
 					} else {
-						$urls[$option]['url'] = $this->printAsSingleLink($option_exploded[1],$config['view.']['setup'][$item_key]['options.'][$option],1);
+						$urls[$option]['url'] = $this->printAsSingleLink($option_exploded[1],$config['view.']['setup'][$item_key]['options.'][$option],1,"retrieve",$config['setup.']['singlePid'],0);
 						$urls[$option]['label'] = $config['view.']['setup'][$item_key]['options.'][$option];
 					}
 				} elseif ($option_exploded[0] == "pages") {
@@ -237,6 +246,7 @@ class tx_crud__views_retrieve extends tx_crud__views_common {
 				}
 			}
 		}
+		//t3lib_div::debug($urls);
 		if($urlOnly) return $urls;
 	}
 }

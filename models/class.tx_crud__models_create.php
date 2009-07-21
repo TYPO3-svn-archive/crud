@@ -61,10 +61,14 @@ class tx_crud__models_create extends tx_crud__models_common{
 				$this->processData[$key] = $val['process'];
 			}
 		}
-		$this->preQuery();
+		
 		if (is_array($this->controller->configurations['storage.']['defaultQuery.'][$this->panelTable."."])) {
-			$insert = $this->controller->configurations['storage.']['defaultQuery.'][$this->panelTable."."];
+			foreach($this->controller->configurations['storage.']['defaultQuery.'][$this->panelTable."."] as $field=>$value) {
+				$this->processData[$field]=$value;
+			}
+			
 		}
+		$this->preQuery();
 		foreach ($this->processData as $key=>$val) {
 			if (strlen($val) >= 1) {
 				$insert[$key] = $val;
@@ -73,11 +77,13 @@ class tx_crud__models_create extends tx_crud__models_common{
 		unset($insert['captcha']);
 		$insert["pid"] = $this->panelRecord;
 		$insert["tstamp"] = time();
+		$insert["crdate"] = time();
 		if(strlen($this->bigTCA['ctrl']['languageField'])>=3) {
 			$insert[$this->bigTCA['ctrl']['languageField']]=$GLOBALS['TSFE']->config['config']['sys_language_uid'];
 		}
 		if ($this->mode == 'PROCESS') {
 			$query = $GLOBALS['TYPO3_DB']->exec_INSERTquery(strtolower($this->panelTable),$insert);
+			$this->processData=$insert;
 		}
 		if (!$query) {
 			$this->mode="QUERY_ERROR";
@@ -112,9 +118,13 @@ class tx_crud__models_create extends tx_crud__models_common{
 					}
 				}
 			}
+			//t3lib_div::debug($this->processData,$this->mode);
 			$this->postQuery();
+			
 			$this->processData = false;
 			$this->processMM = false;
+			//echo $this->mode;
+			
 		}
 	}
 
@@ -128,6 +138,8 @@ class tx_crud__models_create extends tx_crud__models_common{
 	 * @return  void
 	 */	
 	function setupValues() {
+		//echo $this->mode;
+		$this->preSetupValues();
 		$orgMode=$this->mode;
 		$pars = $this->controller->parameters->getArrayCopy();
 		if(is_array($this->html))foreach ($this->html as $item_key=>$entry) {
@@ -436,6 +448,7 @@ class tx_crud__models_create extends tx_crud__models_common{
 			$this->html[$item_key] = $entry;
 		}
 		$this->mode=$orgMode;
+		$this->postSetupValues();
 	}
 	
 	/**

@@ -1,6 +1,5 @@
 <?php 
 if (!defined ('TYPO3_MODE')) die ('Access denied.');
-t3lib_div::debug($this->controller->configurations->getArrayCopy(),"debug");
 if ($this->get('mode') == 'EDIT') {
 	$entryList = $this->get('setup');
 	$entryList = $this->renderSetup($entryList);

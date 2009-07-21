@@ -1,8 +1,17 @@
+/**
+ * @section searchbox autocomplete
+ *
+ * Enter section description
+ * @see     Enter an optional reference url
+ */
+
 .ac_results {
 	padding: 0px;
 	border: 1px solid WindowFrame;
 	background-color: Window;
 	overflow: hidden;
+	text-align: left;
+	z-index: 250;
 }
 
 .ac_results ul {
@@ -11,6 +20,11 @@
 	list-style: none;
 	padding: 0;
 	margin: 0;
+}
+
+.ac_results ul, .ac_results li {
+	margin: 0 !important;
+	padding: 0 !important;
 }
 
 .ac_results iframe {
@@ -31,16 +45,51 @@
 	cursor: pointer;
 	display: block;
 	width: 100%;
-	font: menu;
+/* 	font: menu; */
 	font-size: 12px;
 	overflow: hidden;
 }
 
 .ac_loading {
-	background : Window url('./indicator.gif') right center no-repeat;
+	background: Window url('indicator.gif') right center no-repeat;
 }
 
 .ac_over {
 	background-color: Highlight;
 	color: HighlightText;
+}
+
+.hidden { display: none; }
+
+
+.ac_results li div {
+	border-bottom: 1px dotted #999;
+	padding: .3em .2em .3em 1em;
+}
+
+.ac_results li div.result {
+	border-top: 2px solid #3b3e53;
+	border-bottom: 1px solid #868a9e;
+	background: #c7c9d3;
+	font-weight: bold;
+	color: #1d2032;
+	padding-left: .2em;
+}
+.ac_results li div.show_all {
+	background: #c7c9d3;
+	font-weight: bold;
+	color: #1d2032;
+	padding-left: .2em;
+}
+
+.ac_results li div.headline {
+	border-bottom: none;
+	font-weight: bold;
+	padding-left: .2em;
+	background: #e9e7e7 url('images/arrow-sorting-down.gif') 98% 5px no-repeat;
+}
+
+.ac_results li u {
+	font-style: italic;
+	font-size: .9em;
 }

@@ -11,7 +11,7 @@
 
 $EM_CONF[$_EXTKEY] = array(
 	'title' => 'High Performance Plugin System',
-	'description' => 'Addon for lib/div based development wich implements a new rolebased Rightsmanagement for Frontend-User depending on Access Control Lists, wich allows to create, retrieve, update, delete, browse, search and filter any TCA-based Contents with the focus on speed for non cached dynamic content including caching, logging, histories and edit locks.',
+	'description' => 'Addon for lib/div based development which implements a new role based rights management for Frontend-Users depending on Access Control Lists, which allows to create, retrieve, update, delete, browse, search and filter any TCA-based content with the focus on speed for non cached dynamic content including caching, logging, histories and edit locks.',
 	'category' => 'misc',
 	'author' => 'Frank Thelemann',
 	'author_email' => 'f.thelemann@yellowmed.com',
@@ -28,7 +28,7 @@ $EM_CONF[$_EXTKEY] = array(
 	'clearCacheOnLoad' => 1,
 	'lockType' => '',
 	'author_company' => 'yellowmed.com',
-	'version' => '0.8.0',
+	'version' => '0.9.0',
 	'constraints' => array(
 		'depends' => array(
 			'cms' => '',

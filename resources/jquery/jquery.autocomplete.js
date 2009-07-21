@@ -1,3 +1,7 @@
+var ac_maxResultsPerCat = 3;
+var ac_showHitCount = true;
+
+
 jQuery.autocomplete = function(input, options) {
 	// Create a link to self
 	var me = this;
@@ -116,18 +120,18 @@ jQuery.autocomplete = function(input, options) {
 		var v = $input.val();
 		if (v == prev) return;
 		prev = v;
-		if (v.length >= options.minChars) {
+		if (v.length >= options.minChars && v.indexOf(" ") == -1) {
 			$input.addClass(options.loadingClass);
 			// disable submit button
-			$form=$(".autocomplete").parents("form");
-			$(":submit",$form).attr("disabled","disabled");
+	//		$form=$(".autocomplete").parents("form");
+	//		$(":submit",$form).attr("disabled","disabled");
 			// start autocomplete proccess
 			
 			requestData(v);
 		} else {
 			// enable submit button
-			$form=$(".autocomplete").parents("form");
-			$(":submit",$form).attr("disabled","");
+		//	$form=$(".autocomplete").parents("form");
+		//	$(":submit",$form).attr("disabled","");
 			// kill autocomplete process
 			$input.removeClass(options.loadingClass);
 			$results.hide();
@@ -232,6 +236,10 @@ jQuery.autocomplete = function(input, options) {
 	};
 
 	function showResults() {
+		if($input.val().indexOf(" ") > -1){
+			hideResultsNow();
+			return false;
+		}
 		// get the position of the input field right now (in case the DOM is shifted)
 		var pos = findPos(input);
 		// either use the specified width, or autocalculate based on form element
@@ -341,19 +349,26 @@ jQuery.autocomplete = function(input, options) {
 			}
 			if (!row) continue;
 			var li = document.createElement("li");
-			// cut when mor the 3 entries for this category
-			if(catCount > 3) {
+			// cut when more then 'maxResultsPerCat' entries for this category
+			if(catCount > ac_maxResultsPerCat) {
 				// entry to show all in this category
-				if(catCount == 4) {
-	
-					li.innerHTML='<div class="hidden ac_info1">'+row[1]+'</div><div class="hidden ac_info2">'+$input.val()+'</div><div><u>Alle anzeigen&hellip;('+hitsPerCat[k]+')</u></div>';
+				if(catCount == ac_maxResultsPerCat + 1) {
+					if(ac_showHitCount)
+						var show = 'Alle anzeigen&hellip;('+hitsPerCat[k]+')';
+					else
+						var show = 'Alle anzeigen&hellip;';
+					li.innerHTML='<div class="hidden ac_info1">'+row[1]+'</div><div class="hidden ac_info2">'+$input.val()+'</div><div><u>'+show+'</u></div>';
 					li.selectValue = $input.val();
 				}	
 				else continue;
 			}
 			// first entry is headline
 			else if(i == 0 && num > 1){
-				li.innerHTML='<div class="result">'+count+' '+row[1]+'</div>';
+				if(ac_showHitCount)
+					var show = count+' Treffer für '+$input.val();
+				else
+					var show = 'Treffer für '+$input.val();
+				li.innerHTML='<div class="result">'+show+'</div>';
 				li.selectValue = row[0];
 			}
 			// last entry is show_all
@@ -380,7 +395,7 @@ jQuery.autocomplete = function(input, options) {
 			ul.appendChild(li);
 			// dont hover class result and headline 
 			$(li).hover(
-				function() { if($(this).children().attr("class")!="headline" && $(this).children().attr("class")!="result"){$("li", ul).removeClass("ac_over"); $(this).addClass("ac_over"); active = $("li", ul).indexOf($(this).get(0)); }},
+				function() { if($(this).children().attr("class")=="show_all")alert("sdg"); if($(this).children().attr("class")!="headline" && $(this).children().attr("class")!="result"){$("li", ul).removeClass("ac_over"); $(this).addClass("ac_over"); active = $("li", ul).indexOf($(this).get(0)); }},
 				function() { if($(this).children().attr("class")!="headline" && $(this).children().attr("class")!="result"){$(this).removeClass("ac_over"); }}
 			).click(function(e) {  if($(this).children().attr("class")!="headline" && $(this).children().attr("class")!="result"){e.preventDefault(); e.stopPropagation(); selectItem(this) }});
 		}

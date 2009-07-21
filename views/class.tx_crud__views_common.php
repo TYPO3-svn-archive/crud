@@ -53,12 +53,15 @@ class tx_crud__views_common extends tx_lib_phpTemplateEngine {
 		
 		$this->reset();
 		$this->controller = $controller;
+	
 		$config = $this->controller->configurations->getArrayCopy();
+			//echo $config['storage.']['nameSpace'];
 		$this->configuration=$config;
 		$pars = $this->controller->parameters->getArrayCopy();
 		$this->parameters=$pars;
 		$view = $config['view.'];
-	//	t3lib_div::debug($view);
+		//	t3lib_div::debug($view);
+		require_once(PATH_site.'typo3/sysext/cms/tslib/class.tslib_content.php');
 		parent::__construct($controller);
 		$this->set("setup",$view['setup']);
 		$this->set("data",$view['data']);
@@ -77,7 +80,14 @@ class tx_crud__views_common extends tx_lib_phpTemplateEngine {
  	    	$hash=md5($_REQUEST['PHPSESSID']."-".$config['setup.']['marker']."=".$GLOBALS['TSFE']->id);
  	        $_SESSION[$this->getSessionHash()]['search']=$pars['search'];
 	    }
-			
+		if($config['view.']['replace.'] && isset($pars['retrieve'])) {
+			$data=$view['data'][$pars['retrieve']];
+			foreach($config['view.']['replace.'] as $field=>$val) {
+				$field=str_replace(".","",$field);
+				$val['value']=$data[$field];
+				$this->replace[$field]=$val;
+			}
+		}
 	}
 
 	/**
@@ -86,8 +96,14 @@ class tx_crud__views_common extends tx_lib_phpTemplateEngine {
 	 * @return	void
 	 */
 	function reset() {
+		//$config = $this->controller->configurations->getArrayCopy();
 		unset($this->cached);
 		unset($this->cache);
+		unset($this->configuration);
+		unset($this->form);
+		unset($this->html);
+		$this->set("setup","");
+		//echo $config['storage.']['nameSpace'];
 	}
 	
 	// -------------------------------------------------------------------------------------
@@ -103,8 +119,24 @@ class tx_crud__views_common extends tx_lib_phpTemplateEngine {
 	 *
 	 * @return	void
 	 */
-	private function generateUrls() {
-		$get=$_GET;
+	private function generateUrls($pid=false) {
+  		//t3lib_div::debug(  $GLOBALS);
+		if(!$pid) $pid=$GLOBALS['TSFE']->id;
+		
+		$get=tx_crud__div::_GP($this->getDesignator());
+		if(is_array($_POST)) foreach($_POST as $key=>$val) {
+			if(isset($get[$key])) unset($get[$key]);
+			if(is_array($val)) foreach($val as $key2=>$val2) {
+				if(isset($get[$key2])) unset($get[$key2]);
+			}
+		}
+		if(is_array($_POST[$this->getDesignator()])) foreach($_POST[$this->getDesignator()] as $key=>$val) {
+			if(isset($pars[$key])) unset($get[$key]);
+			if(is_array($val)) foreach($val as $key2=>$val2) {
+				if(isset($get[$key2])) unset($get[$key2]);
+			}
+		}
+		//t3lib_div::debug($get,"get");
 		$config = $this->controller->configurations->getArrayCopy();
 		unset($get['id']);
 		unset($get['cHash']);
@@ -113,56 +145,74 @@ class tx_crud__views_common extends tx_lib_phpTemplateEngine {
 		unset($get['saveContainer']);
 		unset($get['restoreContainer']);
 		unset($get['ajax']);
+		unset($get['aID']);
+		unset($get['mID']);
 		$params=$config['view.']['params.'];
-		/*
-		$params['page']='PAGE';
-		$params['limit']='LIMIT';
-		$params['search']='SEARCH';
-		$params['upper']='UPPER';
-		$params['showhistory']='SHOWHISTORY';
-		$params['compareWith']='COMPAREWITH';
-		$params['history']='HISTORY';
-		$params['lower']='LOWER';
-		$params['retrieve']='RETRIEVE';
-		$params['action']='ACTION';
-		$params['track']='TRACK';
-		*/
+		//t3lib_div::Debug($params);
 		$hash=md5($config['setup.']['marker']);
-		$url=$this->cached['realurl'];
-		foreach($params as $key=>$val) $params_keys[strtoupper($val)]=strtoupper($val);
+		$url=$this->cached['realurl'][$pid];
+		
+		if(is_array($params))foreach($params as $key=>$val) $params_keys[strtoupper($val)]=strtoupper($val);
 		if(!$url) {
 			require_once(PATH_site.'typo3/sysext/cms/tslib/class.tslib_content.php');
 			$link = tx_div::makeInstance('tx_lib_link');
 			$link->parameters($params);
 			$link->designator($this->getDesignator());
-			$link->destination($this->getPageId());
+			$link->destination($pid);
 			$url = $link->makeURL();
-			$this->cache['realurl']=$url;
+			$this->cache['realurl'][$pid]=$url;
 		}
-		//echo $url;
+	
+		$url = str_replace("%5B","[",$url);
+		$url = str_replace("%5D","]",$url);
+	//	echo $url;
 		$url_exploded=explode(".",$url);
-		if($url_exploded[0]=="index") {
+		//t3lib_div::debug($url_exploded);
+		if(trim($url_exploded[0])=="index") { //|| count($url_exploded)<=1
+
+			//echo "nix real";
 			$url_exploded=explode("&amp;",$url);
 			$this->baseUrl=$url_exploded[0];
+			//t3lib_div::debug($url_exploded,"url rendered");
 			unset($url_exploded[0]);
 			foreach($url_exploded as $key=>$val) {
 				$val=str_replace($this->getDesignator()."[","",$val);
 				$val=str_replace("]","",$val);
 				$val_exploded=explode("=",$val);
-				if($params_keys[$val_exploded[1]])$this->urlExtParameters[$val_exploded[0]]=$val_exploded[0];
-				else $this->urlBaseParameters[$val_exploded[0]]=$val_exploded[1];
+				//t3lib_div::debug($val_exploded[0],"value key");
+				//$params_keys=$params;
+				if($params_keys[$val_exploded[1]]){
+					$this->urlExtParameters[$val_exploded[0]]=$val_exploded[0];
+				//	echo "ok"l
+				}
+				else {
+					//echo "key ".$val_exploded[0]." empty";
+					$this->urlBaseParameters[$val_exploded[0]]=$val_exploded[1];
+				}
 			}
-			if(is_array($get)) foreach($get as $key=>$val) if($key!=$this->getDesignator())$this->urlBaseParameters[$key]=$val;
+			//t3lib_div::debug($this->urlExtParameters,"ext pars");
+			$get=$_GET;
+			//t3lib_div::debug($_GET,$this->getDesignator());
+			unset($get[$this->getDesignator()]);
+			unset($get['id']);
+			unset($get['cHash']);
+			unset($get['ajax']);
+			if(is_array($get)) foreach($get as $key=>$val)  if($key!=$this->getDesignator()) {
+				//echo $key." not set";
+				$this->urlBaseParameters[$key]=$val;
+			}
 			$this->urlLimiter="&";
 			$this->realUrl=false;
 
-		}
-		else{
+		} else {
+			//echo "real";
+			//echo $url;
 			unset($get['L']);
 			unset($get['no_cache']);
 			$this->urlLimiter="/";
 			$this->realUrl=true;
 			$url_exploded=explode("/",$url);
+			//t3lib_div::debug($url_exploded);
 			$url_exploded=array_reverse($url_exploded);
 			foreach($url_exploded as $key=>$val) {
 				if(strlen($val)>=1) $url_ok[]=$val;
@@ -175,7 +225,7 @@ class tx_crud__views_common extends tx_lib_phpTemplateEngine {
 				foreach($new_url as $key=>$val)$url_exploded[]=$val;
 			}
 			$url_ok=$url_exploded;
-			foreach($url_ok as $key=>$val) {
+			if(is_array($url_ok)) foreach($url_ok as $key=>$val) {
 				if($useNext)$this->urlExtParameters[$last]=$val;
 				if(!$useNext && !$params_keys[$val]) $base[$val]=$val;
 				if(strlen($params_keys[$val])>=1) {
@@ -188,13 +238,30 @@ class tx_crud__views_common extends tx_lib_phpTemplateEngine {
 				$base=array_reverse($base);
 				$this->baseUrl=implode("/",$base);
 			}
-			if(is_array($get)) foreach($get as $key=>$val) if($key!=$this->getDesignator())$this->urlBaseParameters[$key]=$val;
+			//if(is_array($get)) foreach($get as $key=>$val) if($key!=$this->getDesignator())$this->urlBaseParameters[$key]=$val;
 
 		}
+		//echo $this->baseUrl;
 		//t3lib_div::debug($this->urlBaseParameters,"base");
 		//t3lib_div::debug($this->urlExtParamters,"ext");
 	}
 
+	function getAjaxOnClick($ajaxTarget=false,$aID=false,$restoreContainer=false,$saveContainer=false) {
+		$config=$this->controller->configurations->getArrayCopy();
+		if(!$ajaxTarget) $ajaxTarget=$config['view.']['ajaxTargets.']['default'];
+		if(!$aID) $aID=tx_crud__div::getActionID($config);
+	/**/
+		$js='onclick="return ajaxlink(this,\''.$ajaxTarget.'\',\''.$aID.'\'';
+		if($saveContainer) $js.=',true';
+		else  $js.=',false';
+		if($restoreContainer) $js.=',true';
+		else $js.=',false';
+		$js.=');"';
+
+	//	$js=' onclick="javascript:ajaxlink(\'bluib\')"';
+		return $js;
+	}
+	
 	/**
 	 * Build a URL and return them
 	 *
@@ -204,20 +271,43 @@ class tx_crud__views_common extends tx_lib_phpTemplateEngine {
 	 * @param	array		pars for your URL
 	 * @return	string		the complete URL
 	 */
-	function getUrl($pars=false,$pid=false,$search=false,$force=false,$ajaxTarget=true,$aID=1) {
-		//t3lib_div::debug($pars);
+	function getUrl($pars=false,$pid=false,$search=false,$force=false,$ajaxTarget=false,$aID=false) {
+		//t3lib_div::debug($this->urlBaseParameters,$this->getDefaultDesignator());
+	//	t3lib_div::debug($pars);
 		if(!$pid) $pid=$GLOBALS['TSFE']->id;
+		if($pid!=$GLOBALS['TSFE']->id) {
+			$this->generateUrls($pid);
+			$renderNew=true;
+		}
+		if(is_array($_POST)) foreach($_POST as $key=>$val) {
+			if(isset($pars[$key])) unset($pars[$key]);
+			if(is_array($val)) foreach($val as $key2=>$val2) {
+				if(isset($get[$key2])) unset($pars[$key2]);
+			}
+		}
+		if(is_array($_POST[$this->getDesignator()])) foreach($_POST[$this->getDesignator()] as $key=>$val) {
+			if(isset($pars[$key])) {
+				 unset($pars[$key]);
+			}
+			if(is_array($val)) foreach($val as $key2=>$val2) {
+				if(isset($get[$key2])) unset($pars[$key2]);
+			}
+		}
+		
+		//t3lib_div::debug($pars);
 		unset($this->urlBaseParameters['cHash']);
 		unset($this->urlBaseParameters['saveContainer']);
 		unset($this->urlBaseParameters['aID']);
+		unset($this->urlBaseParameters['mID']);
 		unset($this->urlBaseParameters['restoreContainer']);
 		unset($this->urlBaseParameters['ajaxTarget']);
+		unset($pars['ajaxTarget']);
 		$searchPars=$pars['search'];;
 		if(is_array($pars['search'])){
 			unset($pars['search']);
 		}
-		elseif(isset($pars['search']) && !is_array($pars['search'])) {
-			$pars['search']=urlencode($pars['search']);
+		elseif(isset($pars['find']) && !is_array($pars['find'])) {
+			$pars['find']=urlencode($pars['find']);
 		}
 		if($ajaxTarget && isset($pars['ajaxTarget'])) {
 			$this->urlBaseParameters['ajaxTarget']=$pars['ajaxTarget'];
@@ -227,22 +317,24 @@ class tx_crud__views_common extends tx_lib_phpTemplateEngine {
 		}
 		if($pars['restoreContainer']) {
 			$this->urlBaseParameters['restoreContainer']=$pars['restoreContainer'];
-		}
-		$i=0;
+		}		
 		$url=$this->baseUrl;
+		if(strpos($url, '?')===false) $i=0;
+		else $i=1;
 		if($this->realUrl)$url.="/";
-		//t3lib_div::debug($pars);
 		if(is_array($pars)) foreach($pars as $key=>$val){
+			//echo $key;
 			if(!isset($this->urlBaseParameters[$key])) {
 				if($this->realUrl) {
-					$url.=$this->urlExtParameters[$key]."/".$val."/";
+					if(!$force)$url.=$this->urlExtParameters[$key]."/".$val."/";
+					$i++;
 				}
 				else {
 					$i++;
-					
+					//echo $key;
 					if(is_array($val)) foreach($val as $k=>$v) {
 						if(is_array($v)) foreach($v as $k2=>$v2) {
-							$url.="&".$this->getDefaultDesignator()."[".$this->urlExtParameters[$key]."][".$k."][".$k2."]=".urlencode($v2);
+							if(!is_array($v2)) $url.="&".$this->getDefaultDesignator()."[".$this->urlExtParameters[$key]."][".$k."][".$k2."]=".urlencode($v2);
 						}
 						else $url.="&".$this->getDefaultDesignator()."[".$this->urlExtParameters[$key]."][".$k."]=".urlencode($v);
 					}
@@ -253,8 +345,9 @@ class tx_crud__views_common extends tx_lib_phpTemplateEngine {
 					}
 				}
 			}
-			///elseif($key==$this->getDesignator) echo $key."nor in<br/>"; 
+			elseif($key==$this->getDesignator()) echo $key."nor in<br/>"; 
 		}
+		
 		if(is_array($this->urlBaseParameters) && !$force) foreach($this->urlBaseParameters as $key=>$val){
 			if($this->realUrl) {
 				if(is_array($val)) foreach($val as $k=>$v) {
@@ -269,9 +362,13 @@ class tx_crud__views_common extends tx_lib_phpTemplateEngine {
 					$url.="?".$key."=".urlencode($val);
 					$i++;
 				}
-				else $url.="&".$key."=".urlencode($val);
+				else {
+					$url.="&".$key."=".urlencode($val);
+					$i++;
+				}
 			}
-			elseif($i==0 && !$this->realUrl){
+			elseif(!$this->realUrl){
+				$i++;
 				if(is_array($val)) foreach($val as $k=>$v) {
 					if(!is_array($v)) {
 					if($i==0) {
@@ -284,34 +381,59 @@ class tx_crud__views_common extends tx_lib_phpTemplateEngine {
 				}
 				else $url.="&".$key."=".urlencode($val);
 			}
-			else {
-				if(is_array($val)) foreach($val as $k=>$v) {
-					if(is_string($v)) $url.="&".$key."[".$k."]=".urlencode($v);
-					else $url.="&".$key."[".$k."]=".$v;
-				}
-				else $url.="&".$key."=".urlencode($val);
-			}
-			$i++;
+
 		}
+		//t3lib_div::debug($url,$i);
+		
+		//echo $split;
 		if(is_array($searchPars) && $search) foreach($searchPars as $key=>$params) {
-			if(isset($params['mm'])) {
-				$trenner="mm";
-				$val=$params['mm'];
+			if(is_array($params)) foreach($params as $trenner=>$value) {
+				$url_exploded=explode("?",$url);
+				if(sizeof($url_exploded)>1) $split="&";
+				else $split="?";
+				$val="[".$trenner."]";
+				$url.=$split.$this->getDefaultDesignator()."[search][".$key."][".$trenner."]=".urlencode($value);
+				//else $url.=$split.$this->getDefaultDesignator()."[search][".$key."][".$trenner."]=".urlencode($value);
+				$i++;
 			}
 			else {
-				$trenner="is";
-				$val=$params['is'];
+				$url_exploded=explode("?",$url);
+				if(sizeof($url_exploded)>1) $split="&";
+				else $split="?";
+				 $url.=$split.$this->getDefaultDesignator()."[search][".$key."]=".urlencode($params);
+				//else $url.=$split.$this->getDefaultDesignator()."[search][".$key."]=".urlencode($params);
+				
 			}
-			if($i>0)$url.="&".$this->getDefaultDesignator()."[search][".$key."][".$trenner."]=".urlencode($val);
-			else $url.="?".$this->getDefaultDesignator()."[search][".$key."][".$trenner."]=".urlencode($val);
-			$i++;
+			//$split="&";
+		//	$i++;
 		}
-		if($aID==1) {
-				if($i>0)$url.="&aID=".tx_crud__div::getActionID($this->controller->configurations->getArrayCopy());
-				else $url.="?aID=".tx_crud__div::getActionID($this->controller->configurations->getArrayCopy());
+		//t3lib_div::debug($pars['search']);
+		$pars=$this->controller->parameters->getArrayCopy();
+		if(!$force && strlen($pars['find'])>=1) {
+			$url_exploded=explode("?",$url);
+			if(sizeof($url_exploded)>1) $split="&";
+			else $split="?";
+			if($i>0) $url.=$split.$this->getDefaultDesignator()."[find]=".urlencode($pars['find']);
+			else $url.=$split.$this->getDefaultDesignator()."[find]=".urlencode($pars['find']);
+		}
+		if($aID) {
+			if(strlen($aID)>4) {
+				if($i==0  && $this->realUrl) $url.="?aID=".$aID;
+				else $url.="&aID=".$aID;
+			}
+			else {
+				if($i==0  && $this->realUrl) $url.="?aID=".tx_crud__div::getActionID($this->controller->configurations->getArrayCopy());
+				else $url.="&aID=".tx_crud__div::getActionID($this->controller->configurations->getArrayCopy());
+			}
+		}
+		if($ajaxTarget) {
+			if($i==0  && $this->realUrl) $url.="?ajaxTarget=".$ajaxTarget;
+			else $url.="&ajaxTarget=".$ajaxTarget;
 		}
 		$url = str_replace ("&amp;","&", $url );
 		$url = str_replace ( "&", "&amp;", $url );
+		//echo $url;
+		if($renderNew)$this->generateUrls();
 		return $url;
 	}
 
@@ -322,9 +444,16 @@ class tx_crud__views_common extends tx_lib_phpTemplateEngine {
 	 * @param	string		Label for your Link
 	 * @return	string		the complete Link
 	 */
-	public function getTag($label,$pars=false,$style=false) {
-		if(isset($style)) $class='class="'.$style.'" ';
-		$link = '<a href="'.$this->getUrl($pars).'" '.$class.' >'.$label.'</a>'; // TODO: title-tag?
+	public function getTag($label,$pars=false,$uid=false,$ajaxTarget=false,$saveContainer=false,$restoreContainer=false) {
+		if(isset($ah)) $class='class="'.$style.'" ';
+		$config=$this->controller->configurations->getArrayCopy();
+		//t3lib_div::debug($config);
+		if(!$ajaxTaget) $ajaxTarget=tx_crud__div::getAjaxTarget($config,"default");
+		unset($pars['ajaxTarget']);
+		unset($pars['aID']);
+		unset($pars['saveContainer']);
+		unset($pars['restoreContainer']);
+		$link = '<a href="'.$this->getUrl($pars,$uid).'" '.$class.' '.$this->getAjaxOnClick(tx_crud__div::getAjaxTarget($config,"getTag"),tx_crud__div::getActionID($config),$restoreContainer,$saveContainer).'>'.$label.'</a>'; // TODO: title-tag?
 		return $link;
 	}
 	
@@ -352,6 +481,36 @@ class tx_crud__views_common extends tx_lib_phpTemplateEngine {
 	}
 
 	/**
+	 * returns an action link based on the setup
+	 * 
+	 * @param 	array	$setup	the setup
+	 * @return  string	the action link form
+	 */
+	function printAsActionLink($label="do it",$action="update",$ajax=1,$pid=false,$aID=false) {
+		$setup=$this->controller->configurations->getArrayCopy();
+		if(!$aID) $aID=tx_crud__div::getActionID ( $setup );
+		if(!$pid) $pid=$GLOBALS['TSFE']->id;
+		$url=$this->getUrl(false,$pid,false,false);
+		
+		$form = '<form  action="' . $url . '" method="post"><div>';
+		$image = 'typo3conf/ext/crud/resources/icons/' . $action . '.gif';
+		if ($ajax) {
+			$form .= '<input type="hidden" name="ajaxTarget" value="' . tx_crud__div::getAjaxTarget ( $setup, "printActionLink" ) . '" />' . "\n\t";
+		}
+		$form .= '<input type="hidden" name="' . $setup ['setup.'] ['extension'] . '[form]" value="' . $aID . '" />' . "\n\t";
+		if ($ajax) {
+			$form .= '<input type="hidden" name="aID" value="' .$aID . '" />' . "\n\t";
+		}
+		$form .= '<input type="hidden" name="' . $this->getDesignator() . '[icon]" value="1" />' . "\n\t";
+		$form .= '<input type="hidden" name="' .$this->getDesignator() . '[process]" value="' . strtolower ( $action ) . '" />' . "\n\t";
+		$form .= '<button type="submit" name="' .$this->getDesignator() . '[submit]"><span>' . $label . '</span></button>' . "\n\t</div></form>\n"; //TODO: Localization
+		echo  $form;
+		//t3lib_div::Debug($form);
+	}
+	
+	
+	
+	/**
 	 * Tranlate a string bye the complete locallang key with the path.
 	 *
 	 * @param	string		$localLangKey 	the complete key. Example LLL:EXT:crud/locallang.xml:key
@@ -359,6 +518,7 @@ class tx_crud__views_common extends tx_lib_phpTemplateEngine {
 	 * @return	string
 	 */
 	function getLL($localLangKey,$force=false) {
+		//echo $localLangKey;
 		$string = @explode(':',$localLangKey);
 		$config = $this->controller->configurations->getArrayCopy();
 		$hash=md5($string[1].$string[2]);
@@ -383,14 +543,15 @@ class tx_crud__views_common extends tx_lib_phpTemplateEngine {
 					}
 					if ($string[0] == "LLL" && !$LLKey) {
 						$this->extTranslator->setPathToLanguageFile($path);
-						if (!file_exists($this->extTranslator->getPathToLanguageFile())) {
+						if (!@file_exists($this->extTranslator->getPathToLanguageFile())) {
 							$type = explode(".",$string[2]);
 							if ($type[1] == "php") {
 								$path = str_replace("php","xml",$path);
 							}
+							
 							$this->extTranslator->setPathToLanguageFile($path);
 						}
-						if (file_exists($this->extTranslator->getPathToLanguageFile())) {
+						if (@file_exists($this->extTranslator->getPathToLanguageFile())) {
 							$this->extTranslator->_loadLocalLang();
 							if(is_array($this->extTranslator->LOCAL_LANG)) {
 								tx_crud__cache::write($hash,$this->extTranslator->LOCAL_LANG);
@@ -482,6 +643,13 @@ class tx_crud__views_common extends tx_lib_phpTemplateEngine {
 		}
 	}
 	
+	function printAsDamMedia($record) {
+		//t3lib_div::Debug($record);
+		if($record["file_mime_type"]=="image") {
+			$image=$record['file_path'].$record['file_name'];
+			echo $this->printAsImage($record['file_name'],$record['height'],$record['width'],$record['title'],$record['file_path']);
+		}
+	}
 	
 	/**
 	 * renders images from a setup automatic
@@ -495,17 +663,26 @@ class tx_crud__views_common extends tx_lib_phpTemplateEngine {
 	 * @param	string		$wrapImage	wrap some html about every single image
 	 * @return	string
 	 */
-	function printAsImage($item_key,$height=30,$width=30,$altText=false,$urlOnly=false,$maxImages=100,$lightbox=false,$wrapAll="",$wrapImage="") {
+	function printAsImage($item_key,$height=30,$width=30,$altText=false,$path=false,$urlOnly=false,$maxImages=100,$lightbox=false,$wrapAll="",$wrapImage="") {
+		
 		$setup = $this->controller->configurations->getArrayCopy();
-		$img = explode(",",$this->get($item_key));
-		//t3lib_div::debug($this->cached);
+		if(!$path) {
+			
+			$img = explode(",",$this->get($item_key));
+		}
+		else $img[0]=$item_key;
+		//t3lib_div::Debug($setup);
+		//t3lib_div::debug($this->cached['images']);
 		$wrapImage = explode("|",$wrapImage);
 		if (strlen($img[0])>1) {
 			$i = 0;
 			foreach ($img as $key=>$val) {
-				$url = $setup['view.']['setup'][$item_key]['config.']['uploadfolder']."/".$val;
-				if($this->cached['images'][$url]) {
-					$img = '<img src="'.$this->cached['images'][$url].'" alt="'.$this->cached['images'][$url].'"/>';
+				if(!$path) $url = $setup['view.']['setup'][$item_key]['config.']['uploadfolder']."/".$val;
+				else  $url = $path."/".$val;
+			//	echo $url;
+				//t3lib_div::Debug($setup);
+				if(($config['storage.']['action']=="retrieve" || $config['storage.']['action']=="browse") && $this->cached['images'][$url]) {
+					$img = '<img src="'.$this->cached['images'][$url].'" alt="'.$altText.'"/>';
 					echo $img;
 				}
 				elseif (@file_get_contents($url) && $i < $maxImages) {
@@ -534,27 +711,27 @@ class tx_crud__views_common extends tx_lib_phpTemplateEngine {
 						if(!$urlOnly) $images .= $wrapImage[0] . $image->make() . $wrapImage[1];
 						else  $images .= $image->make();
 					}
-					
+					echo $images;
 					$img_exploded=explode('src="',$images);
 					$img_exploded=explode('"',$img_exploded[1]);
 					//t3lib_div::debug($img_exploded);
-					$this->cache['images'][$url]=$img_exploded[0];
+					if($config['storage.']['action']=="retrieve" || $config['storage.']['action']=="browse") $this->cache['images'][$url]=$img_exploded[0];
 				   
 					unset($image); 
 				} else {
 					echo "%%%error_no-image%%%";
 				}
 				$i++;
-				if($urlOnly) {
-					$img=explode('src="',$images);
-					$img=explode('"',$img[1]);
-					echo $img[0];
+				if ($urlOnly) {
+					$img = explode('src="',$images);
+					$img = explode('"',$img[1]);
+					//echo $img[0];
 					return null;
 				}
 			}
 			$wrapAll = explode("|",$wrapAll);
 			if ($images) {
-				echo $wrapAll[0] . $images . $wrapAll[1];
+				//echo $wrapAll[0] . $images . $wrapAll[1];
 			}
 		}
 	}
@@ -619,7 +796,8 @@ class tx_crud__views_common extends tx_lib_phpTemplateEngine {
 	 */
 	function loadHeaderData($root,$what) {
 		$conf = $this->controller->configurations->getArrayCopy();
-		$this->headerData[$root][$what] = $conf['resources.'][$root.'.'][$what];
+		$this->headerData[$root][$what] = $conf['resources.'][$root . '.'][$what];
+		//t3lib_div::debug($this->headerData);
 	}
 	
 	
@@ -632,11 +810,11 @@ class tx_crud__views_common extends tx_lib_phpTemplateEngine {
 	 */
 	function loadFooterData($root,$what) {
 		$conf = $this->controller->configurations->getArrayCopy();
-		$this->footerData[$root][$what] = $conf['resources.'][$root.'.'][$what];
+		$this->footerData[$root][$what] = $conf['resources.'][$root . '.'][$what];
 	}
 
 	function setTitleTag($string) {
-		$this->titleTag=$string;
+		$this->titleTag = $string;
 	}
 	
 	/**
@@ -680,6 +858,36 @@ class tx_crud__views_common extends tx_lib_phpTemplateEngine {
 		echo $js;
 	}
 	
+	function getCalDate($tstamp,$allday=true) {//20080210T131020
+		$time=date("Y",$tstamp).date("m",$tstamp).date("d",$tstamp);
+		$time.= "T".date("h",$tstamp).date("i",$tstamp)."00Z";
+		return $time;
+	}
+	
+	function getCalText($text) {
+		$text=str_replace("\n","",$text);
+		$text=str_replace("\r","",$text);
+		return strip_tags($text);
+	}
+	
+	function getCropText($string, $maxChars, $sentenceBreakDiff = 20) {
+		if (strlen($string) < $maxChars) {
+			return $string;
+		}
+		$sentences = explode('. ', $string);
+		$sentenceCharCount = 0;
+		foreach ($sentences AS $key => $value) {
+			$sentenceString .= $value . '. '; 
+			$sentenceCharCount += strlen($sentenceString);
+			if ($sentenceCharCount > $maxChars) {
+				break;
+			} elseif ($sentenceCharCount > $maxChars - $sentenceBreakDiff) {
+				return $sentenceString . '&hellip;'; 
+			}
+		}
+		return substr($string, 0, strrpos(substr($string, 0, $maxChars), ' ')) . '&hellip;';
+	}
+	
 	/**
 	 * write view caches if exist 
 	 *
@@ -688,6 +896,7 @@ class tx_crud__views_common extends tx_lib_phpTemplateEngine {
 	 * @return	void
 	 */
 	function destruct() {
+		//t3lib_div::debug($this->headerData);
 		$config = $this->controller->configurations->getArrayCopy();
 		if(stristr($_SERVER['REQUEST_URI'],"index.php")) $hash.="norealurl".$GLOBALS['TSFE']->config['config']['sys_language_uid'];
 		else $hash.="withrealurl".$GLOBALS['TSFE']->config['config']['sys_language_uid'];

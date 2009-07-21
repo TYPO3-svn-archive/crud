@@ -85,3 +85,6 @@ if ($this->get('mode') == 'PROCESS') {
 else echo "%%%no_rights_retrieve%%%";
 
 ?>
+
+
+<div class="loginbox" id="loginbox1">{{{box~fe_users~4~plugin.tx_crudlogin}}}</div>

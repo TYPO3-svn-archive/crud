@@ -172,6 +172,10 @@ class tx_crud__formBase extends tx_lib_formBase {
 				<dd>" . $out . "</dd>\n";
 	}
 	
+	function categorieRow($key,$label,$attributes= array()) {
+		
+	}
+	
 	/**
 	 * prints an date with time form element
 	 *
@@ -369,8 +373,9 @@ class tx_crud__formBase extends tx_lib_formBase {
 				$body .= "</optgroup>\n";
 			}
 		}
+		//t3lib_div::debug($setup[$key]);
 		if ($setup [$key] ['reload']) {
-			$reload = ' onchange="javascript:this.form.submit();"';
+			$reload = ' onchange="javascript:ajax4onClick(this);"';
 		}
 		return '<select' . $attributes . $reload . $multiselect . '>' . "\n\t" . $body . '</select>' . "\n";
 	}
@@ -391,6 +396,49 @@ class tx_crud__formBase extends tx_lib_formBase {
 		return $captchaHTMLoutput;
 	}
 	
+	function categoryRow($key, $label, $attributes = array(), $options = NULL){
+		$setup = $this->setup[$key];
+		//echo $key;
+		$process=$setup['process'];
+		$rows['options']=$setup['options.'];
+		$rows['sorting']=$setup['sorting.'];
+		//t3lib_div::Debug($setup);
+		foreach($rows['sorting'] as $key=>$value){
+			if(is_array($value['sub'])){
+				$subBody = '<optgroup label="'.$value['title'].'">';
+				foreach($value['sub'] as $subKey=>$subValue) {
+					if(is_array($subValue['sub'])){
+						$subSubBody = '<optgroup label="'.$subValue['title'].'">';
+						foreach($subValue['sub'] as $subSubKey=>$subSubValue){
+							if(isset($process[$subSubKey])) $selected='selected="selected"';
+							else $selected="";
+							$subSubBody .= '<option '.$selected.' value="'.$subSubKey.'">'.$subSubValue['title'].'</option>';
+						}
+						$subSubBody .= '</optgroup>';
+						$subBody .= $subSubBody;
+					}
+					else {
+						if(isset($process[$subKey])) $selected='selected="selected"';
+						else $selected="";
+						$subBody .= '<option '.$selected.' value="'.$subKey.'">'.$subValue['title'].'</option>';	
+					}
+				}
+				$subBody .= '</optgroup>';
+				$body .= $subBody;
+			}
+			else {
+				if(isset($process[$key])) $selected='selected="selected"';
+				else $selected="";
+				$body .= '<option '.$selected.' value="'.$key.'">'.$value['title'].'</option>';
+			}
+		}
+		$out.='<label="'.$key.'">';
+		if($setup['config.']['maxitems'] > 1)
+			$multiple = 'multiple="multiple" ';
+	//	return $out.'<dd><select  size="8" multiple="multiple" id="'.$setup['key'].'" name="'.$this->getDesignator().'['.$setup['key'].'][]">'.$body.'</select><br /><b>Auswahl:</b><div class="'.$setup['key'].'"></div></dd>';
+		return $out.'<dd><select size="'.$setup['config.']['size'].'" '.$multiple.'id="'.$setup['key'].'" name="'.$this->getDesignator().'['.$setup['key'].'][]">'.$body.'</select>';
+	}
+
 	// -------------------------------------------------------------------------------------
 	// SOME FORM HELPERS
 	// -------------------------------------------------------------------------------------
