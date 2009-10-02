@@ -32,7 +32,6 @@
 require_once(t3lib_extMgm::extPath('crud') . 'views/class.tx_crud__views_common.php');
 class tx_crud__views_delete extends tx_crud__views_common {
 
-		var $viewAction = "DELETE";
+		var $viewAction = 'DELETE';
 }
-
 ?>

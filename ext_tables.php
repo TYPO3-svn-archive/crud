@@ -146,6 +146,7 @@ t3lib_div::loadTCA("tt_content");
 t3lib_extMgm::addTCAcolumns("tt_content",$tempColumns,1);
 t3lib_extMgm::addToAllTCAtypes("tt_content","tx_crud_ts;;;;1-1-1");
 t3lib_extMgm::addStaticFile('crud', 'configurations', 'CRUD library');  
+t3lib_extMgm::addStaticFile('crud', 'doc/examples/tt_news/configurations', 'CRUD TT_NEWS Example');  
 if (TYPO3_MODE == 'BE')	{
 	t3lib_extMgm::addModule('web','txcrudM1','',t3lib_extMgm::extPath($_EXTKEY).'mod1/');
 }

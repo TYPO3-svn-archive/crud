@@ -93,7 +93,7 @@ class tx_crud__models_browse extends tx_crud__models_retrieve {
 			$where = $this->getFilterWhere ();
 			//echo $where;
 			if (! isset ( $_REQUEST['q'] ) && $count < 1) {
-				$countQuery = $GLOBALS ['TYPO3_DB']->exec_SELECTquery ( "count(uid)", $this->getStorageNameSpace (), $where );
+				$countQuery = $GLOBALS ['TYPO3_DB']->exec_SELECTquery ( "count(uid)", $this->getStorageNameSpace (),$typoscript['storage.']['additionalWhere']." ". $where );
 				if ($countQuery) {
 					$countResult = $GLOBALS ['TYPO3_DB']->sql_fetch_assoc ( $countQuery );
 					$count = $countResult ['count(uid)'];
@@ -117,8 +117,8 @@ class tx_crud__models_browse extends tx_crud__models_retrieve {
 					}
 				}
 			}
-			$sql = "select uid,pid," . $this->getStorageFields () . " from " . $this->getStorageNameSpace () . " where " . $where . $sort . " LIMIT " . $this->start . "," . ($this->limit);
-			//echo $sql;
+			$sql = "select uid,pid," . $this->getStorageFields () . " from " . $this->getStorageNameSpace () . " where " . $config['storage.']['additionalWhere'].$where . $sort . " LIMIT " . $this->start . "," . ($this->limit);
+	//	echo $sql;
 			//die();
 			//if($_REQUEST['debug'])t3lib_div::debug($sql,"sql");
 			//if($_REQUEST['debug'])t3lib_div::debug($count,"results");
@@ -194,7 +194,7 @@ class tx_crud__models_browse extends tx_crud__models_retrieve {
 		$pars = $this->controller->parameters->getArrayCopy ();
 		$typoscript = $this->controller->configurations->getArrayCopy ();
 		$config = $typoscript;
-		$search = "(hidden=0 AND deleted=0";
+		$search = "(1=1";
 		if (strlen ( $this->bigTCA ['languageField'] ) >= 3) {
 			if (strlen ( $GLOBALS ['TSFE']->config ['config'] ['sys_language_uid'] >= 1 ))
 				$search .= " AND " . $this->bigTCA ['languageField'] . "=" . $GLOBALS ['TSFE']->config ['config'] ['sys_language_uid'];
@@ -212,8 +212,21 @@ class tx_crud__models_browse extends tx_crud__models_retrieve {
 			}
 			$search .= ")";
 		}
+		if (is_array($config['storage.']['defaultQuery.'])) {
+			foreach($config['storage.']['defaultQuery.'] as $field=>$value) {
+				$search.=" AND ".$field."=".$value;
+			}
+		}
+		//t3lib_div::debug($this->bigTCA);
+		if (isset($this->bigTCA ['enablecolumns'] ['starttime']) && empty($this->html['starttime']['config.']['range']['lower'])) $this->html['starttime']['config.']['range']['lower']= time();
+		if ($this->bigTCA ['enablecolumns'] ['starttime'] && isset($this->html['starttime']['config.']['range']['lower'])) {
+			$search .= " AND (" . $table . "." . $this->bigTCA ['enablecolumns'] ['starttime'] . "=0 OR ".$this->bigTCA ['enablecolumns'] ['starttime']." >=". $this->html['starttime']['config.']['range']['lower'].")";
+		}
+		if ($this->bigTCA ['enablecolumns'] ['endtime'] && isset($this->html['endtime']['config.']['range']['upper'])) {
+			$search .= " AND (" . $table . "." . $this->bigTCA ['enablecolumns'] ['endtime'] . "=0 OR ".$this->bigTCA ['enablecolumns'] ['endtime']." <=". $this->html['endtime']['config.']['range']['upper'].")";
+		}
 		$search .= ")";
-		if(strlen($pid)>=1)  {
+		if(strlen($config['storage.']['nodes'])>=1)  {
 			$pids = explode(",",$config['storage.']['nodes']);
 			$search.="AND (";
 			if(is_array($pids)) foreach($pids as $pid) {
@@ -238,14 +251,14 @@ class tx_crud__models_browse extends tx_crud__models_retrieve {
 			if (is_array ( $searchFields) && !isset($_REQUEST['q'])) {
 				$textsearch .= " AND (";
 				$y=0;
-				
+				$OR="";
 				foreach ( $searchFields as $key => $val ) {
 					$z=0;
 					//if($y==0) $textsearch.= "(";
 					//else {
 						///$textsearch .= " OR ";
 					//}
-					//$OR="";
+					
 					//echo $key;
 					foreach ( $words as $k => $v ) {
 						
@@ -422,6 +435,7 @@ class tx_crud__models_browse extends tx_crud__models_retrieve {
 		
 		//if ($close)
 			//$search .= ")";
+			//echo $search;
 			return $search;
 	}
 	
@@ -673,7 +687,7 @@ class tx_crud__models_browse extends tx_crud__models_retrieve {
 		$pars=$this->controller->parameters->getArrayCopy();
 		if(strlen($config['getExistingValues.'][$this->panelTable."."]['fields'])>=1) {
 			$pars=$this->controller->parameters->getArrayCopy();
-			$search =$this->getFilterWhere();
+			$search =$config['storage.']['additionalWhere'].$this->getFilterWhere();
 			$hash=md5("exitingValues".$search);
 			if(is_array($this->cached['existingValues'][$hash])) return $this->cached['existingValues'][$hash];
 			$fields_exploded=explode(",",$config['getExistingValues.'][$this->panelTable."."]['fields']);
@@ -775,16 +789,16 @@ class tx_crud__models_browse extends tx_crud__models_retrieve {
 	}
 	
 	function getCategories() {
-		$search=$this->getFilterWhere();
+		$typoscript=$this->controller->configurations->getArrayCopy();
 		//echo $search;
 		//$hash=md5("existingCategories".$search);
 		$pars=$this->controller->parameters->getArrayCopy();
 		//t3lib_div::debug($pars);
-		
+		$search=$typoscript['storage.']['additionalWhere'].$this->getFilterWhere();
 		if(is_array($this->cached['existingCategories'][$hash])) return $this->cached['existingCategories'][$hash];
 		require_once(t3lib_extMgm::extPath('categories') . 'lib/class.tx_categories_treeview.php');
 		$menu=new tx_categories_treeview;
-		$typoscript=$this->controller->configurations->getArrayCopy();
+		
 		$config=$typoscript;
 		$conf=$typoscript['getExistingCategories.'];
 		$confArr = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['yellowmed']);

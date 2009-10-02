@@ -29,67 +29,86 @@
  * @subpackage tx_crud
  */
 include_once(t3lib_extMgm::extPath('crud') . 'models/class.tx_crud__models_common.php');
-class tx_crud__models_retrieve extends tx_crud__models_common{
+class tx_crud__models_retrieve extends tx_crud__models_common {
 
 	// -------------------------------------------------------------------------------------
 	// database create queries
 	// -------------------------------------------------------------------------------------
-	
+
 	/**
 	 * overwrite of the query call in common
-	 * 
+	 *
 	 * @return  void
-	 */	
+	 */
 	public function processQuery() {
 		if(!is_array($this->processData))$this->retrieveQuery();
 	}
-	
+
 	/**
 	 * makes the retrieve query
-	 * 
+	 *
 	 * @return  void
-	 */	
+	 */
 	private function retrieveQuery() {
 		$this->preQuery();
+		$config = $this->controller->configurations->getArrayCopy();
 		if (!$this->getStorageNodes()) {
-			die("keine PanelRecord beim Retrieve gesetzt");
+
+			//DEBUG:print the contents of an array
+			//t3lib_div::debug($config['setup.'], 'pid: ' . $GLOBALS['TSFE']->id);
+			//END DEBUG
+			$this->setStorageNodes(-1);
+			//die('keine PanelRecord beim Retrieve gesetzt');
 		}
+
 		if (!is_array($this->processData)) {
 			$where = 'uid=' . $this->panelRecord;
-		if(strlen($this->bigTCA['languageField'])>=3 ) {
-			if(strlen($GLOBALS['TSFE']->config['config']['sys_language_uid']>=1))$where.=" AND ".$this->bigTCA['languageField']."=".$GLOBALS['TSFE']->config['config']['sys_language_uid'];
-			else $where.=" AND ".$this->bigTCA['languageField']."=0";
-		}
-			$table=$this->panelTable;
+			if (is_array($config['storage.']['defaultQuery.'])) {
+				foreach($config['storage.']['defaultQuery.'] as $field=>$value) {
+					$where.=" AND ".$field."=".$value;
+				}
+			}
+			if (strlen($this->bigTCA['languageField']) >= 3 ) {
+				if (strlen($GLOBALS['TSFE']->config['config']['sys_language_uid'] >= 1)) {
+					$where .= ' AND ' . $this->bigTCA['languageField'] . '=' . $GLOBALS['TSFE']->config['config']['sys_language_uid'];
+				} else {
+					$where .= ' AND ' . $this->bigTCA['languageField'] . '=0';
+				}
+			}
+			$table = $this->panelTable;
 			$orgTCA = $this->bigTCA;
+				
 			if ($orgTCA['columns']['fe_group']) {
 				$where .= " AND (NOT $table.fe_group";
 				if ($GLOBALS['TSFE']->fe_user->user['usergroup']) {
-					$fegroups = explode(",",$GLOBALS['TSFE']->fe_user->user['usergroup']);
+					$fegroups = explode(',', $GLOBALS['TSFE']->fe_user->user['usergroup']);
 					foreach ($fegroups as $groupid) {
 						$where .= " OR $table.fe_group IN ($groupid)";
 					}
 				}
-				$where.=")";
+				$where .= ')';
 			}
 			//echo $where;
-			if($query = $GLOBALS['TYPO3_DB']->exec_SELECTquery("uid," . $this->getStorageFields(),strtolower($this->panelTable),$where) AND $result=$GLOBALS['TYPO3_DB']->sql_fetch_assoc($query)){
-				$uid=$result['uid'];
+			//echo $this->getStorageFields();
+			if ($query = $GLOBALS['TYPO3_DB']->exec_SELECTquery('uid,' . $this->getStorageFields(), strtolower($this->panelTable), $where) AND $result = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($query)) {
+				$uid = $result['uid'];
 				unset($result['uid']);
 				$this->processData[$uid] = $result;
-			//	t3lib_div::debug($result);
+				//	t3lib_div::debug($result);
 				$config = $this->controller->configurations->getArrayCopy();
 				if ($config['enable.']['logging'] == 1) {
-					tx_crud__log::write($config['storage.']['action'], $this->panelRecord, $config['storage.']['nameSpace'],$config['logging.']);
+					tx_crud__log::write($config['storage.']['action'], $this->panelRecord, $config['storage.']['nameSpace'], $config['logging.']);
 				}
 				if ($config['enable.']['histories'] == 1) {
-					$this->histories=tx_crud__histories::read($this->panelTable,$this->panelRecord);
+					$this->histories=tx_crud__histories::read($this->panelTable, $this->panelRecord);
 				}
-			}
-			else {
+			} else {
 				$where = 'uid=' . $this->panelRecord;
-				if($query = $GLOBALS['TYPO3_DB']->exec_SELECTquery("uid," . $this->getStorageFields(),strtolower($this->panelTable),$where)) $this->mode="NO_RIGHTS";
-				else $this->mode="QUERY_ERROR";
+				if ($query = $GLOBALS['TYPO3_DB']->exec_SELECTquery('uid,' . $this->getStorageFields(), strtolower($this->panelTable), $where)) {
+					$this->mode = 'NO_RIGHTS';
+				} else {
+					$this->mode = 'QUERY_ERROR';
+				}
 			}
 		}
 		$this->postQuery();
@@ -98,85 +117,85 @@ class tx_crud__models_retrieve extends tx_crud__models_common{
 	// -------------------------------------------------------------------------------------
 	// SETTER
 	// -------------------------------------------------------------------------------------
-	
+
 	/**
 	 * dummy for overwrite the common setupValues bcause in a retrieve will need no setup the values
-	 * 
+	 *
 	 * @return void
-	 */	
+	 */
 	public function setupValues() {
-	
+
 	}
-	
+
 	/**
 	 * set the mode for the retrieve
-	 * 
+	 *
 	 * @return void
 	 */
 	public function setMode() {
-		$this->mode = "PROCESS";
+		$this->mode = 'PROCESS';
 	}
-	
+
 	/**
 	 * set the submit state for the retrieve
-	 * 
+	 *
 	 * @return void
 	 */
 	public function setSubmit() {
 		$this->submit = true;
-		$this->type = "PROCESS";
+		$this->type = 'PROCESS';
 	}
-	
+
 	/**
 	 * overwrite the commmon nextStep because in a retriebe we need no redirect
-	 * 
+	 *
 	 * @return void
 	 */
-	function _nextStep(){}
-	
-	
+	//function _nextStep(){}
+
+
 	// -------------------------------------------------------------------------------------
 	// GETTER
 	// -------------------------------------------------------------------------------------
-	
+
 	/**
 	 * returns the single value for an setup key
-	 * 
+	 *
 	 * @return void
 	 */
 	public function _getValue($item_key) {
 		return $this->processData[$this->panelRecord][$item_key];
 	}
-	
+
 	/**
 	 * returns the data for the retrieve include mm values
-	 * 
+	 *
 	 * @return void
 	 */
-	public function getData($type="preview") {
+	public function getData($type='preview') {
 		if (!is_array($this->processData)) {
 			$this->processQuery();
 		}
 		$daten = $this->processData;
-		if (is_array($this->processData)) foreach ($this->processData as $num=>$array) {
-			foreach ($array as $key=>$result) {
-				if ($this->html[$key]['config.']['MM'] && $daten[$num][$key]>=1) {
-					$array = $this->getDataMM($num,$key);
-					//t3lib_div::debug($array,"dta");
-					$mmValues = array();
-					if (is_array($array)) {
-						foreach ($array as $uid=>$mm) {
-							$mmValues[] = $uid;
+		if (is_array($this->processData)) {
+			foreach ($this->processData as $num=>$array) {
+				foreach ($array as $key=>$result) {
+					if ($this->html[$key]['config.']['MM'] && $daten[$num][$key] >= 1) {
+						$array = $this->getDataMM($num,$key);
+						//t3lib_div::debug($array,"dta");
+						$mmValues = array();
+						if (is_array($array)) {
+							foreach ($array as $uid=>$mm) {
+								$mmValues[] = $uid;
+							}
 						}
+						$daten[$num][$key] = implode(",",$mmValues);
 					}
-					$daten[$num][$key] = implode(",",$mmValues);
 				}
 			}
-			
 		}
 		//t3lib_div::debug($daten);
 		return $daten;
 	}
-	
 }
 ?>

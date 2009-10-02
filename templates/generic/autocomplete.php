@@ -1,3 +1,3 @@
 <?php 
-echo $this->get("data");
+echo $this->get('data');
 ?>

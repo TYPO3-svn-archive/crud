@@ -94,6 +94,7 @@ jQuery.autocomplete = function(input, options) {
 					$input.get(0).blur();
 					e.preventDefault();
 				}
+				$results.hide();
 				break;
 			default:
 				active = -1;

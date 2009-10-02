@@ -35,21 +35,21 @@ class tx_crud__models_create extends tx_crud__models_common{
 	// -------------------------------------------------------------------------------------
 	// database create queries
 	// -------------------------------------------------------------------------------------
-	
+
 	/**
 	 * overwrite of the query call in common
-	 * 
+	 *
 	 * @return  void
-	 */	
-	public function processQuery() {		
+	 */
+	public function processQuery() {
 		$this->createQuery();
 	}
 
 	/**
 	 * makes the create query
-	 * 
+	 *
 	 * @return  void
-	 */	
+	 */
 	protected function createQuery() {
 		foreach ($this->html as $key=>$val) {
 			if (is_array($val['process'])) {
@@ -61,12 +61,12 @@ class tx_crud__models_create extends tx_crud__models_common{
 				$this->processData[$key] = $val['process'];
 			}
 		}
-		
+
 		if (is_array($this->controller->configurations['storage.']['defaultQuery.'][$this->panelTable."."])) {
 			foreach($this->controller->configurations['storage.']['defaultQuery.'][$this->panelTable."."] as $field=>$value) {
 				$this->processData[$field]=$value;
 			}
-			
+
 		}
 		$this->preQuery();
 		foreach ($this->processData as $key=>$val) {
@@ -109,7 +109,7 @@ class tx_crud__models_create extends tx_crud__models_common{
 							$insertMM['uid_local'] = $uid_local;
 							$insertMM['uid_foreign'] = $v;
 							$insertMM['tablenames'] = $tableName;
-							$insertMM['sorting'] = $i; 
+							$insertMM['sorting'] = $i;
 							if (!$GLOBALS['TYPO3_DB']->exec_INSERTquery($table,$insertMM)) {
 								$this->mode="QUERY_ERROR";
 							}
@@ -118,32 +118,33 @@ class tx_crud__models_create extends tx_crud__models_common{
 					}
 				}
 			}
-			//t3lib_div::debug($this->processData,$this->mode);
 			$this->postQuery();
-			
+
 			$this->processData = false;
 			$this->processMM = false;
 			//echo $this->mode;
-			
+
 		}
 	}
 
 	// -------------------------------------------------------------------------------------
 	// create data helpers
 	// -------------------------------------------------------------------------------------
-	
+
 	/**
 	 * sets the values for a create form to the setup
-	 * 
+	 *
 	 * @return  void
-	 */	
+	 */
 	function setupValues() {
 		//echo $this->mode;
 		$this->preSetupValues();
+		$config=$this->controller->configurations->getArrayCopy();
 		$orgMode=$this->mode;
 		$pars = $this->controller->parameters->getArrayCopy();
 		if(is_array($this->html))foreach ($this->html as $item_key=>$entry) {
-			$item_value = $this->_getValue($item_key);	
+			//if(!is_array($config["storage."] ['virtual.'] [strtolower ( $this->panelTable ) . "."][$item_key."."])) {
+			$item_value = $this->_getValue($item_key);
 			if(($entry['config.']['type'] == "input" || $entry['config.']['type'] == "text" )) {
 				$eval = $this->_processEval($item_key);
 				if (is_array($eval)) {
@@ -172,26 +173,29 @@ class tx_crud__models_create extends tx_crud__models_common{
 					$item_value = $this->_getValue($item_key);
 					if($entry['process'] !=0) {
 						$date_exploded=explode(" ",date($entry['config.']['output'],$entry['process']));
-						$entry['value']['time'] = $date_exploded[0]; 
+						$entry['value']['time'] = $date_exploded[0];
 						$entry['value']['date'] = $date_exploded[1];
 						$entry['preview'] = date($entry['config.']['output'],$entry['process']);
 					}
-				} 
-				elseif (in_array('date',$eval_exploded) && is_numeric($this->_getValue($item_key)))  {
+				}
+				elseif (in_array('date',$eval_exploded))  {
 					$item_value = $this->_getValue($item_key);
 					if ($entry['process'] != 0) {;
 						$item_value=date($entry['config.']['output'],$entry['process']);
 						$entry['value'] = $item_value;
 						$entry['preview'] = $item_value;
+						//$entry['process']="1111111111";
+						//echo "setup date";
+						//$entry = $this->_processEval($item_key);
 					}
-				} 
+				}
 				elseif (strlen($item_value) >= 1) {
 					$entry['value'] = $item_value;
 					$entry['process'] = $item_value;
 					$entry['preview'] = $item_value;
 				}
 				$this->html[$item_key] = $entry;
-			} 
+			}
 			elseif ($entry['config.']['type'] == "select") {
 				$eval = $this->_processEval($item_key);
 				if (is_array($eval)) {
@@ -206,7 +210,7 @@ class tx_crud__models_create extends tx_crud__models_common{
 					$entry["element"] = "selectRow";
 				}
 				$item_value = $this->_getValue($item_key);
-				
+
 				if (is_array($item_value)) {
 					$values = $item_value;
 					$item_value = array();
@@ -251,7 +255,7 @@ class tx_crud__models_create extends tx_crud__models_common{
 					$entry['preview'] = $entry['options.'][$entry['value']];
 				}
 				$this->html[$item_key] = $entry;
-			} 
+			}
 			elseif ($entry['config.']['type'] == "radio") {
 				$eval = $this->_processEval($item_key);
 				if (is_array($eval)) {
@@ -373,7 +377,7 @@ class tx_crud__models_create extends tx_crud__models_common{
 					$entry["element"] = "checkboxRow";
 				}
 				$this->html[$item_key] = $entry;
-			} 
+			}
 			elseif($entry['config.']['type'] == 'group' && $entry['config.']['internal_type']!="file") {
 				$eval = $this->_processEval($item_key);
 				if (is_array($eval)) {
@@ -389,23 +393,23 @@ class tx_crud__models_create extends tx_crud__models_common{
 					}
 					$item_value = $new_value;
 				}
-				
+
 				if ($entry['config.']['maxitems'] > 1) {
 					$multiple = 1;
 				}
 				$options = $entry['options.'];
-				$sorting = $entry['sorting.'];	
+				$sorting = $entry['sorting.'];
 				$processValues="";
 				if(is_array($item_value)) foreach($item_value as $key=>$value) {
 					if(isset($multiple)) {
 						if(isset($options[$value])) {
 							$processValues[$key]=$value;
 							$processPreviews[]=$options[$value];
-						}	
+						}
 					}
 					else {
 						if(isset($options[$value])) {
-							$processValues[$key]=$value;	
+							$processValues[$key]=$value;
 							$processPreviews[]=$options[$value];
 						}
 					}
@@ -422,7 +426,7 @@ class tx_crud__models_create extends tx_crud__models_common{
 					}
 				}
 				$this->html[$item_key] = $entry;
-			} 
+			}
 			elseif($entry['config.']['type'] == 'group' && $entry['config.']['internal_type'] == "file") {
 				$eval = $this->_processEval($item_key);
 				if (is_array($eval)) {
@@ -447,25 +451,26 @@ class tx_crud__models_create extends tx_crud__models_common{
 			}
 			$this->html[$item_key] = $entry;
 		}
+		//}
 		$this->mode=$orgMode;
 		$this->postSetupValues();
 	}
-	
+
 	/**
 	 * returns the form data
-	 * 
+	 *
 	 * @return  void
-	 */	
+	 */
 	function getData() {
 		$pars = $this->controller->parameters->getArrayCopy();
 		return $pars;
 	}
-	
+
 	/**
 	 * returns the value from form field
-	 * 
+	 *
 	 * @return  void
-	 */	
+	 */
 	function _getValue($item_key) {
 		$pars = $this->controller->parameters->getArrayCopy();
 		if(!is_array($pars[$item_key]) && strlen($pars[$item_key])>=1) return $pars[$item_key];

@@ -1,0 +1,14 @@
+http://ui.jquery.com/download
+
+UI v1.7.1
+
+* UI Core  The core of jQuery UI, required for all interactions and widgets.  
+	** Accordion  Creates an accordion navigation widget.  
+	** Dialog
+	** Slider
+	** Tabs  Transforms a set of container elements into a tab structure.  
+
+* Effects:
+	** Core  Extends the internal jQuery effects, includes morphing, easing and is required by all other effects.  
+	** Highlight
+	** Slide

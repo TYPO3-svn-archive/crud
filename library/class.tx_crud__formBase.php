@@ -55,11 +55,15 @@ class tx_crud__formBase extends tx_lib_formBase {
 		if($class) $style=' class="'.$class.'"';
 		$attributes ['method'] = $this->method ();
 		$attributes ['name'] = $this->prefixId . "form";
+		unset($attributes['aID']);
+		unset($attributes['ajaxTarget']);
+		//t3lib_div::Debug($attributes);
 		$attrutes ['enctype'] = "multipart/form-data";
 		if(!$url) {
 			$url = $this->action ();
 			$url = str_replace ( "no_cache=1", "", $url );
 		}
+		//t3lib_div::debug($_SERVER);
 		echo "\r\n" . '<form '.$style.' method="post" action="'.$url.'" enctype="multipart/form-data">' . "\r\n";
 	}
 	
@@ -88,7 +92,7 @@ class tx_crud__formBase extends tx_lib_formBase {
 				$files .= "\n" . '<input type="image" src="typo3conf/ext/crud/resources/icons/delete.gif" name="' . $this->getDesignator () . '[remove][' . $key . ']" value="' . $i . '" class="icon "/></li>' . "\n";
 			}
 		}
-		$out = '<ul class="' . $this->getDesignator () . '[multiUpload]">' . $files . $inputs . "</ul>\n";
+		$out = '<ul class="upload ' . $this->getDesignator () . '-multiUpload">' . $files . $inputs . "</ul>\n";
 		return $out;
 	}
 	
@@ -141,18 +145,18 @@ class tx_crud__formBase extends tx_lib_formBase {
 		$conf = $this->controller->configurations->getArrayCopy ();
 		$setup = $conf ['view'] ['setup.'];
 		$rte = $conf ['view.'] ['tinymce.'];
-		unset ( $rte ['enable'] );
-		foreach ( $rte as $name => $val ) {
-			if (! empty ( $val ['fields'] )) {
-				$fields = explode ( ",", $val ['fields'] );
+		unset($rte ['enable']);
+		foreach ($rte as $name=>$val) {
+			if (!empty($val['fields'])) {
+				$fields = explode(',', $val['fields'] );
 				foreach ( $fields as $key2 => $val2 ) {
 					if ($val2 == $key) {
-						$class = "tinymce_" . str_replace ( ".", "", $name );
+						$class = 'tinymce_' . str_replace ('.', '', $name);
 						if ($val ['cols'] > 1) {
-							$attributes ['cols'] = $val ['cols'];
+							$attributes['cols'] = $val['cols'];
 						}
-						if ($val ['rows'] > 1) {
-							$attributes ['rows'] = $val ['rows'];
+						if ($val['rows'] > 1) {
+							$attributes['rows'] = $val['rows'];
 						}
 					}
 				}
@@ -167,7 +171,7 @@ class tx_crud__formBase extends tx_lib_formBase {
 		if (! $class) {
 			$class = "tinymce_default";
 		}
-		$out = '<textarea id="' . $this->getDesignator () . "-" . $key . '" cols="' . $attributes ['cols'] . '" rows="' . $attributes ['rows'] . '" name="' . $this->getDesignator () . '[' . $key . ']' . '" class="' . $class . '">' . $this->_getValue ( $key ) . '</textarea>' . "\n";
+		$out = '<textarea id="' . $this->getDesignator () . "-" . $key . '" cols="' . $attributes ['cols'] . '" rows="' . $attributes ['rows'] . '" name="' . $this->getDesignator () . '[' . $key . ']' . '" class="' . $class . ' expand">' . $this->_getValue ( $key ) . '</textarea>' . "\n";
 		return '<dt><label for="' . $this->getDesignator () . "-" . $key . '">' . $label . "</label></dt>\n\t
 				<dd>" . $out . "</dd>\n";
 	}
@@ -188,11 +192,106 @@ class tx_crud__formBase extends tx_lib_formBase {
 		$setup = $this->setup;
 		$date = $setup [$key] ['value'] ['date'];
 		$time = $setup [$key] ['value'] ['time'];
+		//t3lib_div::debug($setup[$key]['config.'],$key);
+		if(isset($setup[$key]['config.']['range'])){
+			$render = 'onRender: function(date) {
+							return {
+								disabled: (date.valueOf() < ' . $setup[$key]['config.']['range']['lower']. '000  || date.valueOf() > ' . $setup[$key]['config.']['range']['upper'] .'000)
+							}
+						},';
+		}
+		if($GLOBALS['TSFE']->config['config']['language'] == 'de') { 
+			$locale = "locale: {
+							days: ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag'],
+							daysShort: ['Son', 'Mon', 'Die', 'Mit', 'Don', 'Fre', 'Sam', 'Son'],
+							daysMin: ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'],
+							months: ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'],
+							monthsShort: ['Jan', 'Feb', 'Mrz', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'],
+							weekMin: 'KW'
+						},"; 
+		} // TODO: andere Sprachen, wenn nötig
+		$output = explode(' ', $setup[$key]['config.']['output']);
 		$out = '<ul class="crud-datetime" class="clearfix">' . "\n\t";
-		$out .= '<li>%%%date%%% <input type="input" name="' . $this->getDesignator () . '[' . $key . '][date]" value="' . $date . '" size="10" maxlength="10" /></li>' . "\n\t";
+		$out .= '<li>%%%date%%% <input type="input" id="' . $this->getDesignator () . '-' . $key .'" name="' . $this->getDesignator () . '[' . $key . '][date]" value="' . $date . '" size="10" maxlength="10" /></li>' . "\n\t";
 		$out .= '<li>%%%time%%% <input type="input" name="' . $this->getDesignator () . '[' . $key . '][time]" value="' . $time . '" size="5" maxlength="5" /></li>' . "\n" . '</ul>' . "\n";
 		return '<dt><label for="' . $key . '">' . $label . '</label></dt>' . "\n\t" . '
-				<dd>' . $out . '</dd>' . "\n";
+				<dd>' . $out . '</dd>' . "\n".
+				"<script type=\"text/javascript\">
+					$('#" . $this->getDesignator () . '-' . $key ."').DatePicker({
+						eventName: 'focus',
+						format:'" . $output[1] . "',
+						date: $('#" . $this->getDesignator () . '-' . $key ."').val(),
+						current: $('#" . $this->getDesignator () . '-' . $key ."').val(),
+						starts: 1,
+						position: 'right',
+						onBeforeShow: function(){
+							if ( $('#" . $this->getDesignator () . '-' . $key ."').val().length > 0 ) {
+								$('#" . $this->getDesignator () . '-' . $key ."').DatePickerSetDate($('#" . $this->getDesignator () . '-' . $key ."').val(), true);
+							}
+						}," . $render . $locale . "
+						onChange: function(formated, dates) {
+							if(!isNaN(dates.valueOf())) {
+								$('#" . $this->getDesignator () . '-' . $key ."').val(formated);
+								$('#" . $this->getDesignator () . '-' . $key ."').DatePickerHide();
+							}
+						}
+					});
+				</script>";
+	}
+	
+	/**
+	 * prints an date with time form element
+	 *
+	 * @param	string	$key	the key of the form element
+	 * @param	string	$label	the label for the element
+	 * @param	array	$attributes	the optional attributes for the element	
+	 * @return	string	html code for the datime form element
+	 */
+	function dateRow($key, $label, $attributes = array()) {
+		$setup = $this->setup;
+		$date = $setup [$key] ['value'];
+		if(isset($setup[$key]['config.']['range'])){
+			$render = 'onRender: function(date) {
+							return {
+								disabled: (date.valueOf() < ' . $setup[$key]['config.']['range']['lower']. '000  || date.valueOf() > ' . $setup[$key]['config.']['range']['upper'] .'000)
+							}
+						},';// . ' || date.valueOf() > ' . $setup[$key]['config.']['range']['upper'] .
+		}
+		if($GLOBALS['TSFE']->config['config']['language'] == 'de') { 
+			$locale = "locale: {
+							days: ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag'],
+							daysShort: ['Son', 'Mon', 'Die', 'Mit', 'Don', 'Fre', 'Sam', 'Son'],
+							daysMin: ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'],
+							months: ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'],
+							monthsShort: ['Jan', 'Feb', 'Mrz', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'],
+							weekMin: 'KW'
+						},"; 
+		} // TODO: andere Sprachen, wenn nötig
+		//t3lib_div::debug($setup[$key]['config.'],$key);
+		$out .= '<input type="input" id="' . $this->getDesignator () . '-' . $key . '" name="' . $this->getDesignator () . '[' . $key . ']" value="' . $date . '" size="10" maxlength="10" />' . "\n\t";	
+		return '<dt><label for="' . $key . '">' . $label . '</label></dt>' . "\n\t" . '
+				<dd>' . $out . '</dd>' . "\n".
+				"<script type=\"text/javascript\">
+					$('#" . $this->getDesignator () . '-' . $key ."').DatePicker({
+						eventName: 'focus',
+						format:'" . $setup[$key]['config.']['output'] . "',
+						date: $('#" . $this->getDesignator () . '-' . $key ."').val(),
+						current: $('#" . $this->getDesignator () . '-' . $key ."').val(),
+						starts: 1,
+						position: 'right',
+						onBeforeShow: function(){
+							if ( $('#" . $this->getDesignator () . '-' . $key ."').val().length > 0 ) {
+								$('#" . $this->getDesignator () . '-' . $key ."').DatePickerSetDate($('#" . $this->getDesignator () . '-' . $key ."').val(), true);
+							}
+						}," . $render . $locale . "
+						onChange: function(formated, dates) {
+							if(!isNaN(dates.valueOf())) {
+								$('#" . $this->getDesignator () . '-' . $key ."').val(formated);
+								$('#" . $this->getDesignator () . '-' . $key ."').DatePickerHide();
+							}
+						}
+					});
+				</script>";
 	}
 	
 	/**
@@ -265,44 +364,44 @@ class tx_crud__formBase extends tx_lib_formBase {
 	 */
 	function select($key, $attributes = array(), $options = NULL) {
 		$setup = $this->setup;
-		if ($setup [$key] ["sorting."]) {
-			$sorting = $setup [$key] ["sorting."];
+		if ($setup [$key]['sorting.']) {
+			$sorting = $setup[$key]['sorting.'];
 		}
 		$attributes = $this->_addId ( $key, $attributes );
 		$attributes = $this->_addName ( $key, $attributes, ( bool ) $attributes ['multiple'] );
-		unset ( $attributes ["attributes."] ["sorting."] );
+		unset ( $attributes['attributes.']['sorting.'] );
 		$attributes = $this->_makeAttributes ( $attributes );
 		$options = $options ? $options : $this->getOptionList ( $key );
 		if (! $sorting) {
-			
-			if (is_array ( $options ))
+			if (is_array ( $options )) {
 				foreach ( $options as $value => $text ) {
-					$value = strlen ( $value ) ? $value : $text;
+					$value = strlen( $value ) ? $value : $text;
 					$selected = $this->selected ( $key, $value );
-					$value = sprintf ( ' value="%s"', $value );
-					$body .= '<option' . $value . " " . $selected . '>' . $text . '</option>' . "\n\t";
+					$value = sprintf( ' value="%s"', $value );
+					$body .= "\r\t\t" . '<option' . $value . ' ' . $selected . '>' . $text . '</option>';
 				}
+			}
 		} else {
-			$tables = explode ( ",", $setup [$key] ['config.'] ['allowed'] );
+			$tables = explode ( ',', $setup[$key]['config.']['allowed'] );
 			foreach ( $sorting as $table => $entry ) {
-				if ($setup [$key] ['config.'] ['MM'])
-					$split = "__";
-				elseif (sizeof ( $tables ) == 1) {
-					$split = "";
-					$table = "";
-				} else
-					$split = "_";
-				$body .= '<optgroup class="crud-optgroup" id="crud-optgroup-' . $table . '" label="' . strtoupper ( $table ) . '">' . "\n\t";
+				if ($setup[$key]['config.']['MM']) {
+					$split = '__';
+				} elseif (sizeof ( $tables ) == 1) {
+					$split = '';
+					$table = '';
+				} else {
+					$split = '_';
+				}
+				$body .= "\r\t" . '<optgroup class="crud-optgroup" id="crud-optgroup-' . $table . '" label="' . strtoupper ( $table ) . '">';
 				foreach ( $entry as $uid => $val ) {
 					$text = $setup [$key] ['options.'] [$table . $split . $uid];
-					;
 					if (! empty ( $setup [$key] ['value'] [$table . $split . $uid] )) {
 						$selected = ' selected="selected"';
 					} else {
-						$selected = "";
+						$selected = '';
 					}
 					if ($setup [$key] ['options.'] [$table . $split . $uid]) {
-						$body .= '<option class="crud-select-level1"  ' . $selected . ' value="' . $table . $split . $uid . '">' . $text . '</option>' . "\n\t";
+						$body .= "\r\t\t" . '<option class="crud-select-level1"  ' . $selected . ' value="' . $table . $split . $uid . '">' . $text . '</option>';
 					}
 					if (is_array ( $val )) {
 						foreach ( $val as $uid2 => $val2 ) {
@@ -370,14 +469,14 @@ class tx_crud__formBase extends tx_lib_formBase {
 						}
 					}
 				}
-				$body .= "</optgroup>\n";
+				$body .= '</optgroup>' . "\n";
 			}
 		}
 		//t3lib_div::debug($setup[$key]);
 		if ($setup [$key] ['reload']) {
 			$reload = ' onchange="javascript:ajax4onClick(this);"';
 		}
-		return '<select' . $attributes . $reload . $multiselect . '>' . "\n\t" . $body . '</select>' . "\n";
+		return "\r\t" . '<select' . $attributes . $reload . $multiselect . '>' . $body . "\r\t" . '</select>' . "\r";
 	}
 	
 	/**
@@ -396,47 +495,67 @@ class tx_crud__formBase extends tx_lib_formBase {
 		return $captchaHTMLoutput;
 	}
 	
+	/**
+	 * prints a category select form
+	 *
+	 * @param	string	$key	the key of the form element
+	 * @param	string	$label	the label for the element
+	 * @param	array	$attributes	the optional attributes for the element	
+	 * @param 	array	$options	the values for the select
+	 * @return	string	html code for the select form element
+	 */
 	function categoryRow($key, $label, $attributes = array(), $options = NULL){
 		$setup = $this->setup[$key];
 		//echo $key;
-		$process=$setup['process'];
-		$rows['options']=$setup['options.'];
-		$rows['sorting']=$setup['sorting.'];
+		//if($key=="category") t3lib_div::Debug($setup);
+		if(isset($setup['config.']['MM'])) $process = $setup['processMM'];
+		else  $process = $setup['process'];
+		$rows['options'] = $setup['options.'];
+		$rows['sorting'] = $setup['sorting.'];
 		//t3lib_div::Debug($setup);
-		foreach($rows['sorting'] as $key=>$value){
-			if(is_array($value['sub'])){
-				$subBody = '<optgroup label="'.$value['title'].'">';
-				foreach($value['sub'] as $subKey=>$subValue) {
-					if(is_array($subValue['sub'])){
-						$subSubBody = '<optgroup label="'.$subValue['title'].'">';
-						foreach($subValue['sub'] as $subSubKey=>$subSubValue){
-							if(isset($process[$subSubKey])) $selected='selected="selected"';
-							else $selected="";
-							$subSubBody .= '<option '.$selected.' value="'.$subSubKey.'">'.$subSubValue['title'].'</option>';
+		foreach ($rows['sorting'] as $key=>$value) {
+			if (is_array($value['sub'])) {
+				$subBody = "\r\t" . '<optgroup label="' . $value['title'] . '">';
+				foreach ($value['sub'] as $subKey=>$subValue) {
+					if (is_array($subValue['sub'])) {
+						$subSubBody = "\r\t" . '<optgroup label="' . $subValue['title'] . '">';
+						foreach ($subValue['sub'] as $subSubKey=>$subSubValue) {
+							if (isset($process[$subSubKey])) {
+								$selected = ' selected="selected"';
+							} else {
+								$selected = '';
+							}
+							$subSubBody .= "\r\t\t" . '<option' . $selected . ' value="' . $subSubKey . '">' . $subSubValue['title'] . '</option>';
 						}
 						$subSubBody .= '</optgroup>';
 						$subBody .= $subSubBody;
-					}
-					else {
-						if(isset($process[$subKey])) $selected='selected="selected"';
-						else $selected="";
-						$subBody .= '<option '.$selected.' value="'.$subKey.'">'.$subValue['title'].'</option>';	
+					} else {
+						if (isset($process[$subKey])) {
+							$selected = ' selected="selected"';
+						} else {
+							$selected = '';
+						}
+						$subBody .= "\r\t\t" . '<option' . $selected . ' value="' . $subKey . '">' . $subValue['title'] . '</option>';
 					}
 				}
-				$subBody .= '</optgroup>';
+				$subBody .= "\r\t" . '</optgroup>';
 				$body .= $subBody;
-			}
-			else {
-				if(isset($process[$key])) $selected='selected="selected"';
-				else $selected="";
-				$body .= '<option '.$selected.' value="'.$key.'">'.$value['title'].'</option>';
+			} else {
+				if (isset($process[$key])) {
+					$selected = ' selected="selected"';
+				} else {
+					$selected = '';
+				}
+				$body .= "\r\t\t" . '<option' . $selected . ' value="' . $key . '">' . $value['title'] . '</option>';
 			}
 		}
-		$out.='<label="'.$key.'">';
-		if($setup['config.']['maxitems'] > 1)
-			$multiple = 'multiple="multiple" ';
+		$out .= "\r" . '<label="' . $key . '">';
+		if ($setup['config.']['maxitems'] > 1) {
+			$multiple = ' multiple="multiple"';
+		}
 	//	return $out.'<dd><select  size="8" multiple="multiple" id="'.$setup['key'].'" name="'.$this->getDesignator().'['.$setup['key'].'][]">'.$body.'</select><br /><b>Auswahl:</b><div class="'.$setup['key'].'"></div></dd>';
-		return $out.'<dd><select size="'.$setup['config.']['size'].'" '.$multiple.'id="'.$setup['key'].'" name="'.$this->getDesignator().'['.$setup['key'].'][]">'.$body.'</select>';
+			// FEIXME: wenn man hier das <dd> entfernt, kommt nichts mehr im FE an ????, aber das <dd> wird eh nicht im HTML ausgegeben?
+		return $out . '<dd><select size="' . $setup['config.']['size'] . '"' . $multiple . 'id="' . $setup['key'] . '" name="' . $this->getDesignator() . '[' . $setup['key'] . '][]">' . $body . '</select>' . "\r";
 	}
 
 	// -------------------------------------------------------------------------------------
@@ -533,5 +652,4 @@ class tx_crud__formBase extends tx_lib_formBase {
 		return $this->setup [$key] ['value'];
 	}
 }
-
 ?>

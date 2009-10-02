@@ -118,25 +118,23 @@ final class tx_crud__div {
 			//$url = $url [0];
 			//$url = explode ( "?ajaxTarget", $url );
 			//$url = $url [0];
+			//t3lib_div::debug($_SERVER);
 			$url = str_replace ( "&amp;", "&", $url );
 			$url = str_replace ( "&", "&amp;", $url );
 			$form = '
 			<div class="crud-icon">' . "\n\t" . '
-				<form  action="' . $url . '" method="post">
+				<form  action="' . $_SERVER['HTTP_REFERER'] . '" method="post">
 					<div>';
 			$image = $setup ['setup.'] ['baseURL'] . $setup['resources.']['icons'] . $action . '.gif';
 			$form .= '<input type="hidden" name="ajaxTarget" value="' . tx_crud__div::getAjaxTarget ( $setup, "printActionLink" ) . '" />' . "\n\t";
 			$form .= '<input type="hidden" name="' . $setup ['setup.'] ['extension'] . '[form]" value="' . tx_crud__div::getActionID ( $setup ) . '" />' . "\n\t";
 			$form .= '<input type="hidden" name="aID" value="' . tx_crud__div::getActionID ( $setup ) . '" />' . "\n\t";
-			//if(isset($_REQUEST['aID']) && !isset($_REQUEST['xID'])) $form .= '<input type="hidden" name="xID" value="'.$_REQUEST['aID'].'" />' . "\n\t";
-			//elseif(isset($_REQUEST['xID'])) $form .= '<input type="hidden" name="xID" value="'.$_REQUEST['xID'].'" />' . "\n\t";
-			//$form .= '<input type="hidden" name="mID" value="'.$setup ['setup.'] ['marker'].'" />' . "\n\t";
 			$form .= '<input type="hidden" name="' . $setup ['setup.'] ['extension'] . '[icon]" value="1" />' . "\n\t";
 			$form .= '<input type="hidden" name="' . $setup ['setup.'] ['extension'] . '[process]" value="' . strtolower ( $action ) . '" />' . "\n\t";
 			$form .= '<input type="image" alt="' . $action . '" name="' . $setup ['setup.'] ['extension'] . '[submit]" value="Submit" src="' . $image . '" />' . "</div>\n\t</form>\n</div>\n"; //TODO: Localization
 			return $form;
 		} elseif ($setup ['icons.'] ['hideIfNoRights'] = ! '1')
-			return $image = '<img src="' . $setup ['setup.'] ['baseURL'] . 'typo3conf/ext/crud/resources/icons/' . $action . '_norights.gif" alt="You have no Rights to ' . $action . ' this Record"/>';
+			return $image = '<img src="' . $setup ['setup.'] ['baseURL'] . 'typo3conf/ext/crud/resources/icons/' . $action . '_norights.gif" alt="no rights" title="Sorry, you have no rights to ' . $action . ' this record"/>';
 	}
 	
 	/**
@@ -230,6 +228,11 @@ final class tx_crud__div {
 			echo $to.' mail wurde nich geschickt';
 			//mail($to, $subject, $msg, $headers);
 		}
+	}
+	
+	static function getStaticValue($uid,$field,$table) {
+		$query = $GLOBALS['TYPO3_DB']->exec_SELECTquery($field,$table,"uid=".$uid);
+		if($query && $result=$GLOBALS['TYPO3_DB']->sql_fetch_assoc($query)) return $result[$field];
 	}
 }
 
@@ -1151,16 +1154,28 @@ final class tx_crud__log {
 	 */
 	 public function write($action, $nodes, $nameSpace, $setup) {
 		$insertLog = array ();
+
 		if ($action == 'retrieve') {
+			// retrieves from creator wont be logged
+			$query = $GLOBALS ['TYPO3_DB']->sql_query ( 'SELECT * FROM tx_crud_log
+				WHERE crud_table="' . $nameSpace . '" AND crud_action="create"
+				AND crud_user="' . $GLOBALS ['TSFE']->fe_user->user ['username'] . '"
+				AND crud_record=' . $nodes );
+			$numRows = $GLOBALS ['TYPO3_DB']->sql_num_rows($query);
+			if ($numRows > 0) {
+				return;
+			}
+			// allmost logged in this session?
 			$query = $GLOBALS ['TYPO3_DB']->sql_query ( 'SELECT * FROM tx_crud_log
 				WHERE crud_table="' . $nameSpace . '" AND crud_action="retrieve"
 				AND crud_session="' . $GLOBALS ['TSFE']->fe_user->id . '"
 				AND crud_record=' . $nodes );
-			$numRows = $GLOBALS ['TYPO3_DB']->sql_affected_rows ( $query );
+			$numRows = $GLOBALS ['TYPO3_DB']->sql_num_rows($query);
 			if ($numRows > 0) {
 				return;
-			}
+			}	
 		}
+		
 		$legalActions = explode ( ',', $setup ['write.'] ['actions'] );
 		if (in_array ( $action, $legalActions )) {
 			if ($action == 'retrieve' || $action == 'update') {
@@ -1196,7 +1211,7 @@ final class tx_crud__log {
 			$insertLog ['crud_record'] = $nodes;
 			$insertLog ['crud_page'] = $GLOBALS ['TSFE']->id;
 			$insertLog ['crud_session'] = $GLOBALS ['TSFE']->fe_user->id;
-			$insertLog ['crud_user'] = $GLOBALS ['TSFE']->fe_user->user ["username"];
+			$insertLog ['crud_user'] = $GLOBALS ['TSFE']->fe_user->user ['username'];
 			$insert = $GLOBALS ['TYPO3_DB']->exec_INSERTquery ( 'tx_crud_log', $insertLog );
 			if (! $insert) {
 				echo '%%%error_crud-log-query%%%';
@@ -1261,6 +1276,7 @@ final class tx_crud__log {
 	 */
 	public function getLogUserCount($action) {
 		$config = $this->controller->configurations->getArrayCopy ();
+		//t3lib_div::debug($config ['enable.']);
 		if (! $config ['enable.'] ['logging']) {
 			return false;
 		}
@@ -1283,7 +1299,7 @@ final class tx_crud__log {
 		if (! $config ['enable.'] ['logging']) {
 			return false;
 		}
-	//	t3lib_div::debug( $config ['view.'] ['logs']);
+		//t3lib_div::debug( $config ['view.'] ['logs'][$action]);
 		if (isset ( $config ['view.'] ['logs'] [$action] [0] )) {
 			return $config ['view.'] ['logs'] [$action] [0] ['user'];
 		} else {
@@ -1320,11 +1336,12 @@ final class tx_crud_googleMap {
 	}
 	
 	public static function printStaticMapFromList($width = 300, $height = 400) {
-		foreach(tx_crud_googleMap::$coordList AS $value){
+		//t3lib_div::debug(tx_crud_googleMap::$coordList);
+		if(is_array(tx_crud_googleMap::$coordList))foreach(tx_crud_googleMap::$coordList AS $value){
 			$markers .= $value . ",red|";
 		}
 		$markers = substr($markers, 0, strlen($markers) - 1);
-		
+		//echo $markers;
 		echo '<img src="http://maps.google.com/staticmap?markers='.$markers.'&key='.tx_crud_googleMap::$key.'&size=' . $width . 'x' . $height . '" alt=""/>';	
 	}
 	

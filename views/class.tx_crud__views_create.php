@@ -34,7 +34,7 @@ require_once (t3lib_extMgm::extPath ( 'crud' ) . 'library/class.tx_crud__formBas
 require_once (t3lib_extMgm::extPath ( 'crud' ) . 'views/class.tx_crud__views_common.php');
 class tx_crud__views_create extends tx_crud__views_common {
 	
-	var $viewAction = "CREATE";
+	var $viewAction = 'CREATE';
 	
 	// -------------------------------------------------------------------------------------
 	// FORM HELPER
@@ -45,15 +45,20 @@ class tx_crud__views_create extends tx_crud__views_common {
 	 *
 	 * @return	string	form start tag
 	 */
-	function printAsFormHeader($url=false,$class=false) {
+	function printAsFormHeader($url=false, $class=false) {
 		$setup = $this->controller->configurations->getArrayCopy ();
 		//if (! is_object ( $this->form )) {
-			$formEngineClassName = tx_div::makeInstanceClassName ( "tx_crud__formBase" );
+			$formEngineClassName = tx_div::makeInstanceClassName ('tx_crud__formBase');
 			$this->form = new $formEngineClassName ( $this->controller );
-			$this->form->setup = $this->get ( "setup" );
+			$this->form->setup = $this->get ('setup');
 			$this->form->controller = $this->controller;
 		//}
-		echo $this->form->begin ( $this->getDesignator (), array ("name" => $this->getDesignator () ),$url ,$class);
+		//
+		if ($class) {
+			$style = ' class="' . $class . '"';
+		}
+		echo "\n" . '<form ' . $style . ' method="post" action="' . $this->getUrl(array()) . '" enctype="multipart/form-data">' . "\n\t";
+		//echo $this->form->begin($this->getDesignator(), array('name' => $this->getDesignator()), $url, $class);
 	}
 	
 	/**
@@ -62,49 +67,67 @@ class tx_crud__views_create extends tx_crud__views_common {
 	 * @param	$label	the label
 	 * @return	string	link to cancel the form action
 	 */
-	function printAsFormCancel($label = "Cancel",$ajax=true,$mID=false) {
+	function printAsFormCancel($label='Cancel', $ajax=true, $mID=false) {
 		$pars = $this->controller->parameters->getArrayCopy ();
+		$config = $this->controller->configurations->getArrayCopy ();
+		if (isset($config['setup.']['target']) && !$mID) {
+			$mID = $config['setup.']['target'];
+		}
 		$data = $pars;
 		unset ( $data ['action'] );
 		unset ( $data ['retrieve'] );
 		///$data ['ajaxTarget'] = $this->getAjaxTarget ( "printAsFormCancel" );
-		if ($pars ['track'] >= 1)
-			$data ['track'] = 1;
-		if ($this->page >= 1) {
-			$data ['page'] = $this->page;
+		if ($pars['track'] >= 1) {
+			$data['track'] = 1;
 		}
-		if($ajax) $onClick=$this->getAjaxOnClick(tx_crud__div::getAjaxTarget($config,"printAsFormCancel"),tx_crud__div::getActionID($config,$mID),false,false);
-		$out = '<a href="'.$this->getUrl($data).'" '.$onClick.'>'.$label.'</a>';
+		if ($this->page >= 1) {
+			$data['page'] = $this->page;
+		}
+		//if($mID)$config=array();
+		if($ajax) {
+			$onClick = $this->getAjaxOnClick(tx_crud__div::getAjaxTarget($config, 'default'), tx_crud__div::getActionID($config,$mID), false, false);
+		}
+		$out = '<a href="' . $this->getUrl($data) . '" ' . $onClick . '>' . $label . '</a>';
 		echo $out;
 	}
 	
 	/**
-	 * Prints the submit button and checks for an enable RTE and include tinyMCE
+	 * Prints the submit button and checks for an enabled RTE and includes tinyMCE
 	 *
 	 * @param	$label	the label
 	 * @return	string	submit button for the form
 	 */
-	function printAsFormSubmit($label="%%%submit%%%",$wrap="",$type="submit",$ajax=true) {
+	function printAsFormSubmit($label='%%%submit%%%', $wrap='', $type='submit', $ajax=true) {
 		$image = 'typo3conf/ext/crud/resources/icons/preview.gif';
-		$wrap=explode("|",$wrap);
+		$wrap = explode('|', $wrap);
 		//if($ajax) $form .= '<input type="hidden" name="ajax" value="1" />';
-		if($ajax) $form .= '<input type="hidden" name="ajaxTarget" value="' . $this->getAjaxTarget ( "printAsFormSubmit" ) . '" />';
-		if($ajax) $form .= '<input type="hidden" name="aID" value="' . tx_crud__div::getActionID ( $this->controller->configurations->getArrayCopy () ) . '" />';
+		if($ajax) {
+			$form .= '<input type="hidden" name="ajaxTarget" value="' . $this->getAjaxTarget('printAsFormSubmit') . '" />';
+		}
+		if($ajax) {
+			$form .= '<input type="hidden" name="aID" value="' . tx_crud__div::getActionID ($this->controller->configurations->getArrayCopy()) . '" />';
+		}
 		$conf = $this->controller->configurations->getArrayCopy ();
 		$tinymce = $conf ['view.'] ['tinymce.'];
 		$storage = $conf ['storage.'];
-		$form .= '<input type="hidden" name="' . $this->getDesignator () . '[form]" value="' . tx_crud__div::getActionID ( $conf ) . '" />';
-		$form .= '<input type="hidden" name="' . $this->getDesignator () . '[process]" value="preview" />';
-		
-		if($type=="button") $form .= '<button type="submit" name="' . $this->getDesignator () . '[submit]">'.$wrap[0].$label.$wrap[1].'</button>';
-		else $form .= '<input type="submit" name="' . $this->getDesignator () . '[submit]" value="'.$label.'" alt="'.$label.'" />';
-		$conf = $this->get ( "setup" );
+		$form .= '<input type="hidden" name="' . $this->getDesignator() . '[form]" value="' . tx_crud__div::getActionID ( $conf ) . '" />';
+		$form .= '<input type="hidden" name="' . $this->getDesignator() . '[process]" value="preview" />';
+		$form .= '<input type="hidden" name="' . $this->getDesignator() . '[action]" value="' . str_replace('Action', '', $this->controller->action) . '" />';
+		if ($this->viewAction == 'UPDATE') {
+			$form .= '<input type="hidden" name="' . $this->getDesignator() . '[retrieve]" value="' . $conf['storage.']['nodes'] . '" />';
+		}
+		if ($type == 'button') {
+			$form .= '<button type="submit" name="' . $this->getDesignator() . '[submit]">' . $wrap[0] . $label . $wrap[1] . '</button>';
+		} else {
+			$form .= '<input type="submit" name="' . $this->getDesignator() . '[submit]" value="' . $label . '" alt="' . $label . '" />';
+		}
+		$conf = $this->get('setup');
 		if ($tinymce ['enable'] == 1 && is_array ( $conf )) {
 			foreach ( $conf as $key => $val ) {
-				if ($val ['element'] == "rteRow") {
-					$rte ['default.'] [$key] = $tinymce ['default.'];
-				} elseif ($val ['element'] == "textareaRow" || $val ['element'] == "textarea") {
-					$rte ['noRTE'] [$key] = $key;
+				if ($val ['element'] == 'rteRow') {
+					$rte ['default.'][$key] = $tinymce ['default.'];
+				} elseif ($val ['element'] == 'textareaRow' || $val ['element'] == 'textarea') {
+					$rte ['noRTE'][$key] = $key;
 				}
 			}
 		}
@@ -114,16 +137,16 @@ class tx_crud__views_create extends tx_crud__views_common {
 			$tiny = '<script type="text/javascript"> 
 			function enableTinyMCE(){ tinyMCEpresent = true;';
 			foreach ( $tinymce as $key => $al ) {
-				unset ( $tinymce [$key] ['cols'] );
-				unset ( $tinymce [$key] ['rows'] );
-				unset ( $tinymce [$key] ['fields'] );
+				unset ( $tinymce[$key]['cols'] );
+				unset ( $tinymce[$key]['rows'] );
+				unset ( $tinymce[$key]['fields'] );
 				$tiny .= 'tinyMCE.init({';
 				if (is_array ( $tinymce [$key] )) {
 					foreach ( $tinymce [$key] as $key2 => $val2 ) {
 						$tiny .= '' . $key2 . ' : "' . $val2 . '",';
 					}
 				}
-				$key = str_replace ( ".", "", $key );
+				$key = str_replace ( '.', '', $key );
 				$tiny .= 'editor_selector : "tinymce_' . $key . '"});';
 			}
 			$tiny .= "} \nenableTinyMCE();</script>";
@@ -148,23 +171,24 @@ class tx_crud__views_create extends tx_crud__views_common {
 	 * @param	$label	the label
 	 * @return	string	link to cancel the form action
 	 */
-	function printAsExitLink($label="back") {
+	function printAsExitLink($label='back') {
 		$pars = $this->controller->parameters->getArrayCopy ();
 	//	$pars ['ajaxTarget'] = $this->getAjaxTarget ( "getExitLink" );
 		$out = '<a href="' . $this->getUrl ( $pars ) . '">' . $label . '</a>';
 		return $out;
 	}
+	
 	/**
 	 * Prints an array as checkboxes
 	 *
 	 * @return	string	checkboxes
 	 */
-	function printAsCheckbox($array, $name, $start = 0, $stop = -1, $wrap = "|") {
-		$wrapExpl = explode("|", $wrap);
-		if($stop == -1)
+	function printAsCheckbox($array, $name, $start = 0, $stop = -1, $wrap = '|') {
+		$wrapExpl = explode('|', $wrap);
+		if ($stop == -1)
 			$stop = count($array);
-		for($i = $start; $i < $stop; $i++)
-			$result .= $wrapExpl[0] . '<input type="checkbox" name="' . $this->getDesignator() . '['.$name.']" value="' . $i . '">' . $array[$i] . $wrapExpl[1];
+		for ($i = $start; $i < $stop; $i++)
+			$result .= $wrapExpl[0] . '<input type="checkbox" name="' . $this->getDesignator() . '['.$name.']" value="' . $i . '" />' . $array[$i] . $wrapExpl[1];
 		return $result;
 	}
 
@@ -180,7 +204,6 @@ class tx_crud__views_create extends tx_crud__views_common {
 	 */
 	function renderSetup($entryList) {
 		$setup = $this->controller->configurations->getArrayCopy ();
-	//	t3lib_div::debug($entryList);
 		unset($this->html);
 		$pars = $this->controller->configurations->getArrayCopy ();
 		if (! is_array ( $this->html )) {
@@ -188,7 +211,6 @@ class tx_crud__views_create extends tx_crud__views_common {
 				$this->renderEntry ( $entry );
 			}
 		}
-	//	t3lib_div::debug($this->html);
 		return $this->html;
 	}
 	
@@ -202,9 +224,9 @@ class tx_crud__views_create extends tx_crud__views_common {
 		$start = microtime ( true );
 		$setup = $this->controller->configurations->getArrayCopy ();
 		if (! is_object ( $this->form )) {
-			$formEngineClassName = tx_div::makeInstanceClassName ( "tx_crud__formBase" );
+			$formEngineClassName = tx_div::makeInstanceClassName('tx_crud__formBase');
 			$this->form = new $formEngineClassName ( $this->controller );
-			$this->form->setup = $this->get ( "setup" );
+			$this->form->setup = $this->get ('setup');
 			$this->form->controller = $this->controller;
 		}
 		$entry ['label'] = $this->getLL ( $entry ['label'], $entry ['key'] );
@@ -218,61 +240,64 @@ class tx_crud__views_create extends tx_crud__views_common {
 				$entry ['attributes.'] ['options.'] [$key] = $this->getLL ( $val, $key, 1 );
 			}
 		}
-		if (! $entry ['divider'] || $entry ['divider'] == "General") {
+		if (! $entry ['divider'] || $entry ['divider'] == 'General') {
 			$entry ['divider'] = '%%%' . strtolower ( $this->viewAction ) . '%%%' . " " . $this->getLL ( $setup ['view.'] ['title'] );
 		}
 		
 		$label = $entry ['label'];
-		$eval_exploded = explode ( ",", $entry ['config.'] ['eval'] );
+		$eval_exploded = explode ( ',', $entry['config.']['eval']);
 		foreach ( $eval_exploded as $key => $val ) {
 			$eval [$val] = $val;
 		}
-		$this->html [$entry ['divider']] [$entry ['section']] [$entry ['key']] = $entry;
+		$this->html [$entry ['divider']][$entry ['section']][$entry['key']] = $entry;
 	
 		if ($eval ['captcha']) {
 			$this->html [$entry ['divider']] [$entry ['section']] [$entry ['key']] ['html'] = $this->form->captchaRow ( $entry ['key'], $label, $entry ['attributes.'] );
-		} elseif ($entry ['element'] == "inputRow") {
+		} elseif ($entry ['element'] == 'inputRow') {
 			$this->html [$entry ['divider']] [$entry ['section']] [$entry ['key']] ['html'] = $this->form->inputRow ( $entry ['key'], $label, $entry ['attributes.'] );
-		} elseif ($entry ['element'] == "dateTimeRow") {
+		} elseif ($entry ['element'] == 'dateTimeRow') {
 			$this->html [$entry ['divider']] [$entry ['section']] [$entry ['key']] ['html'] = $this->form->dateTimeRow ( $entry ['key'], $label, $entry ['attributes.'] );
-		} elseif ($entry ['element'] == "passwordRow") {
+		
+		} elseif ($entry ['element'] == 'dateRow') {
+			$this->html [$entry ['divider']] [$entry ['section']] [$entry ['key']] ['html'] = $this->form->dateRow ( $entry ['key'], $label, $entry ['attributes.'] );
+		
+		} elseif ($entry ['element'] == 'passwordRow') {
 			$this->html [$entry ['divider']] [$entry ['section']] [$entry ['key']] ['html'] = $this->form->passwordRow ( $entry ['key'], $label, $entry ['attributes.'] );
-		} elseif ($entry ['element'] == "multicheckbox") {
+		} elseif ($entry ['element'] == 'multicheckbox') {
 			$this->html [$entry ['divider']] [$entry ['section']] [$entry ['key']] ['html'] = $this->form->multicheckbox ( $entry ['key'], $label, $entry ['attributes.'] );
-		} elseif ($entry ['element'] == "rteRow") {
+		} elseif ($entry ['element'] == 'rteRow') {
 			$this->html [$entry ['divider']] [$entry ['section']] [$entry ['key']] ['html'] = $this->form->rteRow ( $entry ['key'], $label, $entry ['attributes.'] );
-		} elseif ($entry ['element'] == "radio") {
+		} elseif ($entry ['element'] == 'radio') {
 			$this->html [$entry ['divider']] [$entry ['section']] [$entry ['key']] ['html'] = $this->form->radio ( $entry ['key'], $label, $entry ['attributes.'] );
-		} elseif ($entry ['element'] == "checkboxRow") {
+		} elseif ($entry ['element'] == 'checkboxRow') {
 			$this->html [$entry ['divider']] [$entry ['section']] [$entry ['key']] ['html'] = $this->form->checkboxRow ( $entry ['key'], $label, $entry ['attributes.'] );
 		}
-		elseif ($entry ['element'] == "selectRow") {
-			if($entry['config.']['foreign_table'] == "tx_categories"){
+		elseif ($entry ['element'] == 'selectRow') {
+			if($entry['config.']['foreign_table'] == 'tx_categories') {
 				$this->html [$entry ['divider']] [$entry ['section']] [$entry ['key']] ['html'] = $this->form->categoryRow ( $entry ['key'], $label, $entry ['attributes.'], $entry ['options.'] );
 			}
 			else $this->html [$entry ['divider']] [$entry ['section']] [$entry ['key']] ['html'] = $this->form->selectRow ( $entry ['key'], $label, $entry ['attributes.'], $entry ['options.'] );
 			//$this->html [$entry ['divider']] [$entry ['section']] [$entry ['key']] ['html'] = $this->form->selectRow ( $entry ['key'], $label, $entry ['attributes.'], $entry ['options.'] );
 		} 
-		elseif ($entry ['element'] == "multiselectRow") {
-			if($entry['config.']['foreign_table'] == "tx_categories"){
-				//echo "is kat";
+		elseif ($entry ['element'] == 'multiselectRow') {
+			if ($entry['config.']['foreign_table'] == 'tx_categories') {
 				$this->html [$entry ['divider']] [$entry ['section']] [$entry ['key']] ['html'] = $this->form->categoryRow ( $entry ['key'], $label, $entry ['attributes.'], $entry ['options.'] );
 			}
 			else $this->html [$entry ['divider']] [$entry ['section']] [$entry ['key']] ['html'] = $this->form->multiselectRow ( $entry ['key'], $label, $entry ['attributes.'], $entry ['options.'] );
-		} elseif ($entry ['element'] == "textareaRow") {
+		} elseif ($entry ['element'] == 'textareaRow') {
 			$this->html [$entry ['divider']] [$entry ['section']] [$entry ['key']] ['html'] = $this->form->textareaRow ( $entry ['key'], $label, $entry ['attributes.'] );
-		} elseif ($entry ['element'] == "fileRow") {
+		} elseif ($entry ['element'] == 'fileRow') {
 			$this->html [$entry ['divider']] [$entry ['section']] [$entry ['key']] ['html'] = $this->form->fileRow ( $entry ['key'], $label, $entry ['attributes.'] );
-		} elseif ($entry ['element'] == "noFileRow") {
+		} elseif ($entry ['element'] == 'noFileRow') {
 			$this->html [$entry ['divider']] [$entry ['section']] [$entry ['key']] ['html'] = $this->form->noFileRow ( $entry ['key'], $label, $entry ['attributes.'] );
-		} elseif ($entry ['element'] == "multiFileRow") {
+		} elseif ($entry ['element'] == 'multiFileRow') {
 			$this->html [$entry ['divider']] [$entry ['section']] [$entry ['key']] ['html'] = $this->form->multiFileRow ( $entry ['key'], $label, $entry ['attributes.'] );
 		} else {
 			return FALSE;
 		}
-		if ($entry ['key'] != "captcha" && $entry ['element'] != "multiFileRow") {
-			$html_exploded = explode ( "<dd>", $this->html [$entry ['divider']] [$entry ['section']] [$entry ['key']] ['html'] );
-			$html = str_replace ( "</dd>", "", $html_exploded [1] );
+		if ($entry ['key'] != 'captcha' && $entry['element'] != 'multiFileRow') {
+			$html_exploded = explode ( '<dd>', $this->html [$entry ['divider']] [$entry ['section']] [$entry ['key']] ['html'] );
+			$html = str_replace ( '</dd>', '', $html_exploded[1] );
 			$this->html [$entry ['divider']] [$entry ['section']] [$entry ['key']] ['html'] = str_replace ( "\n", "", $html );
 		}
 	}
@@ -305,24 +330,26 @@ class tx_crud__views_create extends tx_crud__views_common {
 		$string = @explode ( ':', $localLangKey );
 		//t3lib_div::debug($string);
 		$config = $this->controller->configurations->getArrayCopy ();
-		$path = $string [1] . ":" . $string [2];
+		$path = $string [1] . ':' . $string [2];
 		//echo $path;
-		if ($path != "EXT:crud/locallang.xml")
-			$pathFallback = "EXT:crud/locallang.xml";
+		if ($path != 'EXT:crud/locallang.xml')
+			$pathFallback = 'EXT:crud/locallang.xml';
 		$action = $this->controller->action;
-		$table = $config ['storage.'] ['nameSpace'];
+		$table = $config['storage.']['nameSpace'];
 		//t3lib_div::Debug($string,$key);
 		//die();
-		if ($string [0] == "LLL") {
-			if(!isset($string[3])) $string[3]=$string[2];
+		if ($string [0] == 'LLL') {
+			if (!isset($string[3])) {
+				$string[3] = $string[2];
+			}
 			//$what [0] = $table . "." . $action . "." . $key . "." . $string [3];
 			
 			//$what [1] = $table . "." . $key . "." . $string [3];
-			$what [0] = $key . "." . $string [3];
-			$what [1] = $string [3];
+			$what[0] = $key . '.' . $string[3];
+			$what[1] = $string[3];
 			//t3lib_div::debug($what);
 			foreach ( $what as $key => $str ) {
-				$LLL = "LLL:" . $path . ":" . $str;
+				$LLL = 'LLL:' . $path . ':' . $str;
 				//echo $LLL;
 				//die();
 				if ($translated = $this->getLL ( $LLL ))
@@ -332,13 +359,14 @@ class tx_crud__views_create extends tx_crud__views_common {
 			if (! $translated && $pathFallback) {
 				//echo $pathFallback;
 			//	t3lib_div::debug($what);
-				$translated = $this->getLL ( "LLL:" . $pathFallback . ":" . $what [1] );
+				$translated = $this->getLL('LLL:' . $pathFallback . ':' . $what[1] );
 			}
 		}
-		if ($translated)
+		if ($translated) {
 			return $translated;
-		else
+		} else {
 			return false;
+		}
 	}
 	
 	/**
@@ -351,7 +379,7 @@ class tx_crud__views_create extends tx_crud__views_common {
 	function getFormError($str, $key) {
 		$config = $this->controller->configurations->getArrayCopy ();
 		
-		$LLL = "LLL:" . $config ['view.'] ['keyOfPathToLanguageFile'] . ":" . $str;
+		$LLL = 'LLL:' . $config['view.']['keyOfPathToLanguageFile'] . ':' . $str;
 		//echo "str:".$LLL;
 		//die();
 		$str = $this->getError ( $LLL, $key );
@@ -367,55 +395,59 @@ class tx_crud__views_create extends tx_crud__views_common {
 	 */
 	function getEvalConfig($str, $key = false) {
 		$setup = $this->controller->configurations->getArrayCopy ();
+		//t3lib_div::debug($setup);
 		$pars = $this->controller->parameters->getArrayCopy ();
-		if ($setup ['view.'] ['setup'] [$key] ['config.'] ["internal_type"] == "file") {
-			if (is_array ( $_FILES [$this->getDesignator ()] ['name'] [$key] )) {
-				foreach ( $_FILES [$this->getDesignator ()] ['name'] [$key] as $uid => $file ) {
-					if (! $setup ['view.'] ['setup'] [$key] [$uid] && strlen ( $file ) >= 2) {
+		if ($setup['view.']['setup'][$key]['config.']['internal_type'] == 'file') {
+			if (is_array ( $_FILES[$this->getDesignator()]['name'][$key])) {
+				foreach ( $_FILES[$this->getDesignator()]['name'][$key] as $uid => $file ) {
+					if (! $setup['view.']['setup'][$key][$uid] && strlen ( $file ) >= 2) {
 						$files [] = $file;
 					}
 				}
 			}
 			if (strlen ( $files ) >= 1) {
-				$files = implode ( ", ", $files );
+				$files = implode ( ', ', $files );
 			}
-			$setup [$key] ['config.'] ['filename'] = $files;
+			$setup[$key]['config.']['filename'] = $files;
 		}
 		$ts = $this->controller->configurations->getArrayCopy ();
-		$eval = explode ( ",", $setup ['view.'] ['setup'] [$key] ['config.'] ['eval'] );
+		$eval = explode ( ',', $setup['view.']['setup'][$key]['config.']['eval'] );
 		foreach ( $eval as $k ) {
 			if (! empty ( $k )) {
 				$evalTCA [$k] = $k;
 			}
 		}
-		if (is_array ( $setup ['view.'] ['setup'] [$key] ['config.'] )) {
-			foreach ( $setup ['view.'] ['setup'] [$key] ['config.'] as $name => $val ) {
-				if (is_array ( $val ) && $name == "range") {
+		if (is_array ( $setup['view.']['setup'][$key]['config.'] )) {
+			foreach ( $setup['view.']['setup'][$key]['config.'] as $name => $val ) {
+				if (is_array ( $val ) && $name == 'range') {
 					foreach ( $val as $name2 => $val2 ) {
-						$marker = "###" . strtoupper ( $name2 ) . "###";
+						$marker = '###' . strtoupper($name2) . '###';
 						$str_old = $str;
-						if ($name2 == "upper" || $name2 == "lower" && is_numeric ( $val2 )) {
-							if ($evalTCA ['datetime'] || $evalTCA ['date']) {
-								$value = strftime ( $this->getLLfromKey ( "datetimeTCA.output" ), $val2 );
-							} else {
+						if ($name2 == 'upper' || $name2 == 'lower' && is_numeric($val2)) {
+							if ($evalTCA ['datetime']) {
+								$value = strftime ( $this->getLL('LLL:EXT:crud/locallang.xml:datetimeTCA.output'), $val2 );
+							}
+							elseif($evalTCA ['date'])  {
+								$value = strftime ( $this->getLL('LLL:EXT:crud/locallang.xml:dateTCA.output'), $val2 );
+							}
+							else {
 								$value = $val2;
 							}
+							//t3lib_div::debug($value,$val2);
 						}
 						$str = str_replace ( $marker, $value, $str_old );
 					}
 				} else {
-					$marker = "###" . strtoupper ( $name ) . "###";
+					$marker = '###' . strtoupper($name) . '###';
 					$str_old = $str;
-					if ($name == "max_size") {
-						$val . " kb";
+					if ($name == 'max_size') {
+						$val . ' kb';
 					}
-					$str = str_replace ( $marker, $val, $str_old );
+					$str = str_replace( $marker, $val, $str_old );
 				}
 			}
 		}
 		return $str;
 	}
-
 }
-
 ?>

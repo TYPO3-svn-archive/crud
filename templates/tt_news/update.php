@@ -1,82 +1,93 @@
-<?php if (!defined ('TYPO3_MODE')) die ('Access denied.');
-if ($this->get('mode') == 'EDIT') {
-$entryList = $this->get('setup');
-$entryList = $this->renderSetup($entryList);
-$this->printAsFormHeader();?>
+<?php
+	if (!defined ('TYPO3_MODE')) die ('Access denied.');
+	if ($this->get('mode') == 'EDIT') {
+	$entryList = $this->get('setup');
+	$entryList = $this->renderSetup($entryList);
+	$this->printAsFormHeader();
+?>
 <div id="crud-tabs-form">
 	<ul>
-		<li><a href="<?php echo $this->baseUrl?>#fragment-1"><span>News</span></a></li>
+		<li><a href="<?php echo $this->baseUrl?>#fragment-1"><span>Neuigkeit</span></a></li>
 		<li><a href="<?php echo $this->baseUrl?>#fragment-2"><span>Medien</span></a></li>
 		<li><a href="<?php echo $this->baseUrl?>#fragment-3"><span>Relationen</span></a></li>
 		<li><a href="<?php echo $this->baseUrl?>#fragment-4"><span>Infos und Zeiten</span></a></li>
 	</ul>
 	<div id="fragment-1">
 		<fieldset class="crud-section">
-			<legend>die komplette News</legend>
+			<legend>die komplette Neuigkeit</legend>
 			<dl>
 				<dt>
-					<label>News type</label>
+					<label>Neuigkeitentyp</label>
 				</dt>
 				<dd>
-					<?php echo $entryList['news']['content']['type']['html'];?>
+					<?php echo $entryList['news']['content']['type']['html']; ?>
 				</dd>
 				<dt>
-					<label>Title</label>
+					<label>Titel</label>
 				</dt>
 				<dd>
-					<?php echo $entryList['news']['content']['title']['html'];?>
+					<?php echo $entryList['news']['content']['title']['html']; ?>
 				</dd>
 				<dt>
 					<label>Intro</label>
 				</dt>
 				<dd>
-					<?php echo $entryList['news']['content']['short']['html'];?>
+					<?php echo $entryList['news']['content']['short']['html']; ?>
 				</dd>
-				<?php if($entryList['news']['content']['bodytext']['html']) {?>
-				<dt>
-					<label>Text</label>
-				</dt>
-				<dd>
-					<?php echo $entryList['news']['content']['bodytext']['html'];?>
-				</dd>
-				<?php }?>
+				<?php
+					if ($entryList['news']['content']['bodytext']['html']) { ?>
+						<dt>
+							<label>Text</label>
+						</dt>
+						<dd>
+							<?php echo $entryList['news']['content']['bodytext']['html']; ?>
+						</dd>
+				<?php
+					}
+				?>
 			</dl>
 		</fieldset>
 	</div>
 	<div id="fragment-2">
 		<fieldset class="crud-section">
-			<legend>Bilder zu der News</legend>
+			<legend>Bilder zur Neuigkeit</legend>
 			<dl>
 				<dt>
 					<label>Dateien</label>
 				</dt>
 				<dd>
-					<?php echo $entryList['media']['images']['image']['html'];?>
+					<?php echo $entryList['media']['images']['image']['html']; ?>
 				</dd>
 				<dt>
-					<label>Infos zu den Bilder</label>
+					<label>Infos zu den Bildern</label>
 				</dt>
 				<dd>
 					<label>Bildtexte</label>
-					<?php echo $entryList['media']['images']['imagecaption']['html'];?>
-					<?php if($entryList['media']['images']['imagealttext']['html']) {?>
-						<label>Bilder Alternativ Texte</label>
-						<?php echo $entryList['media']['images']['imagealttext']['html'];}?>
-					<?php if($entryList['media']['images']['imagetitletext']['html']) {?>
-						<label>Bilder Titel Texte</label>
-						<?php echo $entryList['media']['images']['imagetitletext']['html'];}?>
+					<?php echo $entryList['media']['images']['imagecaption']['html']; ?>
+					<?php
+						if ($entryList['media']['images']['imagealttext']['html']) { ?>
+							<label>Alternativtexte zu den Bildern</label>
+							<?php echo $entryList['media']['images']['imagealttext']['html'];
+						}
+					?>
+					<?php
+						if ($entryList['media']['images']['imagetitletext']['html']) { ?>
+							<label>Titeltexte zu den Bildern</label>
+							<?php echo $entryList['media']['images']['imagetitletext']['html'];
+						}
+					?>
 				</dd>
 			</dl>
 		</fieldset>
-		<?php if($entryList['media']['files']['news_files']['html']) {?>
+		<?php if ($entryList['media']['files']['news_files']['html']) { ?>
 		<fieldset class="crud-section">
-			<legend>Dateien zu den News</legend>
+			<legend>Dateianhänge</legend>
 			<dl>
 				<dt>
-					<label>Files</label>
+					<label>Dateien</label>
 				</dt>
 				<dd>
-					<?php echo $entryList['media']['files']['news_files']['html'];?>
+					<?php echo $entryList['media']['files']['news_files']['html']; ?>
 				</dd>
 			</dl>
 		</fieldset>
@@ -84,54 +95,54 @@ $this->printAsFormHeader();?>
 	</div>
 	<div id="fragment-3">
 		<fieldset class="crud-section">
-			<legend>Die Kategegorie der News</legend>
+			<legend>Kategorie der Neuigkeit</legend>
 			<dl>
 				<dt>
 					<label>Auswahl</label>
 				</dt>
 				<dd>
-					<?php echo $entryList['relations']['category']['category']['html'];?>
+					<?php echo $entryList['relations']['category']['category']['html']; ?>
 				</dd>
 			</dl>
 		</fieldset>
 		<fieldset class="crud-section">
-			<legend>Links zu Themen der News</legend>
+			<legend>Links zu Themen der Neuigkeit</legend>
 			<dl>
-				<?php if($entryList['relations']['links']['links']['html']) {?>
+				<?php if ($entryList['relations']['links']['links']['html']) { ?>
 				<dt>
-					<label>interesante Links zu der News</label>
+					<label>interessante Links zu der Neuigkeit</label>
 				</dt>
 				<dd>
-					<?php echo $entryList['relations']['links']['links']['html'];?>
+					<?php echo $entryList['relations']['links']['links']['html']; ?>
 				</dd>
-				<?php }?>
-				<?php if($entryList['relations']['links']['page']['html']) {?>
+				<?php } ?>
+				<?php if ($entryList['relations']['links']['page']['html']) { ?>
 				<dt>
-					<label>Interne Seite zur News</label>
+					<label>Interne Seite zur Neuigkeit</label>
 				</dt>
 				<dd>
-					<?php echo $entryList['relations']['links']['page']['html'];?>
+					<?php echo $entryList['relations']['links']['page']['html']; ?>
 				</dd>
-				<?php }?>
-				<?php if($entryList['relations']['links']['ext_url']['html']) {?>
+				<?php } ?>
+				<?php if ($entryList['relations']['links']['ext_url']['html']) { ?>
 				<dt>
-					<label>Externe Seite zur News</label>
+					<label>Externe Seite zur Neuigkeit</label>
 				</dt>
 				<dd>
-					<?php echo $entryList['relations']['links']['ext_url']['html'];?>
+					<?php echo $entryList['relations']['links']['ext_url']['html']; ?>
 				</dd>
-				<?php }?>
+				<?php } ?>
 			</dl>
 		</fieldset>
-		<?php if($entryList['relations']['related']['related']['html']) {?>
+		<?php if($entryList['relations']['related']['related']['html']) { ?>
 		<fieldset class="crud-section">
-			<legend>Verwandete News</legend>
+			<legend>Verwandte Neuigkeit</legend>
 			<dl>
 				<dt>
 					<label>Auswahl</label>
 				</dt>
 				<dd>
-					<?php echo $entryList['relations']['related']['related']['html'];?>
+					<?php echo $entryList['relations']['related']['related']['html']; ?>
 				</dd>
 			</dl>
 		</fieldset>
@@ -139,67 +150,64 @@ $this->printAsFormHeader();?>
 	</div>
 	<div id="fragment-4">
 		<fieldset class="crud-section">
-			<legend>Infos zum Author der News</legend>
+			<legend>Infos zum Autor der Neuigkeit</legend>
 			<dl>
 				<dt>
-					<label>Author</label>
+					<label>Autor</label>
 				</dt>
 				<dd>
 					<label>Name</label>
-					<?php echo $entryList['infos']['author']['author']['html'];?>
-					<label>Email</label>
-					<?php echo $entryList['infos']['author']['author_email']['html'];?>
+					<?php echo $entryList['infos']['author']['author']['html']; ?>
+					<label>E-Mail</label>
+					<?php echo $entryList['infos']['author']['author_email']['html']; ?>
 				</dd>
 			</dl>
 		</fieldset>
 		<fieldset class="crud-section">
-			<legend>Zeiten der News</legend>
+			<legend>Zeiten</legend>
 			<dl>
 				<dt>
-					<label>Ver&ouml;fftlichung </label>
+					<label>Veröffentlichung </label>
 				</dt>
 				<dd>
-					<?php echo $entryList['infos']['dates']['datetime']['html'];?>
+					<?php echo $entryList['infos']['dates']['datetime']['html']; ?>
 				</dd>
 				<dt>
 					<label>Archivierung</label>
 				</dt>
 				<dd>
-					<?php echo $entryList['infos']['dates']['archivedate']['html'];?>
+					<?php echo $entryList['infos']['dates']['archivedate']['html']; ?>
 				</dd>
 			</dl>
 		</fieldset>
 		<fieldset class="crud-section">
-		<legend>Stichworte zu der News</legend>
+		<legend>Stichworte</legend>
 			<dl>
 				<dt>
-					<label>Keywords</label>
+					<label>Stichworte</label>
 				</dt>
 				<dd>
-					<?php echo $entryList['infos']['keywords']['keywords']['html'];?>
+					<?php echo $entryList['infos']['keywords']['keywords']['html']; ?>
 				</dd>
 			</dl>
 		</fieldset>
 	</div>
-	<?php $this->enableTabs("$('#crud-tabs-form > ul')",$entryList);?>
-	<?php $this->printAsFormSubmit("News updaten");?>
+	<?php $this->enableTabs('#crud-tabs-form', $entryList);?>
+	<?php $this->printAsFormSubmit('Neugkeit aktualisieren');?>
 </div>
 <?php $this->printAsFormFooter();?>
 <?php $this->printAsFormCancel();?>
 	
-<?php }
-	 elseif ($this->get('mode') == 'ICON') {
-		$this->printActionLink("update") . "";
+<?php
+	} elseif ($this->get('mode') == 'ICON') {
+		$this->printActionLink('update');
 	} elseif ($this->get('mode') == 'PROCESS') {
-		echo "%%%create_preview%%%".$this->printAsExitLink("%%%back%%%",0);
+		echo '%%%create_preview%%%' . $this->printAsExitLink('%%%back%%%', 0);
 	} elseif ($this->get('mode') == 'HIDE') {
-		echo "";
+		echo '';
+	} elseif ($this->get('mode') == 'NO_RIGHTS') {
+		echo '<p>no rights to create</p>';
+	} else {
+		echo '<p>%%%update_record_failed%%%</p>';
 	}
-	elseif ($this->get('mode') == 'NO_RIGHTS') {
-		echo "no_rights_create";
-	}
-	else {
-		echo "%%%update_record_failed%%%";
-	}
-
 ?>

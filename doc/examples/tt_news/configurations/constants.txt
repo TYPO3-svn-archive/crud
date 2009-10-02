@@ -1,0 +1,10 @@
+plugins.ttnews{
+	# cat=plugin.tx_crud_example/links/10; type=int+; label= Listing Pid: The PID of the page on which the news a listed
+	browsePid = 
+	
+	# cat=plugin.tx_crud_example/links/20; type=int+; label= Single Pid: The PID of the page on which the news has the singleview
+	singlePid =
+	
+	# cat=plugin.tx_crud_example/storage/430; type=text; label= Sysfolder with partners for the autocomplete
+	nodes = 
+}

@@ -1,4 +1,4 @@
-<?php 
+<?php
 /***************************************************************
  *  Copyright notice
  *
@@ -23,7 +23,7 @@
 
 /**
  * Depends on: lib/div
- * 
+ *
  * typo3 hook for all cached page to parse all markers on the page and replace with the controller action contents
  * sets the typoscript configurations,params,models and views for the controller
  *
@@ -34,21 +34,23 @@
 final class tx_crud__parser{
 	var $newContent;
 	var $extras;
-	
+
 	// -------------------------------------------------------------------------------------
 	// typo3 hook function for contentPostProc_output
 	// -------------------------------------------------------------------------------------
-	
+
 	/**
 	 * hook for replacing all markers on a page with controller content and class factory for models and views
-	 * 
-	 * @param 	object	$params	the pObj 
+	 *
+	 * @param 	object	$params	the pObj
 	 * @param 	string	$reference	the reference
 	 * @return  string	the parsed html pages
-	 */	
+	 */
 	function contentPostProc_output(&$params, &$reference) {
+		$start = microtime(true);
 		include_once(t3lib_extMgm::extPath('crud') . 'library/class.tx_crud__div.php');
 		$hash=md5("crud-markers");
+		///t3lib_div::debug($GLOBALS['TSFE']);die();
 		$this->markers=tx_crud__cache::get($hash);
 		//t3lib_div::debug($this->markers);
 		if(isset($_REQUEST['ajax']) && isset($this->markers[$_REQUEST['mID']])) {
@@ -70,11 +72,15 @@ final class tx_crud__parser{
 			$content=$this->markerArray[$str];
 			$this->parse($content);
 			if(is_array($this->markerArray)) foreach($this->markerArray as $marker=>$html) {
+				//$marker_exploded=explode("~",)
 				$this->markers[tx_crud__div::getActionID("",$marker)]=$marker;
 				$content=str_replace($marker,$html,$content);
 			}
 			tx_crud__cache::write($hash,$this->markers);
 			echo $content;
+			$end = microtime(true);
+			$time = $end - $start;
+			if($_REQUEST['showtime'])echo "ajax request loaded in $time seconds\n";
 			die();
 		}
 		else{
@@ -96,16 +102,20 @@ final class tx_crud__parser{
 			if(is_array($this->footerData)) $params['pObj']->content=$this->makeFooter($this->footerData,$params['pObj']->content);
 			//t3lib_div::Debug($this->markers);
 			tx_crud__cache::write($hash,$this->markers);
+			$end = microtime(true);
+			$time = $end - $start;
+			if($_REQUEST['showtime'])echo "normal parsed in $time seconds\n";
 		}
-		
+
 	}
-	
+
 	/**
 	 * get and cached the typoscript configuation for an action
-	 * 
+	 *
 	 * @return  array	typoscript
-	 */	
+	 */
 	function setup() {
+		//echo "setup";
 		$marker = $this->marker;
 		$hash = md5("pluginSetup".$marker);
 		$marker = explode("~",$marker);
@@ -114,16 +124,19 @@ final class tx_crud__parser{
 				$setup=explode(".",$marker[1]);
 		}
 		else $setup = explode(".",$marker[3]);
-		//$hash = md5("pluginSetup-".$marker[3]);	
+		$hash = md5("pluginSetup-".$this->marker);
+		//t3lib_div::debug($marker);
 		$cached = tx_crud__cache::get($hash);
+		//t3lib_div::Debug($cached);
 		$this->pageConfig=$cached['config'];
 		if(is_array($cached['typoscript'])) {
 			$typoscript=$cached['typoscript'];
 		}
+		//t3lib_div::debug($marker);
 		$cache['config']=$cached['config'];
 		if (!is_array($typoscript)) {
 			define(PATH_t3lib,"t3lib/");
-			//echo "generiere typscript";
+			//echo "generiere typscript for ".$this->marker;
 			require_once(PATH_t3lib . 'class.t3lib_page.php');
 			require_once(PATH_t3lib . 'class.t3lib_tstemplate.php');
 			require_once (PATH_t3lib . 'class.t3lib_tsparser_ext.php');
@@ -134,7 +147,9 @@ final class tx_crud__parser{
 			$TSObj->init();
 			$TSObj->runThroughTemplates($rootLine);
 			$TSObj->generateConfig();
-			///t3lib_div::debug($TSObj->setup);
+			//t3lib_div::debug($TSObj->setup['plugin.']);die();
+			//t3lib_div::debug($setup,"setup");
+			//t3lib_div::debug($marker,"marker");
 			if(strtolower($marker[0])=="plugin") {
 				$ts=explode(".",$marker[1]);
 				$cache['typoscript'] = $TSObj->setup[$ts[0]."."][$ts[1].'.'];
@@ -144,35 +159,42 @@ final class tx_crud__parser{
 			//die();
 			$cache['typoscript']['configurations.']['setup.']['baseURL']=$cache['config']['baseURL'];
 			$cache['config'] = $TSObj->setup['config.'];
-			tx_crud__cache::write($hash,$cache);
+			//tx_crud__cache::write($hash,$cache);
+
 			$typoscript=$cache['typoscript'];
+			//t3lib_div::debug($typoscript);
 			$this->pageConfig=$cache['config'];
 		}
+		//t3lib_div::debug($cache['typoscript']);
 		if(isset($_REQUEST['q'])) $setup = $typoscript['configurations.']["autocompleteAction."];
 		else $setup = $typoscript['configurations.'][$marker[0]."Action."];
+		//t3lib_div::debug($setup);
 		//$pars=tx_crud__div::_GP($setup['setup.']['extension']);
 		if(strtolower($marker[0])=="plugin") return $setup;
 		//t3lib_div::debug($cache['typoscript'],"ts");
 		//if(!is_array($setup['aa.'])) $this->newContent="CRUD Parser has no Typscript found for ".implode("~",$marker)."! Please create Typoscript: ". $marker[3];
 		$pars=tx_crud__div::_GP($setup['setup.']['extension']);
-		///t3lib_div::debug($pars);
+		//t3lib_div::debug($pars,"vorher");
 		if(strlen($pars["action"]) >= 3 && $pars['action'] != $marker[0]  && $setup['setup.']['freezeAction']!='1') {
 			$marker[0] = $pars['action'];
 			$setup = $typoscript['configurations.'][$marker[0]."Action."];
 			//t3lib_div::debug($setup);
 		}
-		//t3lib_div::debug($setup);
 		$this->actionID=$setup['storage.']['action'];
 		$_checkNodeType = explode(".",$marker[2]);
+		//t3lib_div::debug($setup);
 		if ($_checkNodeType[0] == "PARS") {
 			$marker[2] = $pars[strtolower($_checkNodeType[1])];
 		}
-		if (isset($pars['retrieve'])) {
+		if (isset($pars['retrieve'])  && !isset($pars['action'])) {
+			$marker[0] = "retrieve";
+			$setup = $typoscript['configurations.'][$marker[0]."Action."];
 			$setup['storage.']['nodes'] = $pars['retrieve'];
 			//t3lib_div::debug($setup);
-		} 
+		}
+
 		elseif(isset($marker[2])) $setup['storage.']['nodes']=$marker[2];
-		
+		elseif(isset($pars['retrieve'])) $setup['storage.']['nodes'] = $pars['retrieve'];
 		if(strlen($setup['storage.']['nameSpace'])<=3) $setup['storage.']['nameSpace']= strtolower($marker[1]);
 		if(strlen($marker[4])>1) $setup['storage.']['fields']=$marker[4];
 		if (strlen($marker[5]) > 1) {
@@ -184,6 +206,7 @@ final class tx_crud__parser{
 				}
 			}
 		}
+		//t3lib_div::debug($setup);
 		$setup_ok = $setup;
 		if (is_array($setup['storage.']['virtual.'])) {
 			foreach ($setup['storage.']['virtual.'] as $key=>$val) {
@@ -199,23 +222,24 @@ final class tx_crud__parser{
 				}
 			}
 		}
-		$setup_ok['setup.']['baseURL']="http://".t3lib_div::getThisUrl();
-	//	t3lib_div::Debug($setup_ok);
+		if(isset($_SERVER['HTTPS'])) $setup_ok['setup.']['baseURL']="https://".t3lib_div::getThisUrl();
+		else $setup_ok['setup.']['baseURL']="http://".t3lib_div::getThisUrl();
+		//t3lib_div::Debug($setup_ok);
 	//	die();
 		return $setup_ok;
 	}
 
 	/**
 	 * search and replace content marker with the contoller action
-	 * 
+	 *
 	 * @param	$content	the content with the markers
 	 * @return  void
 	 */
 	function parse($content) {
 		$html = explode('{{{',$content);
 		$replace = array();
-		
-		foreach($html as $key=>$val) {
+
+		if(is_array($html))foreach($html as $key=>$val) {
 			$needle = '}}}';
 			$marker =  substr("$val",0,strpos($val,$needle)+strlen($needle));
 			$marker = str_replace('}}}','',$marker);
@@ -232,10 +256,9 @@ final class tx_crud__parser{
 				if ($test[0] == "create" || $test[0] == "update" || $test[0] == "delete") {
 					$icon = true;
 				}
-				if(count($setup['storage.'])<=5 && strtolower($test[0])!="plugin") {
+				if(count($setup['storage.'])<=4 && strtolower($test[0])!="plugin") {
 						$this->newContent="No Storage defined";
 						$this->isError=true;
-						t3lib_div::debug($setup, $test[0]);
 						echo str_replace($str,"<b>CRUD Typscript Error! No correct TS storage section defined in marker ".$str."</b>",$content);
 						die();
 				}
@@ -289,7 +312,7 @@ final class tx_crud__parser{
 							$this->obj[$setup['view.']['className']] = new $setup['view.']['className'];
 						}
 						if (isset($setup['controller.']['className'])) {
-							//if(strtolower($test[0]) != "plugin") 
+							//if(strtolower($test[0]) != "plugin")
 							$this->obj[$setup['controller.']['className']]->configurations = new tx_lib_object($setup);
 							//else $this->obj[$setup['controller.']['className']]->configurations = new tx_lib_object($setup['view.']);
 						//	t3lib_div::debug($pars,'ss');
@@ -298,20 +321,21 @@ final class tx_crud__parser{
 							if(isset($_REQUEST['q'])) $pars['action']="autocomplete";
 							if (strlen($pars["action"]) >= 3 && $pars['action']!=strtolower($marker[0]) && !isset($setup['setup.']['freezeAction'])) {
 								$action = $pars['action'] . "Action";
-							} 
+							}
 							else {
 							$action = $test[0] . "Action";
 							}
 							$this->obj[$setup['controller.']['className']]->action = $action;
 						}
 						//t3lib_div::debug($_REQUEST);
-						if(strtolower($test[0]) != "plugin" && !isset($_REQUEST['q'])) 
+						if(strtolower($test[0]) != "plugin" && !isset($_REQUEST['q']))
 						{
 							$this->obj [$setup ['storage.'] ['className']]->setup ( $this->obj [$setup ['controller.'] ['className']] );
 							$this->obj [$setup ['view.'] ['className']]->setup ( $this->obj [$setup ['controller.'] ['className']] );
 							$this->obj [$setup ['controller.'] ['className']]->model = $this->obj [$setup ['storage.'] ['className']];
 							$this->obj [$setup ['controller.'] ['className']]->view = $this->obj [$setup ['view.'] ['className']];
 							$replace [$str] = $this->obj [$setup ['controller.'] ['className']]->$action ();
+							//die();
 							if(!isset($_REQUEST['q'])) {
 								$this->obj [$setup ['storage.'] ['className']]->destruct ( $this->obj [$setup ['controller.'] ['className']] );
 								$this->obj [$setup ['view.'] ['className']]->destruct ( $this->obj [$setup ['controller.'] ['className']] );
@@ -338,15 +362,19 @@ final class tx_crud__parser{
 						}
 						else {
 							if(isset($_REQUEST['q'])) $action="autocomplete";
-							
+
 							if (isset($setup['controller.']['className']))  {
 								if(isset($_REQUEST['q'])) {
 									$action="autocompleteAction";
 									$this->obj [$setup ['storage.'] ['className']]->setup ( $this->obj [$setup ['controller.'] ['className']] );
 									$this->obj [$setup ['controller.'] ['className']]->model = $this->obj [$setup ['storage.'] ['className']];
+
 								}
 								else $action = strtolower($test[0]) . "Action";
 								$replace [$str] = $this->obj [$setup ['controller.'] ['className']]->$action ();
+							    //if (is_array ( $this->obj [$setup ['view.'] ['className']]->headerData )) {
+								//	$headerData [] = $this->obj [$setup ['view.'] ['className']]->headerData;
+								//}
 							}
 						}
 					}
@@ -391,11 +419,12 @@ final class tx_crud__parser{
 		if (is_array($replace) || is_array($headerData) || is_array($footerData)) {
 			$this->newContent = $content;
 		}
+		//die();
 	}
 
 	/**
 	 * write header data like css or javscripts to the page header
-	 * 
+	 *
 	 * @param	array $headerData	the data for the header
 	 * @param 	string	$content	the html page
 	 * @return  string the htmlpage with the added header data
@@ -406,8 +435,8 @@ final class tx_crud__parser{
 			foreach ($headerData as $k=>$include) {
 				if (is_array($include)) {
 					$replace = TRUE;
-					//t3lib_div::debug($include, $k);		
-					/*if($k == 'libraries') {			
+					//t3lib_div::debug($include, $k);
+					/*if($k == 'libraries') {
 						$controllScript=fopen(md5($include).".txt",'r');//wohin?
 						fseek($mainScript,0);
 					}*/
@@ -426,25 +455,25 @@ final class tx_crud__parser{
 									error;
 								$line[$lineCount]=gets($controllScript);
 								if($line[$lineCount]!='// '.$pathToScript.'('.strlen($javaScript).')') {
-									$writeScript=true;			
-									//				 	
+									$writeScript=true;
+									//
 									if(substr($line[$lineCount],$pathToScript)
-								}	
+								}
 								else {
-									
-								}		
+
+								}
 							}
 							else {
 								$jsPack=file_get_contents(md5($pathToScript.strlen($javascript)).'.js');
 							}
-							
+
 
 */
 						}
 						//else
 						$additionalHeader .= "" . $value . "\n\t";
 					}
-					//if($k == 'libraries') {			
+					//if($k == 'libraries') {
 					//	$additionalHeader .= '<script type="text/javascript" src="'.md5($include).'.js"></script>';//wohin?
 					//	fclose($mainScript);
 					//}
@@ -456,8 +485,9 @@ final class tx_crud__parser{
 		}
 		$replace=true;
 		$redirect= explode("/",$_SERVER['REDIRECT_URL']);
-		
-		$url="http://".t3lib_div::getThisUrl();
+
+		if(isset($_SERVER['HTTPS'])) $url="https://".t3lib_div::getThisUrl();
+		else$url="http://".t3lib_div::getThisUrl();
 		//$url_exploded=explode("/",$url);
 		//t3lib_div::debug($url_exploded);
 		//foreach($url_exploded as $val) if(strlen($val)>=1) $params1[$val]=$val;
@@ -468,9 +498,9 @@ final class tx_crud__parser{
 		//	if(strlen($val)>=1) {
 		//		///if($next) $url.= $val."/";
 		//		if(isset($params1[$val])) {
-		//			$next=true;	
+		//			$next=true;
 		//		}
-		//		
+		//
 		//	}
 		//}
 		$additionalHeader.='
@@ -484,10 +514,10 @@ function getBaseurl(){
 		}
 		return $content;
 	}
-	
+
 	/**
 	 * write footer data like css or javscripts to the page footer
-	 * 
+	 *
 	 * @param	array $headerData	the data for the header
 	 * @param 	string	$content	the html page
 	 * @return  string the htmlpage with the added footer data
@@ -512,10 +542,10 @@ function getBaseurl(){
 		}
 		return $content;
 	}
-	
+
 	/**
-	 * set submit state 
-	 * 
+	 * set submit state
+	 *
 	 * @param	array $setup	the configuration setup
 	 * @return  string the mode
 	 */

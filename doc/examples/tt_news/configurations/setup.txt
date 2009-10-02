@@ -1,0 +1,168 @@
+// -===============
+// = NEWS LISTING AND SINGLEVIEW
+// -===============
+plugin.tt_news < lib.tx_crud_show
+plugin.tt_news.configurations {
+	browseAction {
+		controller {
+		   className = tx_example_controllers_news
+		   classPath = typo3conf/ext/crud/doc/examples/tt_news/controllers/class.tx_example_controllers_news.php
+		}
+		setup {
+			extension = listnews
+			singlePid = {$plugins.ttnews.singlePid}
+			browsePid = {$plugins.ttnews.browsePid}
+		}
+		view {
+			className = tx_example_views_news_browse
+		    classPath = typo3conf/ext/crud/doc/examples/tt_news/views/class.tx_example_views_news_browse.php
+			limit = 10
+			template = browse
+			keyOfPathToLanguageFile = typo3conf/ext/crud/doc/examples/tt_news/locallang.xml
+			templatePath = typo3conf/ext/crud/doc/examples/tt_news/templates/
+			ajaxTargets {
+				default = listnews
+			}
+		}
+		resources {
+			css.news = <link type="text/css" rel="stylesheet" href="typo3conf/ext/crud/doc/example/tt_news/templates/news.css" />
+		}
+		enable {
+			logging = 0
+		}
+		storage {
+			className = tx_example_models_news_browse
+		    classPath = typo3conf/ext/crud/doc/examples/tt_news/models/class.tx_example_models_news_browse.php
+			nodes = {$plugins.ttnews.nodes}
+			nameSpace = tt_news
+			fields = starttime,endtime,title,crdate,datetime,image,imagecaption,imagealttext,imagetitletext,short,bodytext,author,category,category
+			defaultParams {
+				lower = datetime
+			}
+		}
+	}
+
+	// -================
+	// ==> autocomplete search the news
+	// -================
+	autocompleteAction {
+		setup < plugin.tt_news.configurations.browseAction.setup
+		view.ajaxTargets.default = listnews
+		storage {
+			nameSpace = tt_news
+			nodes = {$plugins.ttnews.nodes}
+			fields = title,short,bodytext,author,keywords,category
+			action = browse
+		}
+	}
+	// -================
+	// ==> retrieve singeview of an news
+	// -================
+	retrieveAction {
+		setup < plugin.tt_news.configurations.browseAction.setup
+		controller < plugin.tt_news.configurations.browseAction.controller
+		view < plugin.tt_news.configurations.browseAction.view
+		view {
+			template = retrieve
+			replace {
+				title {
+					splitter = <title>|</title>
+					style = prepend
+				}
+			}
+		}
+		resources < plugin.tt_news.configurations.browseAction.resources
+		enable.logging = 1
+		storage {
+			className = tx_example_models_news_retrieve
+		    classPath = typo3conf/ext/crud/doc/examples/tt_news/models/class.tx_example_models_news_retrieve.php
+			nameSpace = tt_news
+			fields = title,crdate,datetime,image,imagecaption,imagealttext,imagetitletext,short,bodytext,author,related,category
+			relations {
+				related {
+					tt_news{
+						title = title
+						fields = author,datetime,category
+					}
+				}
+			}
+		}
+	}
+}
+
+// -======================
+// = NEWS FILTER AND RELATED
+// -======================
+plugin.tt_news_related < lib.tx_crud_show
+plugin.tt_news_related.configurations {
+	filterAction < lib.tx_crud_show.configurations.browseAction
+	filterAction {
+		setup < plugin.tt_news.configurations.browseAction.setup
+		controller < plugin.tt_news.configurations.browseAction.controller
+		view < plugin.tt_news.configurations.browseAction.view
+		resources < plugin.tt_news.configurations.browseAction.resources
+		view < plugin.tt_news.configurations.browseAction.view
+		view {
+			template = filter
+		}
+		enable {
+			logging = 0
+		}
+		logging {
+			counter {
+				table = tt_news
+				fields = title,datetime,author
+				max = 10
+				action = retrieve
+			}
+		}
+		getExistingValues {
+			tt_news {
+				fields = category,author,datetime
+			}
+		}
+		storage < plugin.tt_news.configurations.browseAction.storage
+	}
+
+	retrieveAction {
+		setup < plugin.tt_news.configurations.retrieveAction.setup
+		controller < plugin.tt_news.configurations.retrieveAction.controller
+		resources < plugin.tt_news.configurations.retrieveAction.resources
+		view < plugin.tt_news.configurations.retrieveAction.view
+		view {
+			template = related
+		}
+		enable {
+			rights = 0
+			logging = 0
+		}
+		storage < plugin.tt_news.configurations.retrieveAction.storage
+		storage {
+			fields = author,category
+		}
+	}
+}
+
+
+// -==================
+// == RSS NEWS
+// -==================
+plugin.tt_news_rss < plugin.tt_news
+plugin.tt_news_rss.configurations {
+	rssAction < plugin.tt_news.configurations.browseAction
+	rssAction {
+		view {
+			limit = 20
+			template = rss
+		}
+		storage {
+			fields = title,crdate,datetime,image,imagecaption,imagealttext,imagetitletext,short,bodytext,author,category
+			defaultParams {
+				 // sorting
+				lower = datetime
+			}
+		}
+	}
+}
+
+

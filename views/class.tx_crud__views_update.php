@@ -32,7 +32,6 @@
 
 require_once(t3lib_extMgm::extPath('crud') . 'views/class.tx_crud__views_create.php');
 class tx_crud__views_update extends tx_crud__views_create {
-	var $viewAction = "UPDATE";
+	var $viewAction = 'UPDATE';
 }
-
 ?>

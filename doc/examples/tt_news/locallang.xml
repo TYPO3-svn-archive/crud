@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<T3locallang>
+	<meta type="array">
+		<type>database</type>
+		<description>Language labels for 'crud'</description>
+	</meta>
+	<data type="array">
+		<languageKey index="default" type="array">
+			<label index="datetime">created</label>
+			<label index="newsSearch">Search within news! </label>
+			<label index="clearSearch">Reset search</label>
+			<label index="title">Title</label>
+			<label index="more">Read more</label>
+			<label index="back">Back to news list</label>
+			<label index="backtitle">Back to news list</label>
+			<label index="author">Author:</label>
+			<label index="authors">Authors:</label>
+			<label index="timesvisited">viewed</label>
+			<label index="print">Print</label>
+			<label index="search">Search</label>
+			<label index="send">Send article</label>
+			<label index="links">Links</label>
+			<label index="relatednews">Related news</label>
+			<label index="category">Category</label>
+			<label index="categories">Categories</label>
+			<label index="error">Uups ... this should not happen!</label>
+			<label index="title.error_required">News title is required</label>
+
+			<!--filter.php-->
+			<label index="active-filter">Active filter:</label>
+			<label index="select-filter">Select Filter</label>
+			<label index="select-period">Period:</label>
+			<label index="select-branches">Branches:</label>
+			<label index="themes">Themes</label>
+			<label index="additional-branches">Additional branches ...</label>			
+			<label index="most-read-news">Most widely read news</label>
+			<label index="quantity-read">times read</label>
+			<!--filter.php-->
+
+			<!--create.php-->
+			<label index="h2-create-news">Create news</label>
+			<label index="create-news-info-1">Thank you for creating some news.</label>
+			<label index="create-news-info-2">If you want to write some more news just click the link below:</label>
+			<label index="create-news">Create another news</label>
+			<label index="generally">Generally</label>
+			<label index="text">Text</label>			
+			<label index="images">Images</label>
+			<label index="news-date-publish"></label>
+			<label index="news-keywords"></label>			
+			<label index="news-teaser"></label>
+			<label index="news-info"></label>
+			<label index="news-creating"></label>
+			<label index="update_record_failed"></label>
+			<!--create.php-->
+
+			<!--browse.php-->
+			<label index="h2-news-browse">News</label>
+			<label index="news-not-found">Sorry. We could not find the News you wanted to read.</label>
+			<label index="news-sorted-by">Sort by:</label>
+			<!--browse.php-->
+
+		</languageKey>
+		<languageKey index="de" type="array">
+			<label index="datetime">Geschrieben am:</label>
+			<label index="newsSearch">Neuigkeiten durchsuchen.</label>
+			<label index="clearSearch">Suche zurücksetzen</label>
+			<label index="more">Weiterlesen</label>
+			<label index="title">Titel</label>
+			<label index="back">Zurück zur Übersicht</label>
+			<label index="backtitle">Zurück zur Übersicht</label>
+			<label index="author">Autor:</label>
+			<label index="authors">Autoren:</label>
+			<label index="timesvisited">besucht</label>
+			<label index="print">Drucken</label>
+			<label index="search">Suchen</label>
+			<label index="send">Artikel versenden</label>
+			<label index="links">Links</label>
+			<label index="relatednews">Themenverwandte Neuigkeiten</label>
+			<label index="category">Kategorie</label>
+			<label index="categories">Kategorien</label>
+			<label index="error">Uups ... this should not happen!</label>
+			<label index="title.error_required">Bitte geben Sie einen Titel an.</label>
+
+			<!--filter.php-->
+			<label index="active-filter">Aktive Filter:</label>
+			<label index="select-filter">Ansicht filtern:</label>
+			<label index="select-period">Zeitraum:</label>
+			<label index="select-branches">Fachgebiete:</label>
+			<label index="themes">Themen</label>
+			<label index="additional-branches">Weitere Fachgebiete ...</label>
+			<label index="most-read-news">Meistgelesene Meldungen:</label>
+			<label index="quantity-read">mal gelesen.</label>
+			<!--filter.php-->
+			
+			<!--create.php-->
+			<label index="h2-create-news">Aktuelle Meldung eintragen</label>
+			<label index="create-news-info-1">Vielen Dank für Ihren Eintrag! Nach einer kurzen Prüfung wird dieser freigeschaltet.</label>
+			<label index="create-news-info-2">Sofern Sie eine weitere Meldung verfassen möchten, klicken Sie bitte den nachstehenden Link:</label>
+			<label index="create-news">Weitere Meldung verfassen ...</label>
+			<label index="generally">Allgemein</label>
+			<label index="text">Text</label>			
+			<label index="images">Bilder</label>
+			<label index="news-date-publish"><![CDATA[<strong>]]>Wann soll Ihre News veröffentlicht werden?.<![CDATA[</strong>]]></label>
+			<label index="news-keywords">Bitte geben Sie einige <![CDATA[<strong>]]>Stichworte<![CDATA[</strong>]]> ein, die Ihren Text charakterisieren. <![CDATA[<strong>]]>Trennen<![CDATA[</strong>]]> Sie diese Stichworte mit <![CDATA[<strong>]]>Komma<![CDATA[</strong>]]> voneinander.</label>			
+			<label index="news-teaser">Schreiben Sie einen kurzen Anreißertext, der Ihre Meldung zusammenfaßt.</label>
+			<label index="news-info">Weitere Informationen entnehmen Sie bite unseren Hilfe-Seiten.</label>
+			<label index="news-creating">Ihre Meldung wird eingetragen ...</label>
+			<label index="update_record_failed">Ihre Meldung konnte nicht eingetragen werden.</label>
+			<!--create.php-->
+
+			<!--browse.php-->
+			<label index="h2-news-browse">Aktuelle Meldungen</label>
+			<label index="news-not-found">Es wurden keine passenden Meldungen zu Ihrer Anfrage gefunden.</label>
+			<label index="news-sorted-by">Sortieren nach:</label>
+			<!--browse.php-->
+		</languageKey>
+	</data>
+</T3locallang>

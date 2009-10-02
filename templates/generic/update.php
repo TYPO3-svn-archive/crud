@@ -8,10 +8,10 @@ if ($this->get('mode') == 'EDIT') {
 	echo '<ul>' . "\n\t";
 	$i = 1;
 	foreach ($entryList as $divider=>$sections) {
-		echo '<li><a href="'.$this->baseUrl.'#fragment-' . $i . '"><span>' . $this->getLLfromKey($divider,0,1) . '</span></a></li>' . "\n\t";
+		echo '<li><a href="' . $this->baseUrl . '#fragment-' . $i . '"><span>' . $this->getLLfromKey($divider, 0, 1) . '</span></a></li>' . "\n\t";
 		$i++;
 	}
-	echo "</ul>\n";
+	echo '</ul>' . "\n";
 	$i = 1;
 	$j = 1;
 	foreach ($entryList as $divider=>$sections) {
@@ -23,7 +23,7 @@ if ($this->get('mode') == 'EDIT') {
 			foreach ($entries as $entry=>$value) {
 				echo '<dt><label>' . $value['label'];
 				if ($value['required']) {
-					echo " *";
+					echo ' *';
 				}
 				echo '</label></dt>' . "\n\t";
 				echo '<dd';
@@ -32,46 +32,43 @@ if ($this->get('mode') == 'EDIT') {
 				}	
 				echo '>' . "\n\t\t";
 				echo $value['html'];
-				if ($this->getLLfromKey($section.".csh")) {
-					echo '<div class="csh" id="csh' . $j . '">' . $this->getLLfromKey($section.".csh") . '</div>';
+				if ($this->getLLfromKey($section . '.csh')) {
+					echo '<div class="csh" id="csh' . $j . '">' . $this->getLLfromKey($section . '.csh') . '</div>';
 				}
 				if ($value['error']) {
-					echo '<div class="fielderror">'.$value['error'] . '</div>';
+					echo '<div class="fielderror">' . $value['error'] . '</div>';
 				}
 				echo '</dd>' . "\n\t";
 				$j++;
 			}
 			echo '</dl></fieldset>' . "\n";
 		}
-		echo "</div>\n";
+		echo '</div>' . "\n";
 		$i++;
 	}
 	
-	$this->loadHeaderData("css","tables");
-	$this->loadHeaderData("css","forms");
-	$this->loadHeaderData("libraries","jquery");
-	$this->loadHeaderData("libraries","jquery-forms");
-	$this->loadHeaderData("libraries","jquery-ui-tabs");
-	$this->loadHeaderData("libraries","tiny-mce");
-	$this->loadHeaderData("libraries","crudscript");
-	$this->enableTabs("$('#crud-tabs-form > ul')",$entryList);
+	$this->loadHeaderData('css', 'tables');
+	$this->loadHeaderData('css', 'forms');
+	$this->loadHeaderData('libraries', 'jquery');
+	$this->loadHeaderData('libraries', 'jquery-forms');
+	$this->loadHeaderData('libraries', 'jquery-ui-tabs');
+	$this->loadHeaderData('libraries', 'tiny-mce');
+	$this->loadHeaderData('libraries', 'crudscript');
+	$this->enableTabs('#crud-tabs-form', $entryList);
 	$this->printAsFormSubmit();
-	echo "</div>";
+	echo '</div>';
 	$this->printAsFormFooter();
 	$this->printAsFormCancel();
 	
 	} elseif ($this->get('mode') == 'ICON') {
-		$this->printActionLink("update") . "";
+		$this->printActionLink('update');
 	} elseif ($this->get('mode') == 'PROCESS') {
-		echo "%%%create_preview%%%".$this->printAsExitLink("%%%back%%%",0);
+		echo '<p>%%%create_preview%%%</p>' . $this->printAsExitLink('%%%back%%%', 0);
 	} elseif ($this->get('mode') == 'HIDE') {
-		echo "";
+		echo '';
+	} elseif ($this->get('mode') == 'NO_RIGHTS') {
+		echo '<p>no_rights_create</p>';
+	} else {
+		echo '<p>%%%update_record_failed%%%</p>';
 	}
-	elseif ($this->get('mode') == 'NO_RIGHTS') {
-		echo "no_rights_create";
-	}
-	else {
-		echo "%%%update_record_failed%%%";
-	}
-
 ?>

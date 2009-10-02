@@ -1,3 +1,6 @@
+// -====================================
+// = lib.tx_crud_create.configurations
+// -====================================
 lib.tx_crud_create.configurations {
 	createAction {
 		setup {
@@ -22,9 +25,12 @@ lib.tx_crud_create.configurations {
 				theme = simple
 				cols = 30
 				rows = 5
-				width=400
-				height=250
+				width = 400
+				height = 250
 				fields = rte_field
+				save_callback = removeHTMLComments
+				invalid_elements = img,embed,object,script,hr,font,span,table,tr,td,thead,tfoot,style,frame,frameset,iframe,w,xml,i
+				valid_elements = a,abbr,acronym,blockquote,br,cite,em,h3,h4,h5,h6,i,li,ol,p,q,strike,strong/b,sub,sup,ul,dl,dt,dd
 			}
 			tinymce.extra {
 				cols = 45
@@ -41,34 +47,34 @@ lib.tx_crud_create.configurations {
 				default = crud-form
 			}
 			params {
-				page=PAGE
-				limit=LIMIT
-				find=FIND
-				upper=UPPER
-				showhistory=SHOWHISTORY
-				compareWith=COMPAREWITH
-				history=HISTORY
-				lower=LOWER
-				retrieve=RETRIEVE
-				action=ACTION
-				track=TRACK
+				page = PAGE
+				limit = LIMIT
+				find = FIND
+				upper = UPPER
+				showhistory = SHOWHISTORY
+				compareWith = COMPAREWITH
+				history = HISTORY
+				lower = LOWER
+				retrieve = RETRIEVE
+				action = ACTION
+				track = TRACK
 			}
 		}
 		icons {
-			useParserIcons=1
-			hideIfNoRigths=1
-			hideIfOtherActive=0
+			useParserIcons = 1
+			hideIfNoRigths = 1
+			hideIfOtherActive = 0
 		}
 		resources {
 			icons = typo3conf/ext/crud/resources/images/icons/
 			fileTypes = typo3conf/ext/crud/resources/images/files/
 			tinyMCE = typo3conf/ext/crud/resources/tiny_mce/
 			libraries {
-				jquery = <script type="text/javascript" src="typo3conf/ext/crud/resources/jquery/jquery-1.3.1.pack.js"></script>
+				jquery = <script type="text/javascript" src="typo3conf/ext/crud/resources/jquery/jquery-1.3.2.min.js"></script>
 				# Googlemaps sh. main-TS
     			jquery-autocomplete = <script type="text/javascript" src="typo3conf/ext/crud/resources/jquery/jquery.autocomplete.js"></script>
-				jquery-forms = <script type="text/javascript" src="typo3conf/ext/crud/resources/jquery/jquery.form-2.17.packed.js"></script>
-				jquery-ui-tabs = <script type="text/javascript" src="typo3conf/ext/crud/resources/jquery/jquery-ui-crud-1.5.3.packed.js"></script>
+				jquery-forms = <script type="text/javascript" src="typo3conf/ext/crud/resources/jquery/jquery.form-2.28.packed.js"></script>
+				#jquery-ui-tabs = <script type="text/javascript" src="typo3conf/ext/crud/resources/jquery/jquery-ui-1.7.1.custom.min.js"></script>
 				tiny-mce = <script type="text/javascript" src="typo3conf/ext/crud/resources/tiny_mce/tiny_mce.js"></script>
 				crudscript = <script type="text/javascript" src="typo3conf/ext/crud/resources/jquery/includes/crud.js"></script>
 			}
@@ -81,7 +87,7 @@ lib.tx_crud_create.configurations {
 		enable {
 			caching = 1
 			rights = 0
-			anonymGroup = 
+			anonymGroup =
 			histories = 0
 			logging = 0
 			locks = 0
@@ -91,7 +97,7 @@ lib.tx_crud_create.configurations {
 			tca = 1
 			setup = 1
 			resultCount = 1
-			options = 50
+			options = 300
 		}
 		logging {
 			read {
@@ -121,6 +127,9 @@ lib.tx_crud_create.configurations {
 	}
 }
 
+// -====================================
+// = lib.tx_crud_update.configurations
+// -====================================
 lib.tx_crud_update.configurations {
 	updateAction < lib.tx_crud_create.configurations.createAction
 	updateAction {
@@ -133,8 +142,8 @@ lib.tx_crud_update.configurations {
 			template = create
 			ajaxTargets {
 				default = thickbox
-				getExitLink=crud-browser
-				printAsFormCancel=crud-browser
+				getExitLink = crud-browser
+				printAsFormCancel = crud-browser
 			}
 		}
 		storage {
@@ -145,6 +154,9 @@ lib.tx_crud_update.configurations {
 	}
 }
 
+// -====================================
+// = lib.tx_crud_delete.configurations
+// -====================================
 lib.tx_crud_delete.configurations {
 	deleteAction < lib.tx_crud_create.configurations.createAction
 	deleteAction {
@@ -156,17 +168,20 @@ lib.tx_crud_delete.configurations {
 			classPath = typo3conf/ext/crud/views/class.tx_crud__views_delete.php
 			template = delete
 			ajaxTargets {
-			default = crud-icon
+				default = crud-icon
+			}
 		}
-	}
-	storage {
-		className = tx_crud__models_delete
-		classPath = typo3conf/ext/crud/models/class.tx_crud__models_delete.php
-		action = delete
+		storage {
+			className = tx_crud__models_delete
+			classPath = typo3conf/ext/crud/models/class.tx_crud__models_delete.php
+			action = delete
 		}
 	}
 }
 
+// -==================================
+// = lib.tx_crud_show.configurations
+// -==================================
 lib.tx_crud_show.configurations {
 	browseAction < lib.tx_crud_create.configurations.createAction
 	browseAction {
@@ -186,6 +201,10 @@ lib.tx_crud_show.configurations {
 			className = tx_crud__models_browse
 			classPath = typo3conf/ext/crud/models/class.tx_crud__models_browse.php
 			action = browse
+			defaultQuery {
+				hidden=0
+				deleted=0
+			}
 		}
 	}
 	filterAction < lib.tx_crud_create.configurations.createAction
@@ -206,6 +225,10 @@ lib.tx_crud_show.configurations {
 			className = tx_crud__models_browse
 			classPath = typo3conf/ext/crud/models/class.tx_crud__models_browse.php
 			action = browse
+			defaultQuery {
+				hidden=0
+				deleted=0
+			}
 		}
 	}
 	retrieveAction < lib.tx_crud_create.configurations.createAction
@@ -225,6 +248,10 @@ lib.tx_crud_show.configurations {
 			className = tx_crud__models_retrieve
 			classPath = typo3conf/ext/crud/models/class.tx_crud__models_retrieve.php
 			action = retrieve
+			defaultQuery {
+				hidden=0
+				deleted=0
+			}
 		}
 	}
 	autocompleteAction < lib.tx_crud_create.configurations.createAction
@@ -236,11 +263,16 @@ lib.tx_crud_show.configurations {
 			className = tx_crud__models_browse
 			classPath = typo3conf/ext/crud/models/class.tx_crud__models_browse.php
 			action = browse
+			defaultQuery {
+				hidden=0
+				deleted=0
+			}
 		}
 		view {
 			className = tx_lib_phpTemplateEngine
 			classPath = typo3conf/ext/lib/class.tx_lib_phpTemplateEngine.php
-			keyOfPathToLanguageFile = EXT:crud/locallang.xml
+			keyOfPathTo
+			LanguageFile = EXT:crud/locallang.xml
 			templatePath = EXT:crud/templates/generic/
 			template = autocomplete
 			ajaxTargets {
