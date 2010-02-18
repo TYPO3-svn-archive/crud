@@ -3,12 +3,12 @@ $this->loadHeaderData('css', 'news-css'); //add the tt_news css
 $this->loadHeaderData('css', 'autocomplete'); //add the css for the autocomplete serach
 $this->loadHeaderData('css', 'tables');
 $this->loadHeaderData('css', 'forms');
-//$this->loadFooterData('libraries', 'jquery'); //include jquery lib
-//$this->loadFooterData('libraries', 'jquery-forms'); //include jquery forms lib needed by the autocomplete
-//$this->loadFooterData('libraries', 'jquery-autocomplete'); //include the autocomplete lib
-//$this->loadFooterData('libraries', 'jquery-ui-tabs');
+$this->loadFooterData('libraries', 'jquery'); //include jquery lib
+$this->loadFooterData('libraries', 'jquery-forms'); //include jquery forms lib needed by the autocomplete
+$this->loadFooterData('libraries', 'jquery-autocomplete'); //include the autocomplete lib
+$this->loadFooterData('libraries', 'jquery-ui-tabs');
 $this->loadHeaderData('libraries', 'tiny-mce');
-//$this->loadFooterData('libraries', 'crudscript'); //include the crud js for ajax loading and browser histories
+$this->loadFooterData('libraries', 'crudscript'); //include the crud js for ajax loading and browser histories
 
 if ($this->get('mode') == 'PROCESS') { //check the mode. if PROCESS than all ok
 	$newslist = $this->renderPreview($this->get('data')); //renders the preview of the data

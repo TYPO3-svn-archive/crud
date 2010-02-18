@@ -23,11 +23,11 @@ if ($this->get('mode') == 'PROCESS') {
 	$this->loadHeaderData('css', 'tables');
 	$this->loadHeaderData('css', 'forms');
 	$this->loadHeaderData('css', 'autocomplete');
-	//$this->loadFooterData('libraries', 'jquery');
-	//$this->loadFooterData('libraries', 'jquery-forms');
-	//$this->loadFooterData('libraries', 'jquery-autocomplete');
-	//$this->loadFooterData('libraries', 'crudscript');
-	//$this->loadFooterData('libraries', 'jquery-ui-tabs');
+	$this->loadFooterData('libraries', 'jquery');
+	$this->loadFooterData('libraries', 'jquery-forms');
+	$this->loadFooterData('libraries', 'jquery-autocomplete');
+	$this->loadFooterData('libraries', 'crudscript');
+	$this->loadFooterData('libraries', 'jquery-ui-tabs');
 	$this->loadHeaderData('libraries', 'tiny-mce');
 	//$this->enableTabs($entryList, "$('#crud-tabs-form > ul')");
 	$this->printAsFilterList('tx_partner_main', 'locality', 'Stadt', $GLOBALS['TSFE']->id, 0, 6);
