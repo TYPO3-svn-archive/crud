@@ -51,6 +51,7 @@ class tx_crud__models_update extends tx_crud__models_create{
 	 * @return  void
 	 */
 	private function updateQuery() {
+		//t3lib_div::debug($this->html['image']);
 		foreach ($this->html as $key=>$val) {
 			if (is_array($val['process'])) {
 				$this->processData[$key] = implode(",",$val['process']);
@@ -90,6 +91,10 @@ class tx_crud__models_update extends tx_crud__models_create{
 					}
 				}
 			}
+			//t3lib_div::debug($_GET,"get");
+			//t3lib_div::Debug($update,$where);
+			//t3lib_div::debug($_POST,"psot");
+			//die();
 			$query = $GLOBALS['TYPO3_DB']->exec_UPDATEquery($table,$where,$update);
 			$this->lastQueryID=$this->panelRecord;
 		}
@@ -154,8 +159,9 @@ class tx_crud__models_update extends tx_crud__models_create{
 		$TCA = $this->items[$item_key];
 		$pars = $this->controller->parameters->getArrayCopy();
 		$pars = $this->controller->parameters->getArrayCopy();
-		//if(isset($this->updateValues[$item_key])) return $this->updateValues[$item_key];
+		// t3lib_div::debug($pars);
 		//echo "hole val zu ".$item_key."--";
+		//if($item_key=="image") return "";
 		$config=$this->controller->configurations->getArrayCopy();
 		if(is_array($config["storage."] ['virtual.'] [strtolower ( $this->panelTable ) . "."][$item_key."."])) {
 			if(isset($pars[$item_key]))return $pars[$item_key];
@@ -166,7 +172,7 @@ class tx_crud__models_update extends tx_crud__models_create{
 			if(tx_crud__lock::$status=="LOCKED") $this->mode="LOCKED";
 		}
 		if(!is_array($pars[$item_key]) && strlen($pars[$item_key])>=1) return $pars[$item_key];
-		elseif(is_array($pars[$item_key]) && strlen($pars[$item_key][0])>=1) return $pars[$item_key];
+		elseif(is_array($pars[$item_key])) return $pars[$item_key];
 		else {
 			if ($TCA['config']['MM']) {
 				$table = $TCA["config"]['MM'];

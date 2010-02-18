@@ -111,6 +111,109 @@ $TCA["tx_crud_groups"] = array (
 	)
 );
 
+$TCA["tx_crud_redirects"] = array (
+	"ctrl" => $TCA["tx_crud_redirects"]["ctrl"],
+	"intercrude" => array (
+	"showRecordFieldList" => "sys_language_uid,l18n_parent,l18n_diffsource,hidden,title,description,redirect,target,login,page"
+	),
+	"feIntercrude" => $TCA["tx_crud_redirects"]["feIntercrude"],
+	"columns" => array (
+		'sys_language_uid' => array (		
+			'exclude' => 1,
+			'label'  => 'LLL:EXT:lang/locallang_general.xml:LGL.language',
+			'config' => array (
+				'type'                => 'select',
+				'foreign_table'       => 'sys_language',
+				'foreign_table_where' => 'ORDER BY sys_language.title',
+				'items' => array(
+					array('LLL:EXT:lang/locallang_general.xml:LGL.allLanguages', -1),
+					array('LLL:EXT:lang/locallang_general.xml:LGL.default_value', 0)
+				)
+			)
+		),
+		'l18n_parent' => array (		
+			'displayCond' => 'FIELD:sys_language_uid:>:0',
+			'exclude'     => 1,
+			'label'       => 'LLL:EXT:lang/locallang_general.xml:LGL.l18n_parent',
+			'config'      => array (
+				'type'  => 'select',
+				'items' => array (
+					array('', 0),
+				),
+				'foreign_table'       => 'tx_crud_redirects',
+				'foreign_table_where' => 'AND tx_crud_redirects.pid=###CURRENT_PID### AND tx_crud_redirects.sys_language_uid IN (-1,0)',
+			)
+		),
+		'l18n_diffsource' => array (		
+			'config' => array (
+				'type' => 'passthrough'
+			)
+		),
+		'hidden' => array (		
+			'exclude' => 1,
+			'label'   => 'LLL:EXT:lang/locallang_general.xml:LGL.hidden',
+			'config'  => array (
+				'type'    => 'check',
+				'default' => '0'
+			)
+		),
+		"title" => Array (		
+			"exclude" => 1,		
+			"label" => "LLL:EXT:crud/locallang_db.xml:tx_crud_redirects.title",		
+			"config" => Array (
+				"type" => "input",	
+				"size" => "30",	
+			)
+		),
+		"description" => Array (		
+			"exclude" => 1,		
+			"label" => "LLL:EXT:crud/locallang_db.xml:tx_crud_redirects.description",		
+			"config" => Array (
+				"type" => "text",
+				"cols" => "30",	
+				"rows" => "5",
+			)
+		),
+		"redirect" => Array (		
+			"exclude" => 1,		
+			"label" => "LLL:EXT:crud/locallang_db.xml:tx_crud_redirects.redirect",		
+			"config" => Array (
+				"type" => "input",	
+				"size" => "30",	
+			)
+		),
+		"target" => Array (		
+			"exclude" => 1,		
+			"label" => "LLL:EXT:crud/locallang_db.xml:tx_crud_redirects.target",		
+			"config" => Array (
+				"type" => "input",	
+				"size" => "30",	
+			)
+		),
+		'login' => array (		
+			'exclude' => 1,
+			'label'   => 'LLL:EXT:crud/locallang_db.xml:tx_crud_redirects.login',
+			'config'  => array (
+				'type'    => 'check',
+				'default' => '0'
+			)
+		),
+		"page" => Array (		
+			"exclude" => 1,		
+			"label" => "LLL:EXT:crud/locallang_db.xml:tx_crud_redirects.page",		
+			"config" => Array (
+				"type" => "input",	
+				"size" => "30",	
+			)
+		),
+	),
+	"types" => array (
+	"0" => array("showitem" => "sys_language_uid;;3;;1-1-1, l18n_parent, l18n_diffsource, hidden;;1, title;;;;2-2-2,description,redirect,target,login,page")
+	),
+	"palettes" => array (
+		"1" => array("showitem" => "")
+	)
+);
 
 
 $TCA["tx_crud_roles"] = array (

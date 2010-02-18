@@ -31,37 +31,66 @@
  */
 include_once (t3lib_extMgm::extPath ( 'crud' ) . 'models/class.tx_crud__models_retrieve.php');
 class tx_crud__models_browse extends tx_crud__models_retrieve {
-	
 	var $start = 0;
 	var $limit = 5;
 	var $data;
 	var $count = 0;
 	var $page = 0;
-	var $panelAction = "BROWSE";
-	
-		
+	var $panelAction = 'BROWSE';
+
+
 	// -------------------------------------------------------------------------------------
 	// database browse queries
 	// -------------------------------------------------------------------------------------
-	
+
 	/**
 	 * overwrite of the query call in common
-	 * 
+	 *
 	 * @return  void
-	 */	
-	public public function processQuery() {
-		
-		if(!$this->query) $this->browseQuery ();
+	 */
+	public function processQuery() {
+		if (!$this->query) {
+			$this->browseQuery ();
+		}
 	}
-		
+
 	/**
 	 * makes the browse query
-	 * 
+	 *
 	 * @return  void
-	 */	
+	 */
 	private function browseQuery() {
 		$pars = $this->controller->parameters->getArrayCopy ();
-		//t3lib_div::debug($pars);
+		$config=$this->controller->configurations->getArrayCopy();
+		if(is_array($config['storage.']['relatedFilter.'])) {
+			foreach($config['storage.']['relatedFilter.'] as $id=>$filter) {
+				$GET = t3lib_div::_GP($filter['extension']);
+				$local = explode(":",$filter['fieldLocal']);
+				$foreign = explode(":",$filter['fieldForeign']);
+				$related = tx_crud__div::getStaticValue($GET['retrieve'],$local[1],$local[0]);
+				if(!empty($related)) {
+					$explode = explode(",",$related);
+					$testWhere=$filer['additionalWhere'];
+					$OR='';
+					foreach ($explode AS $value) {
+						$testWhere .= $OR.'FIND_IN_SET("' . $value . '", '.$foreign[1].')';
+						$OR= " OR ";
+					}
+					//echo $testWhere;
+					$query = $GLOBALS['TYPO3_DB']->exec_SELECTquery("count(uid)",$foreign[0],$testWhere);
+					if($query) $result= $GLOBALS['TYPO3_DB']->sql_fetch_assoc($query);
+					if(is_array($result) && $result['count(uid)']>=1) {
+						$pars['search'][$foreign[1]]['is']=$related;
+						if($local[0]==$foreign[0])$pars['search']["uid"]['not']=$GET['retrieve'];
+						//break;
+					}
+				}
+				if(isset($pars['search'][$foreign[1]]['is'])) break;
+			}
+			$this->controller->parameters = new tx_lib_object($pars);
+		}
+
+		$pars = $this->controller->parameters->getArrayCopy ();
 		$this->query=true;
 		if (! is_array ( $this->processData )) {
 			$start = microtime ( true );
@@ -69,7 +98,7 @@ class tx_crud__models_browse extends tx_crud__models_retrieve {
 			$typoscript = $this->controller->configurations->getArrayCopy ();
 			//t3lib_div::debug($typoscript);
 			$config = $typoscript;
-			
+
 			if($config['view.']['limit']>=1) $this->limit = $config ['view.'] ['limit'];
 			$pars = $this->controller->parameters->getArrayCopy ();
 			if ($pars ['page'] >=1) {
@@ -89,7 +118,7 @@ class tx_crud__models_browse extends tx_crud__models_retrieve {
 			} else {
 				$sort = "";
 			}
-			
+
 			$where = $this->getFilterWhere ();
 			//echo $where;
 			if (! isset ( $_REQUEST['q'] ) && $count < 1) {
@@ -107,10 +136,10 @@ class tx_crud__models_browse extends tx_crud__models_retrieve {
 			}
 			if (is_array($typoscript ['storage.']['defaultFields.'])) {
 				$where .= " AND ";
-				foreach($typoscript ['storage.']['defaultFields.'] as $key=>$val) 
+				foreach($typoscript ['storage.']['defaultFields.'] as $key=>$val)
 				{
 					$exploded=explode(",",$val);
-					
+
 					foreach($exploded as $val2) if(strlen($val2)>=1){
 						$where .= $OR. $key."=".$val2;
 						$OR=" OR ";
@@ -118,7 +147,7 @@ class tx_crud__models_browse extends tx_crud__models_retrieve {
 				}
 			}
 			$sql = "select uid,pid," . $this->getStorageFields () . " from " . $this->getStorageNameSpace () . " where " . $config['storage.']['additionalWhere'].$where . $sort . " LIMIT " . $this->start . "," . ($this->limit);
-	//	echo $sql;
+			//echo $sql;
 			//die();
 			//if($_REQUEST['debug'])t3lib_div::debug($sql,"sql");
 			//if($_REQUEST['debug'])t3lib_div::debug($count,"results");
@@ -127,46 +156,46 @@ class tx_crud__models_browse extends tx_crud__models_retrieve {
 				//$querySize = $GLOBALS ['TYPO3_DB']->sql_affected_rows ( $query );
 				while($res = $GLOBALS ['TYPO3_DB']->sql_fetch_assoc ( $query )) {
 					//if ($i < $this->size) {
-						//$GLOBALS ['TYPO3_DB']->sql_data_seek ( $query, $i );
-						//$res = $GLOBALS ['TYPO3_DB']->sql_fetch_assoc ( $query );
-						//t3lib_div::debug($_REQUEST);
-						if (isset ( $_REQUEST ['q'] )) {
-							$found = false;
-							//echo "is q";
-							if(!$found) foreach ( $res as $key => $val ) {
-								if (is_array ( $this->autocompleteArray [$key] )) {
-									//echo "exist";
-									if (!$found && is_array ( $this->uidsMM [$res ['uid']] ) && isset ( $this->html [$key] ['config.'] ['MM'] )) {
-										$this->processData [$res ['uid']] [$key] = $this->uidsMM [$res ['uid']];
-										//$found=true;
-									} 
-									elseif (!$found && ! isset ( $this->html [$key] ['config.'] ['MM'] )) {
-										foreach ( $this->autocompleteArray [$key] as $uid => $value ) {
-											$val_exploded = explode ( ",", $val );
-											foreach ( $val_exploded as $v )
-												if (isset ( $this->autocompleteArray [$key] [$v] )) {
-													if ($v == $uid)
-														$this->processData [$res ['uid']] [$key] [$v] = $value;
-														//$found=true;
-												}
+					//$GLOBALS ['TYPO3_DB']->sql_data_seek ( $query, $i );
+					//$res = $GLOBALS ['TYPO3_DB']->sql_fetch_assoc ( $query );
+					if (isset ( $_REQUEST ['q'] )) {
+						$found = false;
+						//echo "is q";
+						if(!$found) foreach ( $res as $key => $val ) {
+							if (is_array ( $this->autocompleteArray [$key] )) {
+								//echo "exist";
+								if (!$found && is_array ( $this->uidsMM [$res ['uid']] ) && isset ( $this->html [$key] ['config.'] ['MM'] )) {
+									$this->processData [$res ['uid']] [$key] = $this->uidsMM [$res ['uid']];
+									//$found=true;
+								}
+								elseif (!$found && ! isset ( $this->html [$key] ['config.'] ['MM'] )) {
+									foreach ( $this->autocompleteArray [$key] as $uid => $value ) {
+										$val_exploded = explode ( ",", $val );
+										foreach ( $val_exploded as $v )
+										if (isset ( $this->autocompleteArray [$key] [$v] )) {
+											if ($v == $uid)
+											$this->processData [$res ['uid']] [$key] [$v] = $value;
+											//$found=true;
 										}
 									}
-								} 
-								elseif (!$found && $this->findSearchWord ( $res [$key] )) {
-									$this->processData [$res ['uid']] [$key] = $this->findSearchWord ( $res [$key] );
-									//$found = true;
-									//$found [$this->processData [$res ['uid']] [$key] = $this->processData [$res ['uid']] [$key]];
 								}
 							}
-						
-						} 
-						else
-							$this->processData [$res ['uid']] = $res;
+							elseif (!$found && $this->findSearchWord ( $res [$key] )) {
+								$this->processData [$res ['uid']] [$key] = $this->findSearchWord ( $res [$key] );
+								//$found = true;
+								//$found [$this->processData [$res ['uid']] [$key] = $this->processData [$res ['uid']] [$key]];
+							}
+						}
+
+					}
+					else
+					$this->processData [$res ['uid']] = $res;
 					//}
 				}
 			} else {
 				$this->mode = "QUERY_ERROR";
 			}
+
 			$this->postQuery ();
 			$config = $this->controller->configurations->getArrayCopy ();
 			///t3lib_div::debug($this->processData);
@@ -175,21 +204,22 @@ class tx_crud__models_browse extends tx_crud__models_retrieve {
 			$config ['view.'] ['page'] = $this->page;
 			$config ['view.'] ['start'] = $this->start;
 			$this->controller->configurations = new tx_lib_object ( $config );
+			$this->controller->parameters = new tx_lib_object($pars);
 		}
 	}
-	
 
-	
+
+
 	/**
 	 * returns the where clause for the browse query
-	 * 
+	 *
 	 * @return  string	sql where clasue
-	 */	
-/**
+	 */
+	/**
 	 * returns the where clause for the browse query
-	 * 
+	 *
 	 * @return  string	sql where clasue
-	 */	
+	 */
 	public function getFilterWhere() {
 		$pars = $this->controller->parameters->getArrayCopy ();
 		$typoscript = $this->controller->configurations->getArrayCopy ();
@@ -197,9 +227,9 @@ class tx_crud__models_browse extends tx_crud__models_retrieve {
 		$search = "(1=1";
 		if (strlen ( $this->bigTCA ['languageField'] ) >= 3) {
 			if (strlen ( $GLOBALS ['TSFE']->config ['config'] ['sys_language_uid'] >= 1 ))
-				$search .= " AND " . $this->bigTCA ['languageField'] . "=" . $GLOBALS ['TSFE']->config ['config'] ['sys_language_uid'];
+			$search .= " AND " . $this->bigTCA ['languageField'] . "=" . $GLOBALS ['TSFE']->config ['config'] ['sys_language_uid'];
 			else
-				$search .= " AND " . $this->bigTCA ['languageField'] . "=0";
+			$search .= " AND " . $this->bigTCA ['languageField'] . "=0";
 		}
 		$table = $this->panelTable;
 		if ($this->bigTCA ['enablecolumns'] ['fe_group']) {
@@ -218,11 +248,11 @@ class tx_crud__models_browse extends tx_crud__models_retrieve {
 			}
 		}
 		//t3lib_div::debug($this->bigTCA);
-		if (isset($this->bigTCA ['enablecolumns'] ['starttime']) && empty($this->html['starttime']['config.']['range']['lower'])) $this->html['starttime']['config.']['range']['lower']= time();
+		if (is_array($this->html['starttime']) && isset($this->bigTCA ['enablecolumns'] ['starttime']) && empty($this->html['starttime']['config.']['range']['lower'])) $this->html['starttime']['config.']['range']['lower']= time();
 		if ($this->bigTCA ['enablecolumns'] ['starttime'] && isset($this->html['starttime']['config.']['range']['lower'])) {
 			$search .= " AND (" . $table . "." . $this->bigTCA ['enablecolumns'] ['starttime'] . "=0 OR ".$this->bigTCA ['enablecolumns'] ['starttime']." >=". $this->html['starttime']['config.']['range']['lower'].")";
 		}
-		if ($this->bigTCA ['enablecolumns'] ['endtime'] && isset($this->html['endtime']['config.']['range']['upper'])) {
+		if (is_array($this->html['endtime']) && $this->bigTCA ['enablecolumns'] ['endtime'] && isset($this->html['endtime']['config.']['range']['upper'])) {
 			$search .= " AND (" . $table . "." . $this->bigTCA ['enablecolumns'] ['endtime'] . "=0 OR ".$this->bigTCA ['enablecolumns'] ['endtime']." <=". $this->html['endtime']['config.']['range']['upper'].")";
 		}
 		$search .= ")";
@@ -248,39 +278,60 @@ class tx_crud__models_browse extends tx_crud__models_retrieve {
 				}
 			}
 			$i = 0;
+			/*	if (is_array ( $searchFields) && !isset($_REQUEST['q'])) {
+				$textsearch .= " AND (";
+				$y = 0;
+				$OR = '';
+				foreach ( $searchFields as $key => $val ) {
+				$z=0;
+				if(strlen($OR) == 0) {
+				$OR = '(';
+				}
+
+				foreach ( $words as $k => $v ) {
+
+				$textsearch .= $OR . $val . " like '%" . urldecode ( $v ) . "%'";
+				$OR = ' AND '; // or an ' OR '
+				$close = true;
+
+				$z++;
+				}
+				$y++;
+				$i ++;
+				$OR = ') OR (';
+
+				}
+				$textsearch .= ')';
+				}*/
+
 			if (is_array ( $searchFields) && !isset($_REQUEST['q'])) {
 				$textsearch .= " AND (";
-				$y=0;
-				$OR="";
+				$y = 0;
+				$z = 0;
+				$concat = ' CONCAT_WS("#",';
 				foreach ( $searchFields as $key => $val ) {
-					$z=0;
-					//if($y==0) $textsearch.= "(";
-					//else {
-						///$textsearch .= " OR ";
-					//}
-					
-					//echo $key;
-					foreach ( $words as $k => $v ) {
-						
-						$textsearch .= $OR . $val . " like '%" . urldecode ( $v ) . "%'";
-						$OR=" OR ";
-						$close = true;
-						
-						$z++;
-					}
+					$concat .= $val .',';
 					$y++;
-					//$textsearch .= ") ";
-					$i ++;
 				}
+				$concat = substr($concat, 0, strlen($concat) - 1 ) . ')';
+				$OR = '';
+				foreach ( $words as $k => $v ) {
+					$textsearch .= $OR . $concat . ' like "%' . urldecode ( $v ) . '%"';
+					$OR = ' AND'; // or an ' OR '
+					$i++;
+					$z++;
+				}
+				//	$textsearch .= ')';
+				$close = true;
 			}
-//			/echo $search; die();
+
 			$OR="";
 			if (isset ( $_REQUEST ['q'] )) {
 				if(!$close) $textsearch.=" AND (";
 				foreach ( $this->html as $item_key => $entry ) {
 					//t3lib_div::Debug($entry);
-					
-					
+
+
 					if (is_array( $entry ['options.'] ) && ! isset ( $entry ['config.'] ['MM'] ) && $entry ['config.'] ['type'] != "check") {
 						foreach ( $entry ['options.'] as $key => $val ) {
 							//echo $val;
@@ -292,7 +343,7 @@ class tx_crud__models_browse extends tx_crud__models_retrieve {
 								$textsearch .= $OR."FIND_IN_SET(" . urldecode($key) . "," . $item_key . ")";
 								$OR=" OR ";
 							}
-							
+
 						}
 					}
 					elseif (isset ( $entry ['options.'] ) && isset ( $entry ['config.'] ['MM'] )) {
@@ -307,42 +358,42 @@ class tx_crud__models_browse extends tx_crud__models_retrieve {
 						}
 					}
 					elseif($entry['config.']['type']=="input" || $entry['config.']['type']=="text") {
-							
-							$textsearch .= $OR." ". $item_key . " like '%" . urldecode ( $_REQUEST['q'] ) . "%'";
-							$close=true;
-							$OR=" OR ";
+
+						$textsearch .= $OR." ". $item_key . " like '%" . urldecode ( $_REQUEST['q'] ) . "%'";
+						$close=true;
+						$OR=" OR ";
 					}
 					//$OR=" OR ";
-					
+
 					$close=true;
 				}
 			}
 		}
 		$OR="";
-		if($close) $textsearch.=") "; 
+		if($close) $textsearch.=") ";
 		//t3lib_div::debug($this->autocompleteArray);
-	//	t3lib_div::debug($MM);;
-	//echo $textsearch;die();
+		//	t3lib_div::debug($MM);;
+		//echo $textsearch;die();
 		if (is_array ( $MM )) {
 			$uids = $this->getMMFilterWhere ( $MM );
 			if (is_array ( $uids )) {
-				
+
 				$this->uidsMM = $uids;
 				$textsearch .= " AND (  ";
 				if ($uids)
-					foreach ( $uids as $uid => $mmVlaues ) {
-						$textsearch .= $OR . "uid=" . $uid;
-						$OR = " OR ";
-					}
+				foreach ( $uids as $uid => $mmVlaues ) {
+					$textsearch .= $OR . "uid=" . $uid;
+					$OR = " OR ";
+				}
 				$close = true;
 			}
 			$textsearch=")";
 		}
-		
+
 		if (strlen ( $textsearch ) >= 3) $search .= $textsearch;
 		//echo $search;die();
 		$eval = array ();
-		
+
 		if (is_array ( $pars ['search'] ) && ! isset ( $_REQUST ['q'] )) {
 			foreach ( $pars ['search'] as $key => $val ) {
 				$OR="";
@@ -365,28 +416,28 @@ class tx_crud__models_browse extends tx_crud__models_retrieve {
 					$search .= " AND " . $key . " like '" . $val . "%'";
 				}
 				if (is_array ( $filter ) && strlen ( $filter ['is'] ) >= 1) {
-					
+
 					if (is_array ( $filter ['is'] )) {
 						foreach ( $filter ['is'] as $k => $v )
-							if (strlen ( $v ) >= 1) {
-								$v_exploded = explode ( ",", $v );
-								foreach ( $v_exploded as $value )
-									$search .= " AND FIND_IN_SET(" . $value . "," . $key . ")";
-							}
-					} 
-					if (strlen ( $filter ['is'] ) >= 1) {
-							$v_exploded = explode ( ",", $filter ['is'] );
-							$search.=" AND(";
-							foreach ( $v_exploded as $value ) {
-								if (is_numeric ( $value ))
-									$search .= $OR." FIND_IN_SET(" . urldecode($value) . "," . $key . ")";
-								else
-									$search .= $OR." " . $key . " like '%" . urldecode($value). "%'";
-									$OR=" OR ";
-							}
-							$search.=")";
+						if (strlen ( $v ) >= 1) {
+							$v_exploded = explode ( ",", $v );
+							foreach ( $v_exploded as $value )
+							$search .= " AND FIND_IN_SET(" . $value . "," . $key . ")";
+						}
 					}
-					
+					if (strlen ( $filter ['is'] ) >= 1) {
+						$v_exploded = explode ( ",", $filter ['is'] );
+						$search.=" AND(";
+						foreach ( $v_exploded as $value ) {
+							if (is_numeric ( $value ))
+							$search .= $OR." FIND_IN_SET(" . urldecode($value) . "," . $key . ")";
+							else
+							$search .= $OR." " . $key . " like '%" . urldecode($value). "%'";
+							$OR=" OR ";
+						}
+						$search.=")";
+					}
+
 				}
 				if (is_array ( $filter ) && strlen ( $filter ['not'] ) >= 1) {
 					$OR="";
@@ -403,13 +454,13 @@ class tx_crud__models_browse extends tx_crud__models_retrieve {
 				if (is_array ( $filter ) && strlen ( $filter ['mm'] ) >= 1) {
 					$v_exploded = explode ( ",", $filter ['mm'] );
 					foreach ( $v_exploded as $value )
-						$mm [$key] [$value] = $value;
+					$mm [$key] [$value] = $value;
 				}
 				if (! is_array ( $filter ) && ! empty ( $val )) {
 					if ($val == "on")
-						$val = 1;
+					$val = 1;
 					elseif ($val == "off")
-						$val = 0;
+					$val = 0;
 					if (is_array ( $eval ) && in_array ( 'int', $eval ) || in_array ( 'integer', $eval )) {
 						$search .= " AND " . $key . " = $val";
 					} elseif (is_numeric ( $val )) {
@@ -432,20 +483,20 @@ class tx_crud__models_browse extends tx_crud__models_retrieve {
 				$search .= ")";
 			}
 		}
-		
+
 		//if ($close)
-			//$search .= ")";
-			//echo $search;
-			return $search;
+		//$search .= ")";
+		//echo $search;
+		return $search;
 	}
-	
-	
+
+
 	/**
 	 * returns the where mm clause for the browse query if an field has mm values
-	 * 
-	 * @param 	
+	 *
+	 * @param
 	 * @return  string	sql where clasue
-	 */	
+	 */
 	function getMMFilterWhere($mm) {
 		if (is_array ( $mm )) foreach ( $mm as $item_key => $val ) {
 			$config = $this->html [$item_key];
@@ -467,7 +518,7 @@ class tx_crud__models_browse extends tx_crud__models_retrieve {
 					}
 					if (! isset ( $_GET ['q'] )) {
 						if (isset ( $locals ))
-							$last [] = "uid_foreign=" . $locals;
+						$last [] = "uid_foreign=" . $locals;
 						$locals = $uid;
 						if (is_array ( $data )) {
 							$where .= " AND (";
@@ -488,9 +539,9 @@ class tx_crud__models_browse extends tx_crud__models_retrieve {
 							$result = $GLOBALS ['TYPO3_DB']->sql_fetch_assoc ( $query );
 							$res [] = $result;
 							if (strlen ( $result ['tablenames'] ) <= 1)
-								$table = $config ['config.'] ['foreign_table'];
+							$table = $config ['config.'] ['foreign_table'];
 							else
-								$table = $result ['tablenames'];
+							$table = $result ['tablenames'];
 							$data [$result ['uid_local']] [$table . "__" . $result ['uid_foreign']] = $table . "__" . $result ['uid_foreign'];
 							$this->mmCount [$table . "__" . $result ['uid_foreign']] [$result ['uid_local']] = $table . "__" . $result ['uid_foreign'];
 							$next = true;
@@ -501,40 +552,40 @@ class tx_crud__models_browse extends tx_crud__models_retrieve {
 		}
 		return $data;
 	}
-	
+
 	/**
 	 * dummy fro overwrite the common function because in the browse we need no redirects
-	 * 
+	 *
 	 * @param 	array	the browse data array
 	 * @return  void
 	 */
 	public function _nextStep() {
-		
+
 	}
-	
+
 	// -------------------------------------------------------------------------------------
 	// some helpers for the autocomplete
 	// -------------------------------------------------------------------------------------
-	
+
 	/**
 	 * sorts the browse results for the autocomplete
-	 * 
+	 *
 	 * @param 	array	the browse data array
 	 * @return  void
-	 */	
+	 */
 	protected function sortAutocomplete($data) {
 		$data = $this->processData;
-	    //if($_REQUEST['debug']) t3lib_div::debug($this->processData,"data");
+		//if($_REQUEST['debug']) t3lib_div::debug($this->processData,"data");
 		if (is_array ( $data ))
-			foreach ( $data as $uid => $entry )
-				foreach ( $entry as $key => $word ) {
-					$match [$key] = $word;
-					if ($this->autocompleteArray [$key]) {
-						foreach ( $word as $value )
-							$words [$key] [$value] [] = $value;
-					} else
-						$words [$key] [strtolower ( $word )] [] = strtolower ( $word );
-				}
+		foreach ( $data as $uid => $entry )
+		foreach ( $entry as $key => $word ) {
+			$match [$key] = $word;
+			if ($this->autocompleteArray [$key]) {
+				foreach ( $word as $value )
+				$words [$key] [$value] [] = $value;
+			} else
+			$words [$key] [strtolower ( $word )] [] = strtolower ( $word );
+		}
 		$orgAutoArray = $this->autocompleteArray;
 		if (is_array ( $words )) {
 			foreach ( $words as $item_key => $data ) {
@@ -564,10 +615,10 @@ class tx_crud__models_browse extends tx_crud__models_retrieve {
 			}
 		}
 		if (is_array ( $count ))
-			foreach ( $count as $item_key => $data ) {
-				arsort ( $data, SORT_NUMERIC );
-				$sortedCount [$item_key] = $data;
-			}
+		foreach ( $count as $item_key => $data ) {
+			arsort ( $data, SORT_NUMERIC );
+			$sortedCount [$item_key] = $data;
+		}
 		if (is_array ( $countsOptions )) {
 			foreach ( $countsOptions as $item_key => $values ) {
 				$string = implode ( " ", array_keys ( $values ) );
@@ -579,7 +630,7 @@ class tx_crud__models_browse extends tx_crud__models_retrieve {
 					$autoLabel .= $this->getLL ( $this->html [$item_key] ['options.'] [$word], 1 ) . " ";
 					if (isset ( $this->html [$item_key] ['config.'] ['MM'] )) {
 						$word_exploded = explode ( "__", $word );
-						
+
 						$autoOptions .= $this->getLL ( $this->html [$item_key] ['options.'] [$word], 1 ) . "|" . $this->getDesignator () . "[search][" . $item_key . "][mm]|" . $count . "|" . $word . "\n";
 					} else {
 						$autoOptions .= $this->getLL ( $this->html [$item_key] ['options.'] [$word], 1 ) . "|" . $this->getDesignator () . "[search][" . $item_key . "][is]|" . $count . "|" . $word . "\n";
@@ -600,11 +651,11 @@ class tx_crud__models_browse extends tx_crud__models_retrieve {
 			$freeCount=$free;;
 			//$free2 = $free;
 			//if($_REQUEST['debug'])t3lib_div::debug($freeCount,"before");
-			//if($_REQUEST['debug'])t3lib_div::debug($free2,"allWords");			
+			//if($_REQUEST['debug'])t3lib_div::debug($free2,"allWords");
 			foreach ( $free as $item_key=>$data) foreach ( $data as $word => $count ) {
 				$allCount+=$count;
 				$free2=$free;
-				unset ( $free2[$item_key][$word] ); 
+				unset ( $free2[$item_key][$word] );
 				foreach ( $free2[$item_key] as $word2 => $count2 ) {
 					$word=mb_convert_encoding($word, "UTF-8", "UTF-8" );
 					$word=strtolower(@iconv("UTF-8", "UTF-8//IGNORE", $word ));
@@ -616,7 +667,7 @@ class tx_crud__models_browse extends tx_crud__models_retrieve {
 					//elseif($_REQUEST['debug']) t3lib_div::debug($word,$word2);
 				}
 			}
-			
+
 			//t3lib_div::debug($freeCount,"pre");
 			foreach($freeCount as $key=>$array) {
 				arsort ( $array, SORT_NUMERIC );
@@ -628,37 +679,40 @@ class tx_crud__models_browse extends tx_crud__models_retrieve {
 			$header = "| ".$this->getLL ("LLL:EXT:crud/locallang.xml:autocompleteResults")." \"".$_GET['q']."\" in ".$this->getLL ( $this->bigTCA['title'],1 )."\n";
 			foreach($freeCount as $item_key=>$array) {
 				$words=implode ( " ", array_keys ( $array) ) ;
+				$words= ereg_replace("(\r\n|\n|\r)", " ", $words);
 				$allWords.=$words;
 				//t3lib_div::debug($this->TCA);
 				$auto .= $words. "| ".$this->getLL ( $this->html[$item_key] ['label'],1 ) ."\n";
 				foreach ( $array as $word => $count ) {
+					$word = ereg_replace("(\r\n|\n|\r)", " ", $word);
 					$auto .= $word . "|" . $this->getDesignator () . "[search][".$item_key."] |" . $count . "|" . urlencode ( $word ) . "\n";
 				}
 			}
 			$out.=$allWords.$header.$auto;
 			$auto=$out;
 		}
-		if (strlen ( $auto ) > 1)
-			return $auto.$allWords."|".$this->getDesignator()."[search]|Alle Suchergebnisse\n";
-		else
+		if (strlen ( $auto ) > 1){
+			return $auto.$allWords . "|".$this->getDesignator()."[find]|Alle Suchergebnisse\n";
+		} else {
 			return "noResults|No Results";
+		}
 	}
-	
-	
-	
+
+
+
 	/**
 	 * finds the search word from $_GET['q'] in a string
-	 * 
+	 *
 	 * @param 	string	the string to search in
 	 * @return  string	the word if in the search from $_GET['q']
-	 */	
+	 */
 	function findSearchWord($string) {
 		$string = mb_convert_encoding($string, "UTF-8", "UTF-8" );
 		$string = @iconv("UTF-8", "UTF-8//IGNORE", $string );
 		$what=mb_convert_encoding($_REQUEST['q'], "UTF-8", "UTF-8" );
 		$what=@iconv("UTF-8", "UTF-8//IGNORE", $what );
 		//t3lib_div::debug($what,$string."d");
-		$string = strip_tags ( $string );
+		/*$string = strip_tags ( $string );
 		$string = str_replace ( ".", " ", $string );
 		$string = str_replace ( ",", " ", $string );
 		$string = str_replace ( "!", " ", $string );
@@ -667,30 +721,44 @@ class tx_crud__models_browse extends tx_crud__models_retrieve {
 		$string = str_replace ( ":", " ", $string );
 		$string = str_replace ( "&nbsp;", " ", $string );
 		$string = str_replace ( "'", " ", $string );
+		"ä", "ö", "ü", "Ä", "Ö", "Ü", "ß",
+		"ae", "oe", "ue", "Ae", "Oe", "Ue", "ss",
+		*/
+		$search = array( ".", ",", "!", "?", "\"", ":", "&nbsp;", "'");
+		$replace = array( " ", " ", " ", " ", " ", " ", " ", " ");
+
+		$string = str_replace($search, ' ', $string);
+		$whot=str_replace(array("ä", "ö", "ü", "Ä", "Ö", "Ü", "ß"), array("a", "o", "u", "A", "O", "U", "s"), $what);
+		//	t3lib_div::debug($what,$string);
+
+		// 		$what = str_replace($search, $replace, $what);
+
 		$words = explode ( " ", $string );
 		foreach ( $words as $line => $word ) {
-			if ((strlen($word)>=2 && strlen($what)>=2) && strpos ( trim ( strtolower ( $word ) ), trim ( strtolower ( $what ) ) ) !== false) {
-			//if(preg_match("/".strtolower($_REQUEST['q'])."/", strtolower($word), $matches))
+			$word_uml = str_replace(array("ä", "ö", "ü", "Ä", "Ö", "Ü", "ß"), array("a", "o", "u", "A", "O", "U", "s"), $word);
+			//t3lib_div::debug($whot,$word_uml);
+			if ((strlen($word)>=2 && strlen($what)>=2) && strpos ( trim ( strtolower ( $word_uml ) ), trim ( strtolower ( $whot ) ) ) !== false) {
+				//if(preg_match("/".strtolower($_REQUEST['q'])."/", strtolower($word), $matches))
 				return trim ( $word );
 				//echo "YESSS: ".$word;
 			}
 			//else echo "nor found in ".$word."<br>";
 		}
 	}
-	
-	
-	
 
-	
+
+
+
+
 	function getStaticValues() {
 		$config=$this->controller->configurations->getArrayCopy();
 		$pars=$this->controller->parameters->getArrayCopy();
 		if(strlen($config['getExistingValues.'][$this->panelTable."."]['fields'])>=1) {
 			$pars=$this->controller->parameters->getArrayCopy();
 			$search =$config['storage.']['additionalWhere'].$this->getFilterWhere();
-			$hash=md5("exitingValues".$search);
+			$hash=md5("existingValues".$search);
 			if(is_array($this->cached['existingValues'][$hash])) return $this->cached['existingValues'][$hash];
-			$fields_exploded=explode(",",$config['getExistingValues.'][$this->panelTable."."]['fields']);
+			$fields_exploded=explode(",",str_replace(" ","",$config['getExistingValues.'][$this->panelTable."."]['fields']));
 			foreach($fields_exploded as $field) {
 				if(!isset($this->html[$field]['config.']['MM'])) {
 					$fields[]=strtolower($field);
@@ -706,25 +774,25 @@ class tx_crud__models_browse extends tx_crud__models_retrieve {
 			//t3lib_div::debug($fields)
 			$tables=strtolower($this->panelTable);
 			$query=$GLOBALS['TYPO3_DB']->exec_SELECTquery("uid,".$fields,$tables,$search);
-			if($query) {			
+			if($query) {
 				while($result = mysql_fetch_assoc($query)) {
 					$i++;
-    				$fields_array=explode(",",$fields);
-    				foreach($fields_array as $field) {
-    					if(strlen($result[$field])>=1) $data[$this->panelTable][$field][$result[$field]]+=1;
-    				}
-    				if(is_array($mm[$result['uid']])) { 
-    					foreach($mm[$result['uid']] as $field=>$mms) {
-    					
-    							 $mmTable=$this->html[$field]['config.']['foreign_table'];
-								 foreach($mms as $uid)  $data[$this->panelTable][$field][$mmTable."__".$uid]+=1;
-    						
-    					}
-    				}
+					$fields_array=explode(",",$fields);
+					foreach($fields_array as $field) {
+						if(strlen($result[$field])>=1) $data[$this->panelTable][$field][$result[$field]]+=1;
+					}
+					if(is_array($mm[$result['uid']])) {
+						foreach($mm[$result['uid']] as $field=>$mms) {
+
+							$mmTable=$this->html[$field]['config.']['foreign_table'];
+							foreach($mms as $uid)  $data[$this->panelTable][$field][$mmTable."__".$uid]+=1;
+
+						}
+					}
 				}
 			}
- 	        $start=  microtime(true);
-			
+			$start=  microtime(true);
+
 			if(is_array($data)) foreach($data as $table=>$rows) {
 				foreach($rows as $field=>$counts) {
 					foreach($counts as $uids=>$count) {
@@ -737,7 +805,7 @@ class tx_crud__models_browse extends tx_crud__models_retrieve {
 						}
 					}
 				}
-				
+
 			}
 			if(is_array($data))foreach($data[$this->panelTable] as $field=>$values) {
 				$sorted="";
@@ -746,21 +814,21 @@ class tx_crud__models_browse extends tx_crud__models_retrieve {
 					$values = array_reverse($values,true);
 					$data[$this->panelTable][$field] = $values;
 				}
-			}	
+			}
 			//t3lib_div::debug($data);
 			if($i>10) $this->cache['existingValues'][$hash]=$data;
 			if(is_array($data)) return $data;
-		}	
-		
+		}
+
 	}
-	
-	
+
+
 	function getStaticMM($field,$mm) {
 		$setup=$this->html[$field];
 		$pars=$this->controller->parameters->getArrayCopy();
 		if(isset($pars['search'][$field]['mm'])) {
 			$values=explode(",",$pars['search'][$field]['mm']);
-		
+
 			foreach($values as $value) {
 				$value=explode("__",$value);
 				$uids.=$OR."uid_foreign=".$value[1];
@@ -776,7 +844,7 @@ class tx_crud__models_browse extends tx_crud__models_retrieve {
 				$where=" where ";
 			}
 			//else $tablenames = "";
-			
+
 			if(isset($uids) && isset($tablenames))$uids=" AND (".$uids.")";
 			$query=$GLOBALS['TYPO3_DB']->sql_query("select uid_foreign,uid_local from ".$setup['config.']['MM']." ".$where.$tablenames.$uids);
 			if($query) {
@@ -787,7 +855,7 @@ class tx_crud__models_browse extends tx_crud__models_retrieve {
 			return $mm;
 		}
 	}
-	
+
 	function getCategories() {
 		$typoscript=$this->controller->configurations->getArrayCopy();
 		//echo $search;
@@ -798,7 +866,6 @@ class tx_crud__models_browse extends tx_crud__models_retrieve {
 		if(is_array($this->cached['existingCategories'][$hash])) return $this->cached['existingCategories'][$hash];
 		require_once(t3lib_extMgm::extPath('categories') . 'lib/class.tx_categories_treeview.php');
 		$menu=new tx_categories_treeview;
-		
 		$config=$typoscript;
 		$conf=$typoscript['getExistingCategories.'];
 		$confArr = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['yellowmed']);
@@ -819,7 +886,7 @@ class tx_crud__models_browse extends tx_crud__models_retrieve {
 					$menu->tree=false;
 					if($menu->getTree($cat['row']['uid'])>=1) {
 						$subCats=$menu->tree;
-						if(is_array($subCats)) { 
+						if(is_array($subCats)) {
 							$i++;
 							foreach($subCats as $subkey=>$subval) {
 								$cats[$rootCat]['subs'][$cat['row']['uid']]['subs'][$subval['row']['uid']]['title']=$subval['row']['title'];
@@ -840,33 +907,34 @@ class tx_crud__models_browse extends tx_crud__models_retrieve {
 								}
 								$menu->tree=false;
 								if($menu->getTree($subval['row']['uid'])>=1) {
-									
+
 									$subSubCats=$menu->tree;
-									if(is_array($subSubCats)) { 
-									foreach($subSubCats as $subsubkey=>$subsubval) {
-										//echo "---".$subsubval['row']['uid'];
-										$cats[$rootCat]['subs'][$cat['row']['uid']]['subs'][$subval['row']['uid']]['subs'][$subsubval['row']['uid']]['title']=$subsubval['row']['title'];
-										//TODO :more levels
-										$field=explode(":",$value['field']);
-										$sql="select count(".$field[1].") from ".$field[0]." where ".$field[1]." in(".$subsubval['row']['uid'].") AND ".$search;
-										//echo $sql;
-										$query=$GLOBALS['TYPO3_DB']->sql_query($sql);
-										if($query)$result = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($query);
-									//3lib_div::debug($result);
-										//$cats[$rootCat]['subs'][$cat['row']['uid']]['subs'][$subval['row']['uid']]['title']=$subval['row']['title'];
-										if($result['count('.$field[1].')']>=1) {
-											$cats[$rootCat]['subs'][$cat['row']['uid']]['exist']+=$result['count('.$field[1].')'];;
-											$cats[$rootCat]['exist']+=$result['count('.$field[1].')'];
-											$cats[$rootCat]['subs'][$cat['row']['uid']]['subs'][$subval['row']['uid']]['exist']+=$result['count('.$field[1].')'];
-											$cats[$rootCat]['subs'][$cat['row']['uid']]['subs'][$subval['row']['uid']]['subs'][$subsubval['row']['uid']]['exist']=$result['count('.$field[1].')'];
-											
+									if(is_array($subSubCats)) {
+										foreach($subSubCats as $subsubkey=>$subsubval) {
+											//echo "---".$subsubval['row']['uid'];
+											$cats[$rootCat]['subs'][$cat['row']['uid']]['subs'][$subval['row']['uid']]['subs'][$subsubval['row']['uid']]['title']=$subsubval['row']['title'];
+											//TODO :more levels
+											$field=explode(":",$value['field']);
+											//$sql="select count(".$field[1].") from ".$field[0]." where ".$field[1]." in(".$subsubval['row']['uid'].") AND ".$search;
+											$sql="select count(".$field[1].") from ".$field[0]." where find_in_set(".$subsubval['row']['uid']." ,".$field[1].") AND ".$search;
+											$query=$GLOBALS['TYPO3_DB']->sql_query($sql);
+											if($query)$result = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($query);
+											//3lib_div::debug($result);
+											//$cats[$rootCat]['subs'][$cat['row']['uid']]['subs'][$subval['row']['uid']]['title']=$subval['row']['title'];
+											if($result['count('.$field[1].')']>=1) {
+												$cats[$rootCat]['subs'][$cat['row']['uid']]['exist']+=$result['count('.$field[1].')'];;
+												$cats[$rootCat]['exist']+=$result['count('.$field[1].')'];
+												//t3lib_div::debug($result);
+												$cats[$rootCat]['subs'][$cat['row']['uid']]['subs'][$subval['row']['uid']]['exist']+=$result['count('.$field[1].')'];
+												$cats[$rootCat]['subs'][$cat['row']['uid']]['subs'][$subval['row']['uid']]['subs'][$subsubval['row']['uid']]['exist']=$result['count('.$field[1].')'];
+
+											}
 										}
-									}
-									$menu->tree=false;
+										$menu->tree=false;
 										if($menu->getTree($subsubval['row']['uid'])>=1) {
-									
-										$subSubSubCats=$menu->tree;
-										//t3lib_div::debug($subSubSubCats);
+
+											$subSubSubCats=$menu->tree;
+											//t3lib_div::debug($subSubSubCats);
 										}
 									}
 
@@ -894,7 +962,7 @@ class tx_crud__models_browse extends tx_crud__models_retrieve {
 		if($i>10) $this->cache['existingCategories'][$hash]=$cats;
 		return $cats;
 	}
-	
-	
+
+
 }
 ?>

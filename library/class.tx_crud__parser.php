@@ -47,65 +47,79 @@ final class tx_crud__parser{
 	 * @return  string	the parsed html pages
 	 */
 	function contentPostProc_output(&$params, &$reference) {
+		//if (substr_count($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip'))	        ob_start("ob_gzhandler");
+	    ////else
+	    //    ob_start();
 		$start = microtime(true);
+		//header('Content-Encoding: gzip');
 		include_once(t3lib_extMgm::extPath('crud') . 'library/class.tx_crud__div.php');
-		$hash=md5("crud-markers");
-		///t3lib_div::debug($GLOBALS['TSFE']);die();
+		$hash = md5('crud-markers');
+		
+		if($_GET['return']>=1 OR $_POST['return']>=1) {
+			tx_crud__redirect::prepare();
+		}
+		tx_crud__redirect::hasRedirect();
+
 		$this->markers=tx_crud__cache::get($hash);
 		//t3lib_div::debug($this->markers);
-		if(isset($_REQUEST['ajax']) && isset($this->markers[$_REQUEST['mID']])) {
-			$str=$this->markers[$_REQUEST['mID']];
-			$this->parse($this->markers[$_REQUEST['mID']]);
-			$content=$this->markerArray[$str];
-			$this->parse($content);
-			if(is_array($this->markerArray)) foreach($this->markerArray as $marker=>$html) {
-				$this->markers[tx_crud__div::getActionID("",$marker)]=$marker;
-				$content=str_replace($marker,$html,$content);
-			}
-			tx_crud__cache::write($hash,$this->markers);
-			echo $content;
-			die();
-		}
-		if(isset($_REQUEST['ajax']) && isset($this->markers[$_REQUEST['aID']])) {
-			$str=$this->markers[$_REQUEST['aID']];
+		if (isset($_REQUEST['ajax']) && isset($this->markers[$_REQUEST['aID']])) {
+			$str = $this->markers[$_REQUEST['aID']];
 			$this->parse($this->markers[$_REQUEST['aID']]);
-			$content=$this->markerArray[$str];
+			$content = $this->markerArray[$str];
 			$this->parse($content);
-			if(is_array($this->markerArray)) foreach($this->markerArray as $marker=>$html) {
-				//$marker_exploded=explode("~",)
-				$this->markers[tx_crud__div::getActionID("",$marker)]=$marker;
-				$content=str_replace($marker,$html,$content);
+			if (is_array($this->markerArray)) {
+				foreach ($this->markerArray as $marker=>$html) {
+					//$marker_exploded=explode("~",)
+					$this->markers[tx_crud__div::getActionID('', $marker)] = $marker;
+					$content = str_replace($marker, $html, $content);
+				}
 			}
-			tx_crud__cache::write($hash,$this->markers);
+			tx_crud__cache::write($hash, $this->markers);
 			echo $content;
 			$end = microtime(true);
 			$time = $end - $start;
-			if($_REQUEST['showtime'])echo "ajax request loaded in $time seconds\n";
+			if ($_REQUEST['showtime']) {
+				echo "ajax request loaded in $time seconds\n";
+			}
 			die();
-		}
-		else{
+		} else {
 			$this->parse($params['pObj']->content);
 			$originalMarker = $this->markerArray;
-			$this->markerArray=array();
-			if(strlen($this->newContent) > 3) {
+			//t3lib_div::debug($orginalMarker);
+			$this->markerArray = array();
+			if (strlen($this->newContent) > 3) {
 				//echo $this->newContent;
 				$params['pObj']->content = $this->newContent;
-				if($this->isError) exit;
-				if (strlen($this->newContent) > 3 && (strtolower($this->actionID)=="retrieve"  || strtolower($this->actionID)=="browse")) {
-					$this->newContent=false;
+				if (strlen($this->newContent) > 3) {
+					//echo $this->actionID;
+				}
+				if (strlen($this->newContent) > 3) {
+					$this->newContent = false;
+					//echo 'second parse';
 					$this->parse($params['pObj']->content);
 					$params['pObj']->content = $this->newContent;
+					
 				}
 			}
 			//t3lib_div::Debug($this->headerdata);
-			if(is_array($this->headerData)) $params['pObj']->content=$this->makeHeader($this->headerData,$params['pObj']->content);
-			if(is_array($this->footerData)) $params['pObj']->content=$this->makeFooter($this->footerData,$params['pObj']->content);
+			if (is_array($this->headerData)) {
+				$params['pObj']->content = $this->makeHeader($this->headerData, $params['pObj']->content);
+			}
+			else {
+				$params['pObj']->content = $this->makeHeader(array(),$params['pObj']->content);
+			}
+			if (is_array($this->footerData)) {
+				$params['pObj']->content = $this->makeFooter($this->footerData,$params['pObj']->content);
+			}
 			//t3lib_div::Debug($this->markers);
-			tx_crud__cache::write($hash,$this->markers);
+			tx_crud__cache::write($hash, $this->markers);
 			$end = microtime(true);
 			$time = $end - $start;
-			if($_REQUEST['showtime'])echo "normal parsed in $time seconds\n";
+			if ($_REQUEST['showtime']) {
+				echo "normal parsed in $time seconds\n";
+			}
 		}
+		//t3lib_div::debug($this->markers);
 
 	}
 
@@ -116,15 +130,17 @@ final class tx_crud__parser{
 	 */
 	function setup() {
 		//echo "setup";
+		unset($this->mode);
 		$marker = $this->marker;
 		$hash = md5("pluginSetup".$marker);
 		$marker = explode("~",$marker);
 		//$setup = explode(".",$marker[3]);
-		if(count($marker)==2) {
-				$setup=explode(".",$marker[1]);
+		if (count($marker)==2) {
+				$setup = explode('.', $marker[1]);
+		} else {
+			$setup = explode('.', $marker[3]);
 		}
-		else $setup = explode(".",$marker[3]);
-		$hash = md5("pluginSetup-".$this->marker);
+		$hash = md5('pluginSetup-' . $this->marker.$GLOBALS['TSFE']->fe_user->user['usergroup']);
 		//t3lib_div::debug($marker);
 		$cached = tx_crud__cache::get($hash);
 		//t3lib_div::Debug($cached);
@@ -159,7 +175,7 @@ final class tx_crud__parser{
 			//die();
 			$cache['typoscript']['configurations.']['setup.']['baseURL']=$cache['config']['baseURL'];
 			$cache['config'] = $TSObj->setup['config.'];
-			//tx_crud__cache::write($hash,$cache);
+			tx_crud__cache::write($hash,$cache);
 
 			$typoscript=$cache['typoscript'];
 			//t3lib_div::debug($typoscript);
@@ -236,6 +252,7 @@ final class tx_crud__parser{
 	 * @return  void
 	 */
 	function parse($content) {
+		unset($this->mode);
 		$html = explode('{{{',$content);
 		$replace = array();
 
@@ -291,8 +308,9 @@ final class tx_crud__parser{
 					$search=explode(" (",$pars['search']);
 					$pars['search']=urldecode($search[0]);
 				}
-				if ($mode == "ICON" && $icon  && $setup['icons.']['useParserIcons']=='1') {
+				if ($mode == "ICON" && $icon  && $setup['icons.']['useParserIcons']=='1') { //TODO internal action icons parsen
 					$replace[$str] = tx_crud__div::printActionLink($setup);;
+					//t3lib_div::debug($setup,$marker);
 				} elseif ($mode == "HIDE" && $setup['hideIfNotActive']!="1") {
 					$replace[$str] = "";
 				} else {
@@ -386,18 +404,32 @@ final class tx_crud__parser{
 				$content = str_replace($key,$val,$content);
 			}
 		}
+		//t3lib_div::debug($replaceData);
 		if(is_array($replaceData) && !isset($_REQUEST['ajax'])) {
 			foreach($replaceData as $field=>$val) {
-				$split=explode("|",$val['splitter']);
-				if($val['style']=="append") {
-					$do=" - ".$val['value'].$split[1];
-					//$do=strip_tags($do);
-					$content=str_replace($split[1],$do,$content);
+				if(isset($val['splitter'])) {
+					$split=explode("|",$val['splitter']);
+					if($val['style']=="append") {
+						$do=" - ".$val['value'].$split[1];
+						//$do=strip_tags($do);
+						$content=str_replace($split[1],$do,$content);
+					}
+					elseif($val['style']=="prepend") {
+						$do=$split[0].$val['value']." - ";
+						//$do=strip_tags($do);
+						$content=str_replace($split[0],$do,$content);
+					}
 				}
-				elseif($val['style']=="prepend") {
-					$do=$split[0].$val['value']." - ";
-					//$do=strip_tags($do);
-					$content=str_replace($split[0],$do,$content);
+				elseif(isset($val['tagvalueXX']))  {
+					$what = explode(":",$val['tagvalue']);
+					$tag = $what[0];
+					//if($what[1]=='content') {
+						$value = substr(strip_tags($val['value']),0,130)."...";
+						$replace = $GLOBALS['TSFE']->page['description'];
+						//t3lib_div::debug($GLOBALS['TSFE']->page,$value);
+						$content=str_replace($replace,$value,$content);
+
+					//}
 				}
 			}
 		}
@@ -409,6 +441,7 @@ final class tx_crud__parser{
 				}
 			}
 		}
+	
 		if (is_array($footerData)) {
 			foreach($footerData as $key=>$array) {
 				foreach($array as $name=>$val) {
@@ -550,6 +583,7 @@ function getBaseurl(){
 	 * @return  string the mode
 	 */
 	function setSubmit($setup) {
+		//t3lib_div::Debug($setup);
 		$pars=tx_crud__div::_GP($setup['setup.']['extension']);
 		if ($pars["form"] == tx_crud__div::getActionID($setup)) {
 			if ($pars["process"] == "preview") {
@@ -577,10 +611,54 @@ function getBaseurl(){
 				$this->mode = "HIDE";
 			} else {
 				$this->submit = false;
+				if($setup['storage.']['action']=="create" || $setup['storage.']['action']=="update" ) $this->mode = "ICON";
+			}
+		}
+		//if($this->mode!="ICON") $this->mode="";
+		return $this->mode;
+	}
+
+	function setSubmitXX($setup) {
+
+		if ($this->controller->parameters->get ( "form" ) == tx_crud__div::getActionID ( $setup )) {
+
+			if ($this->controller->parameters->get ( "process" ) == "preview") {
+				$this->submit = true;
+				$this->mode = "PROCESS";
+			} elseif ($this->controller->parameters->get ( "process" ) == "create") {
+				$this->submit = false;
+				$this->mode = "EDIT";
+			} elseif ($this->controller->parameters->get ( "process" ) == "update") {
+				if ($this->controller->parameters->get ( "icon" ) == "1") {
+					$this->submit = false;
+					$this->mode = "EDIT";
+				} else {
+					$this->submit = true;
+					$this->mode = "EDIT";
+				}
+			} elseif ($this->controller->parameters->get ( "process" ) == "delete") {
+				$this->submit = true;
+				$this->mode = "PROCESS";
+			} elseif ($this->controller->parameters->get ( "process" ) == "cancel") {
+				$this->submit = false;
+				$this->mode = "ICON";
+			} else {
+				$this->submit = false;
+				$this->mode = "ICON";
+			}
+		} else {
+
+			if ($this->controller->parameters->get ( "form" ) && ! $this->controller->parameters->get ( "cancel" )) {
+				$this->submit = false;
+				$this->mode = "HIDE";
+			} else {
+				$this->submit = false;
 				$this->mode = "ICON";
 			}
 		}
-		return $this->mode;
+
+		return $this->mode;;
+		//echo "mode set crud submit:".$this->mode;
 	}
 }
 

@@ -85,6 +85,12 @@ plugin.tt_news.configurations {
 						fields = author,datetime,category
 					}
 				}
+				category {
+					tt_news_cat{
+						title = title
+						fields = singe_pid
+					}
+				}
 			}
 		}
 	}

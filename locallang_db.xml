@@ -13,6 +13,13 @@
 			<label index="tx_crud_groups.fe_groups">Access FE-groups</label>
 			<label index="tx_crud_roles">CRUD roles</label>
 			<label index="tx_crud_roles.title">Name of the role</label>
+			<label index="tx_crud_redirects">Redirect URL</label>
+			<label index="tx_crud_redirects.title">Title</label>
+			<label index="tx_crud_redirects.description">Description</label>
+			<label index="tx_crud_redirects.redirect">Request URL</label>
+			<label index="tx_crud_redirects.target">Trigger URL</label>
+			<label index="tx_crud_redirects.login">Login required</label>
+			<label index="tx_crud_redirects.page">overwrite Redirect URL</label>
 			<label index="tx_crud_roles.subtitle">Shortinfo</label>
 			<label index="tx_crud_roles.allow_create">Create</label>
 			<label index="tx_crud_roles.allow_retrieve">Retrieve</label>

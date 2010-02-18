@@ -131,8 +131,58 @@ function prepareSide() {
 	}
 	prepareHideables();
 	loadPicPos();
+	prepareDatePicker();
 }
 
+//-==============
+//= DatePicker 
+//-==============
+function prepareDatePicker() {
+	$('.inputDate').each(function() {
+		activateDatePicker($(this));
+	});
+}
+function activateDatePicker($elem) {
+	var datepickerConfig = new Object({
+		eventName: 'focus',
+		format: $elem.attr('format'),
+		date: $elem.val(),
+		current: $elem.val(),
+		starts: 1,
+		position: 'right',
+		onBeforeShow: function(){
+			if ( $elem.val().length > 0 ) {
+				$elem.DatePickerSetDate($elem.val(), true);
+			}
+		},
+		onChange: function(formated, dates) {
+			if(!isNaN(dates.valueOf())) {
+				$elem.val(formated);
+				$elem.DatePickerHide();
+			}
+		}
+	});
+	
+	if($elem.attr('lan') == 'de') {
+		datepickerConfig.locale = new Object({
+			days: ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag'],
+			daysShort: ['Son', 'Mon', 'Die', 'Mit', 'Don', 'Fre', 'Sam', 'Son'],
+			daysMin: ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'],
+			months: ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'],
+			monthsShort: ['Jan', 'Feb', 'Mrz', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'],
+			weekMin: 'KW'
+		});
+	}
+/*	if($elem.attr('lower') != undefined) {
+		datepickerConfig.onRender = function(date) {
+			return {
+				disabled: (date.valueOf() < $elem.attr('lower') || date.valueOf() > $elem.attr('upper'))
+			}
+		};
+	}*/
+	
+	$elem.DatePicker(datepickerConfig);
+}
 
 //-===========
 //= tinyMCE 
@@ -152,17 +202,23 @@ function removeHTMLComments(element_id, html, body) {
 // -===========
 function prepareHideables() {
 	$('.hideable').each(function(){
-		$(this).prev().html($(this).prev().html() + ' (<a href="#" onclick="return showHide(this);">show</a>)');
+		$(this).prev().html($(this).prev().html() + ' (<a href="#" onclick="return showHide(this, true);">show</a>)');
+		$(this).hide();
+	});
+	$('.hideableSimple').each(function(){
+		$(this).prev().html('<a href="#" onclick="return showHide(this, false);">' + $(this).prev().html() + '</a>');
 		$(this).hide();
 	});
 }
 
-function showHide(elem) {
-	$(elem).parent().next().toggle('slow');
-	if ($(elem).html() == 'show') {
-		$(elem).html('hide');
-	} else {
-		$(elem).html('show');
+function showHide(elem, withTextChange) {
+	$(elem).parent().next().toggle();
+	if(withTextChange) {
+		if ($(elem).html() == 'show') {
+			$(elem).html('hide');
+		} else {
+			$(elem).html('show');
+		}
 	}
 	return false;
 }
@@ -204,7 +260,7 @@ function showGoogleMap(ajaxTarget, aId) {
 			item = googleMapCoords[i];
 			coord = item['coord'].split(',');
 			var point = new GLatLng(coord[0],coord[1]);
-			if(point) {	
+			if (point) {	
 				centerx += parseFloat(coord[0]);
 				centery += parseFloat(coord[1]);
 				marker[divider] = new GMarker(point);
@@ -218,14 +274,14 @@ function showGoogleMap(ajaxTarget, aId) {
 					this.closeInfoWindow();
 				});
 				
-				if(item['elemId']) {
+				if (item['elemId']) {
 					createDomListener(item['elemId'], marker[divider]);
 				}
-				if(item['link']) {
+				if (item['link']) {
 					marker[divider].content['link'] = item['link'];
 					GEvent.addListener(marker[divider], 'click', function() {
-						if(ajaxTarget != '' && aId != ''){
-							ajaxLoad( baseUrl + this.content['link'], 'ajax=1&ajaxTarget='+ajaxTarget+'&aID='+aId, $(m), true, '');//+'&saveContainer=1'
+						if (ajaxTarget != '' && aId != '') {
+							ajaxLoad( baseUrl + this.content['link'], 'ajax=1&ajaxTarget=' + ajaxTarget + '&aID=' + aId, $(m), true, ''); //+'&saveContainer=1'
 						} else {
 							location = baseUrl + this.content['link'];
 						}
@@ -239,7 +295,7 @@ function showGoogleMap(ajaxTarget, aId) {
 		centery = centery / parseFloat(divider);
 		
 		var center = new GLatLng(centerx, centery);
-		map.setCenter(center,5);
+		map.setCenter(center, 5);
 		map.addControl(new GSmallMapControl());
 	}
 }
@@ -255,7 +311,7 @@ function createDomListener(elem, marker){
 
 function prepareGoogleMap() {
 	// Das Element für die Anzeige suchen
-	var m = $("#map_canvas")[0];
+	var m = $('#map_canvas')[0];
 	
 	// Die Landkarte auf der Webseite darstellen
 	if (m) {
@@ -275,14 +331,13 @@ function prepareGoogleMap() {
 			map.setCenter(point, 13);
 			map.addControl(new GSmallMapControl());
 			var marker = new GMarker(point);
-			GEvent.addListener(marker, "mouseover", function() {
+			GEvent.addListener(marker, 'mouseover', function() {
 				marker.openInfoWindowHtml(address);
 			});
-			GEvent.addListener(marker, "mouseout", function() {
+			GEvent.addListener(marker, 'mouseout', function() {
 				marker.closeInfoWindow();
 			});
 			map.addOverlay(marker);
-			
 		} else {
 			$(m).remove();
 		}
@@ -298,7 +353,9 @@ function prepareMultiSelects() {
 	
 	$('select[multiple]').each(function() {
 		var selString = '';
-		if(!$(this).hasClass('multiselectPrepared')){
+		if (!$(this).hasClass('multiselectPrepared')){
+			var className = $(this).attr('id');
+			
 			$(this).mouseover(function() {
 				$sels = $(this.options + '[selected]');
 			});
@@ -318,23 +375,34 @@ function prepareMultiSelects() {
 							$(this).remove();
 					});
 					this.options[ind].selected = false;
-				} else { 
-					$('div.' + $(this).attr('id')+' > ul').append('<li>' + tag + ' <a class="deselect" href="#" onclick="return deselect(\''+$(this.options[ind]).attr('value')+'\',\''+$(this).attr('id')+'\',this)">x</a></li>');
-					this.options[ind].selected = true;
+					if($('div.' + $(this).attr('id')+' > ul > li').length == 0) {
+						$('#hl_' + className).remove();
+					}
+					
+				} else { 					
+					if($('div.' + $(this).attr('id') + ' > ul > li').length == 0) {
+						$(this).after('<strong id="hl_' + className + '">Auswahl:</strong>');
+					}
+					$('div.' + $(this).attr('id')+' > ul').append('<li>' + tag + ' <a class="deselect" href="#" onclick="return deselect(\''+$(this.options[ind]).attr('value')+'\',\''+$(this).attr('id')+'\', this)">x</a></li>');
+					this.options[ind].selected = true;	
 				}
 				$sels.length = 0;
 				$sels = $(this.options + '[selected]');
 				return false;
 			});
 			$(this).addClass('multiselectPrepared');
+			var j = 0;
 			for (var i = 0; i < this.options.length; i++) {
 				if (this.options[i].selected) {
-					selString += '<li>' + $(this.options[i]).html() + ' <a class="deselect" href="#" onclick="return deselect(\''+$(this.options[i]).attr('value')+'\',\''+$(this).attr('id')+'\',this)">x</a></li>';
+					j++;
+					selString += '<li>' + $(this.options[i]).html() + ' <a class="deselect" href="#" onclick="return deselect(\''+$(this.options[i]).attr('value')+'\',\''+$(this).attr('id')+'\', this)">x</a></li>';
 				}
 			}
-			var className = $(this).attr('id'); //TODO: Localization
-			
-			$(this).after('<br /><strong>Auswahl:</strong><div class="' + className + ' multiselection"><ul>' + selString + '</ul></div>');
+			 //TODO: Localization
+			$(this).after('<div class="' + className + ' multiselection"><ul>' + selString + '</ul></div>');
+			if (j > 0) {
+				$(this).after('<strong id="hl_' + className + '">Auswahl:</strong>');
+			}
 		} 
 	});
 } 
@@ -345,6 +413,9 @@ function deselect( optVal, idName, elem){
 			this.selected = false;
 	});
 	$(elem).parents('li').remove();
+	if($('#'+idName+' option:selected').length == 0) {
+		$('#hl_' + idName).remove();
+	}
 	return false;
 }
 
@@ -459,13 +530,13 @@ function serialize2Array($form) {
 		//alert(field.name+"="+field.value);
 		result[field.name] = field.value;
 	});
-	result['ajax']=1;
+	result['ajax'] = 1;
 	return result;
 }
 
-function selectItem(li,$elem) {
-	$elem.attr('name', $('.ac_info1',li).html());
-	$elem.attr('value', $('.ac_info2',li).html());
+function selectItem(li, $elem) {
+	$elem.attr('name', $('.ac_info1', li).html());
+	$elem.attr('value', $('.ac_info2', li).html());
 	$elem.parents('form').submit();
 }
 
@@ -476,9 +547,9 @@ function formatItem(row) {
 		} else {
 			var show = row[0];
 		}
-		return '<div class="hidden ac_info1">'+row[1]+'</div><div class="hidden ac_info2">'+row[3]+'</div><div>'+show+'</div>';
+		return '<div class="hidden ac_info1">' + row[1] + '</div><div class="hidden ac_info2">' + row[3] + '</div><div>' + show + '</div>';
 	} else {
-		return '<div class="headline">'+row[1]+'</div>';
+		return '<div class="headline">' + row[1] + '</div>';
 	}
 }
 
@@ -517,32 +588,33 @@ function prepareAutoComplete() {
 // -=======
 function loadPicPos(){
 	if ($('#loadAjaxGif').length==0) {
-		  $('body').append('<img id="loadAjaxGif" style="position:absolute;z-index=99999;" src="'+baseUrl+'typo3conf/ext/crud/resources/jquery/images/ajax-loader.gif" alt="" />');	
+		  $('body').append('<img id="loadAjaxGif" style="position:absolute;z-index:999;" src="http://yellowmed.com/typo3conf/ext/crud/resources/jquery/images/ajax-loader.gif" alt="" />');	
 		  $('#loadAjaxGif').hide();
 	}
 
 	$('body').mousemove(function(e) {
 		if(ajaxIdle)
-			$('#loadAjaxGif').css({ top: (e.pageY + 5)+'px', left: (e.pageX + 5)+'px' });
+			$('#loadAjaxGif').css({ top: (e.pageY + 5) + 'px', left: (e.pageX + 5) + 'px' });
 	});
 	$('body').mousedown(function(e) {
 		//alert(e.pageXOffset);
-		$('#loadAjaxGif').css({ top: (e.pageY + 5)+'px', left: (e.pageX + 5)+'px' });
+		$('#loadAjaxGif').css({ top: (e.pageY + 5) + 'px', left: (e.pageX + 5) + 'px' });
 	});
 }
+
 function ajaxlink(elem, ajaxTarget, aId, saveContainer, restoreContainer) {
 	if (!ajaxIdle) {
 		var params;
-		params = 'ajax=1&ajaxTarget='+ajaxTarget+'&aID='+aId;
+		params = 'ajax=1&ajaxTarget=' + ajaxTarget + '&aID=' + aId;
 		if (saveContainer) {
-			params += '&saveContainer='+saveContainer;
+			params += '&saveContainer=' + saveContainer;
 		}
 		if (restoreContainer) {
-			params += '&restoreContainer='+restoreContainer;
+			params += '&restoreContainer=' + restoreContainer;
 		}
 		// der verweis
 		ajaxLink = $(elem).attr('href');
-		if (ajaxLoad(ajaxLink,params,$(elem),true,"") == false) {
+		if (ajaxLoad(ajaxLink, params, $(elem), true, '') == false) {
 			return true;
 		}
 	}
@@ -555,27 +627,27 @@ function ajax4onClick(elem) {
 	}
 }
 
-function ajaxedForm($form,$container,saveHist) {
+function ajaxedForm($form, $container, saveHist) {
 	if (!ajaxIdle) {
 		var ajaxLink = $form.attr('action');
 		if (tinyMCEpresent) {
-			tinyMCE.triggerSave(true,true);
+			tinyMCE.triggerSave(true, true);
 		}
 		var ajaxParams = $form.formSerialize();	
-		if (ajaxLoadForm(ajaxLink, ajaxParams , $form,saveHist,$container) == false) {
+		if (ajaxLoadForm(ajaxLink, ajaxParams , $form, saveHist, $container) == false) {
 			return true;
 		}
 	}
 	return false;
 }
 
-function getAjaxContainer(ajaxLink,ajaxParams,$elem) {
-	var string = ajaxLink +'&'+ ajaxParams;
+function getAjaxContainer(ajaxLink, ajaxParams, $elem) {
+	var string = ajaxLink + '&' + ajaxParams;
 	if (string.indexOf('ajaxTarget') == -1) {
 		return false;
 	}
 	
-	var ajaxTarget = string.substr(string.indexOf('ajaxTarget')+11);
+	var ajaxTarget = string.substr(string.indexOf('ajaxTarget') + 11);
 	if (ajaxTarget.charAt(0) == '=') {
 		ajaxTarget = ajaxTarget.substr(1);
 	}
@@ -594,9 +666,9 @@ function getAjaxContainer(ajaxLink,ajaxParams,$elem) {
 		hideThickbox();
 	}
 	
-	var $container = $elem.parents('.'+ajaxTarget);
+	var $container = $elem.parents('.' + ajaxTarget);
 	if ($container.length < 1) {
-		$container = $('.'+ajaxTarget);
+		$container = $('.' + ajaxTarget);
 	}
 	if ($container.length < 1) {
 		return false;
@@ -604,7 +676,7 @@ function getAjaxContainer(ajaxLink,ajaxParams,$elem) {
 	ajaxIdle = true;	
 	
 	if ($container.length > 1) {
-		$container=$container[0];
+		$container = $container[0];
 	} 
 	if (string.indexOf('saveContainer') != -1) {
 		savedContainer[$container.attr('id')] = $container.html();
@@ -644,18 +716,18 @@ function ajaxLoadForm(ajaxLink, ajaxParams, $elem, saveHist, $container) {
 	if (ajaxLink.indexOf('http') > -1) {
 		callUrl = ajaxLink;
 	} else {
-		callUrl = baseUrl+ajaxLink;
+		callUrl = baseUrl + ajaxLink;
 	}
 	
 	$elem.ajaxSubmit({
 		url: callUrl,
 		target: $container,
 		success: function (r){
-			if(r.substr(0, 9) == '<!DOCTYPE') {
+			if (r.substr(0, 9) == '<!DOCTYPE') {
 				window.location.href = document.URL;
-			}
-			else 
+			} else {
 				$container.html(r);
+			}
 			if (saveHist) {
 		//		$.history( {'containerId':$container.attr('id'),'$elem':$elem} );
 			}
@@ -669,7 +741,7 @@ function ajaxLoadForm(ajaxLink, ajaxParams, $elem, saveHist, $container) {
 function ajaxLoad(ajaxLink, ajaxParams, $elem, saveHist, $container) {
 	var callUrl;
 	if ($container.length < 1) {
-		$container = getAjaxContainer(ajaxLink+ajaxParams, '', $elem);
+		$container = getAjaxContainer(ajaxLink + ajaxParams, '', $elem);
 	}
 	if ($container == false || $container == true) {
 		return $container;
@@ -690,9 +762,9 @@ function ajaxLoad(ajaxLink, ajaxParams, $elem, saveHist, $container) {
 		success: function(r) {	
 			if(r.substr(0, 9) == '<!DOCTYPE') {
 				window.location.href = callUrl;
-			}
-			else 
+			} else {
 				$container.html(r);
+			}
 			//$container.css('cursor', 'derfault');
 			if (saveHist) {
 		//		$.history( {'containerId':$container.attr('id'),'link':ajaxLink,'pars':ajaxParams} );
@@ -712,7 +784,7 @@ function ajaxLoad(ajaxLink, ajaxParams, $elem, saveHist, $container) {
 function observeLinks(){
 	var ajaxLink;
 	$(':submit, :image').click(function() {
-		$(this).after('<input type="hidden" name="'+this.name+'" value="'+this.value+'" />');
+		$(this).after('<input type="hidden" name="' + this.name + '" value="' + this.value + '" />');
 	});
 	$('form').submit(function() {
 		return ajaxedForm($(this), '', true);

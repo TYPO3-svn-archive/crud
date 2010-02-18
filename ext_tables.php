@@ -46,6 +46,29 @@ $TCA["tx_crud_roles"] = array (
 	)
 );
 
+$TCA["tx_crud_redirects"] = array (
+	"ctrl" => array (
+		'title'     => 'LLL:EXT:crud/locallang_db.xml:tx_crud_redirects',		
+		'label'     => 'title',	
+		'tstamp'    => 'tstamp',
+		'crdate'    => 'crdate',
+		'cruser_id' => 'cruser_id',
+		'languageField'            => 'sys_language_uid',	
+		'transOrigPointerField'    => 'l18n_parent',	
+		'transOrigDiffSourceField' => 'l18n_diffsource',	
+		'delete' => 'deleted',	
+		'enablecolumns' => array (		
+			'disabled' => 'hidden',
+		),
+		'dynamicConfigFile' => t3lib_extMgm::extPath($_EXTKEY).'tca.php',
+		'iconfile'          => t3lib_extMgm::extRelPath($_EXTKEY).'icon_tx_crud_roles.gif',
+	),
+	"feIntercrude" => array (
+		"fe_admin_fieldList" => "sys_language_uid, l18n_parent, l18n_diffsource, hidden, title, description, redirect, target, login, page",
+	)
+);
+
+
 $TCA["tx_crud_options"] = array (
 	"ctrl" => array (
 		'title'     => 'LLL:EXT:crud/locallang_db.xml:tx_crud_options',		
@@ -126,24 +149,7 @@ $TCA["tx_crud_locks"] = array (
 	)
 );
 
-$tempColumns = Array (
-    "tx_crud_ts" => Array (        
-        "exclude" => 1,        
-        "label" => "LLL:EXT:crud/locallang_db.xml:tt_content.tx_crud_ts",        
-        "config" => Array (
-            "type" => "group",    
-            "internal_type" => "db",    
-            "allowed" => "sys_template",    
-            "size" => 1,    
-            "minitems" => 0,
-            "maxitems" => 1,
-        )
-    ),
-);
 
-
-t3lib_div::loadTCA("tt_content");
-t3lib_extMgm::addTCAcolumns("tt_content",$tempColumns,1);
 t3lib_extMgm::addToAllTCAtypes("tt_content","tx_crud_ts;;;;1-1-1");
 t3lib_extMgm::addStaticFile('crud', 'configurations', 'CRUD library');  
 t3lib_extMgm::addStaticFile('crud', 'doc/examples/tt_news/configurations', 'CRUD TT_NEWS Example');  

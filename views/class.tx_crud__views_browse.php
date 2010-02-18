@@ -434,7 +434,7 @@ class tx_crud__views_browse extends tx_crud__views_retrieve {
  	 * @param	string	$fields	the db fieldnames
 	 * @return	boolean
 	 */
-	function printAsSearch($label = '%%%search%%%', $wrap='', $class='autocomplete', $ajax=true, $pid=false, $id=false, $pars=false) {
+	function printAsSearch($label = '%%%search%%%', $wrap='', $class='autocomplete', $ajax=true, $pid=false, $id=false, $pars=false, $noSearch='%%%clearSearch%%%') {
 		if (!$pid) {
 			$pid=$GLOBALS['TSFE']->id;
 		}
@@ -475,31 +475,37 @@ class tx_crud__views_browse extends tx_crud__views_retrieve {
 			$id = ' id="' . $id . '" ';
 		}
 
-		$out .= $wrap[0] . '<form method="post" action="index.php?id=' .$pid . '" class="yform printAsSearch"><div class="type-text">';
+		$out .= $wrap[0] . '<form method="post" action="' . $this->getUrl(array(),$pid) . '" class="yform printAsSearch"><div class="type-text">';
 			if ($ajax) {
-				$out .= '<input type="hidden" name="ajaxTarget" value="' . $this->getAjaxTarget ( "printAsSearch" ) . '" />';
+				$out .= '<input type="hidden" name="ajaxTarget" value="' . $this->getAjaxTarget('printAsSearch') . '" />';
 			}
 			$out .= '<input type="hidden" name="aID" value="' . tx_crud__div::getActionID($config) . '" />';
 			$out .= '<input ' . $class . $id . ' size="30" type="text" name="' . $this->getDesignator () . '[find]" value="' . $pars ['find'] . '" />';
 			$out .= '<button type="submit"><span>' . $label . '</span></button>';
+			if (!empty($noSearch)) {
+				$out .= $this->printAsNoSearch($noSearch, $ajax, true);
+			}
 		$out .= $hidden . '</div></form>' . $wrap[1];
 		echo $out;
 	}
 
-	function printAsNoSearch($label='%%%clearSearch%%%', $ajax=false) {
+	function printAsNoSearch($label='%%%clearSearch%%%', $ajax=false, $return=false) {
 		$pars = $this->controller->parameters->getArrayCopy();
 		$config = $this->controller->configurations->getArrayCopy();
-		if (isset($pars['find']) || is_array($pars['search'])) {
-			//$data = $this->urlData;
-			//unset ( $data ['track'] );
-			//unset ( $data ['find'] );
-			//unset ( $data ['search'] );
-			$out = $this->getUrl( $data );
-			echo '<form method="post" action="index.php?id=' . $GLOBALS['TSFE']->id . '" class="yform printAsNoSearch"><div class="type-text">';
+		if (!empty($pars['find']) && !is_array($pars['search'])) {
+ 			$data=$pars;
+			unset ( $data ['track'] );
+			unset ( $data ['find'] );
+			unset ( $data ['search'] );
+			$out = $this->getUrl( $data,$GLOBALS['TSFE']->id,0,1);
 			if ($ajax) {
-				echo '<input type="hidden" name="ajaxTarget" value="' . $this->getAjaxTarget('printAsNoSearch') . '" />' . "\n" . '<input type="hidden" name="aID" value="' . tx_crud__div::getActionID($config) . '" />';
-		}
-			echo '<button type="submit"><span>' . $label . '</span></button>' . "\n" . '</div></form>';
+				$js = $this->getAjaxTarget('printAsNoSearch') ;
+			}
+			if (!$return) {
+				echo '<a ' . $js . ' href="' . $out . '" >' . $label . '</a>';
+			} else {
+				return '<a ' . $js . ' href="' . $out . '" >' . $label . '</a>';
+			}
 		}
 	}
 
@@ -559,7 +565,7 @@ class tx_crud__views_browse extends tx_crud__views_retrieve {
 			$url = $this->getUrl( $pars );// . '&' . $this->getDesignator () . '[search][' . $item ['key'] . '][is]=' . $checkValue;
 
 
-		} elseif (strlen ( $value ) >= 1)
+		} elseif (strlen ( $value ) >= 1 || $value===0)
 			foreach ( $value_exploded as $val ) {
 			//	unset($pars['search'][$item['key']]);
 				///$url = $this->getUrl ( $pars ,$GLOBALS['TSFE']->id,1);
@@ -821,7 +827,7 @@ class tx_crud__views_browse extends tx_crud__views_retrieve {
 	}
 
 	function getTimeLine($table, $field, $start=false, $max=false, $first='Y', $second='n') {
-		
+
 		if (!$max) {
 			$max = (time() * 2);
 		}
@@ -840,9 +846,9 @@ class tx_crud__views_browse extends tx_crud__views_retrieve {
 				$dates[$year][$month] += $count;
 			}
 		}
-		asort($dates);	
+		asort($dates);
 		foreach($dates AS $key => $value) {
-			ksort($value);			
+			ksort($value);
 			$dates[$key] = array_reverse($value, true);
 		}
 		$dates_ok = array_reverse($dates, true);

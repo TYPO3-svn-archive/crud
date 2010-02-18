@@ -2,13 +2,13 @@
 $this->loadHeaderData('css', 'forms');
 $this->loadHeaderData('css', 'autocomplete');//add the css for the autocomplete search
 $this->loadHeaderData('css', 'news');//add the tt_news css
-$this->loadHeaderData('libraries', 'jquery');//include jquery 
-$this->loadHeaderData('libraries', 'jquery-forms');//include jquery forms lib needed by the autocomplete
-$this->loadHeaderData('libraries', 'jquery-autocomplete');//include the autocomplete lib
-$this->loadHeaderData('libraries', 'crudscript');//include the crud js for ajax loading and browser histories
+//$this->loadFooterData('libraries', 'jquery');//include jquery 
+//$this->loadFooterData('libraries', 'jquery-forms');//include jquery forms lib needed by the autocomplete
+//$this->loadFooterData('libraries', 'jquery-autocomplete');//include the autocomplete lib
+//$this->loadFooterData('libraries', 'crudscript');//include the crud js for ajax loading and browser histories
 
 $config = $this->controller->configurations->getArrayCopy();
-
+//t3lib_div::debug($config);
 if ($this->get('mode') == 'PROCESS') { //check the mode. if PROCESS than all ok
 	$newslist = $this->renderPreview($this->get('data')); //renders the preview of the data
 	$config = $this->controller->configurations->getArrayCopy();
@@ -39,13 +39,13 @@ if ($this->get('mode') == 'PROCESS') { //check the mode. if PROCESS than all ok
 		?>
 		<div class="entry clearfix <?php echo $first . ' ' . $video; ?>">
 			<p class="meta"><?php echo strftime($this->getLL('LLL:EXT:crud/locallang.xml:dateTCA.output'),$this->get('crdate')); ?></p>
-			<h3><?php $this->printAsSingleLink($uid,$this->get('title'), 0, 'retrieve', $config['setup.']['singlePid'], 0); //prints a single link with the title as label ?></h3>
+			<h3><?php $this->printAsSingleLink($uid,$this->get('title'), 0, 'retrieve', $news['single_pid'], 0); //prints a single link with the title as label ?></h3>
 			<p class="meta">%%%category%%% <?php echo $news['category'];?> </p>
 			<p class="meta">%%%author%%% <?php echo $news['author'];?> </p>
 			<p>
 				<?php $this->printAsImage('image', 100, 100, $this->get('imagealttext'), 0, 1); //if the news has images ?>
 				<?php echo strip_tags($this->get('short')); //the news short ?>
-				 <?php $this->printAsSingleLink($uid, '%%%more%%%', 0, 'retrieve', $config['setup.']['singlePid'], 0); //singlelink again with text ?>
+				 <?php $this->printAsSingleLink($uid, '%%%more%%%', 0, 'retrieve', $news['single_pid'], 0); //singlelink again with text ?>
 			</p>
 		</div>
 		<?php $i++; } //close the loop ?>

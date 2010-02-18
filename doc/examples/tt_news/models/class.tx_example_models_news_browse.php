@@ -4,7 +4,7 @@
  *  Copyright notice
  *
  *  (c) 2006 Frank Thelemann
- *  Contact: thelemann@datenpioniere.de
+ *  Contact: f.thelemann@yellowmed.com
  *  All rights reserved
  *
  * This library is free software; you can redistribute it and/or
@@ -25,12 +25,37 @@
 /**
  * Depends on: lib/div
  *
- * @author Frank Thelemann <thelemann@datenpioniere.de>
+ * @author Frank Thelemann <f.thelemann@yellowmed.com>
  * @package TYPO3
  * @subpackage tx_partner__registration
  */
 require_once(t3lib_extMgm::extPath('crud') . 'models/class.tx_crud__models_browse.php');
 class tx_example_models_news_browse  extends tx_crud__models_browse{
+	
+	function preLoad() {
+		$config=$this->controller->configurations->getArrayCopy();
+		$config['storage.']["additonalWhere"]="(archivedate=0 OR archivedate>".time().") AND ";
+		$this->controller->configurations = new tx_lib_object($config);
+	}
+	
+	function postQuery() {  //erste category holen fuer singlepid
+		$config=$this->controller->configurations->getArrayCopy();
+		foreach($this->processData as $uid=>$record) {
+			if(!empty($record['category'])) {
+				$query = $GLOBALS['TYPO3_DB']->exec_SELECTquery("*","tt_news_cat_mm","uid_local=".$record['uid']);
+				if($query) {
+					$categories = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($query);
+					$query = $GLOBALS['TYPO3_DB']->exec_SELECTquery("*","tt_news_cat","uid=".$categories['uid_foreign']);
+					if($query){
+						 $category=$GLOBALS['TYPO3_DB']->sql_fetch_assoc($query);
+						if($category['single_pid']<1) $category['single_pid']=$config['setup.']['singlePid'];
+						$this->processData[$uid]["single_pid"]=$category['single_pid'];
+					}
+				}
+			}
+		}
+	}
+	
 	
 }
 ?>

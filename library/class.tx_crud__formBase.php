@@ -24,7 +24,7 @@
 
 /**
  * enhanced the lib formBase class with some extra elements
- * 
+ *
  * Depends on: lib/div
  *
  * @author Frank Thelemann <f.thelemann@yellowmed.com>
@@ -32,15 +32,15 @@
  * @subpackage tx_crud
  */
 class tx_crud__formBase extends tx_lib_formBase {
-	
+
 	var $setup;
 	var $_rowPattern = '%1$s<dt>%2$s</dt>
 					%4$s<dd>%3$s</dd>';
-	
+
 	// -------------------------------------------------------------------------------------
 	// EXTRA FORM  ELEMENTS
 	// -------------------------------------------------------------------------------------
-	
+
 	/**
 	 * prints an form start tag
 	 *
@@ -49,24 +49,24 @@ class tx_crud__formBase extends tx_lib_formBase {
 	 * @return	string	the form start tag
 	 */
 	function begin($key, $attributes = array(),$url=false,$class=false) {
-		$this->setIdPrefix ( $this->getDesignator () );
-		$attributes ['id'] = $key;
-		$attributes ['action'] = $this->action ();
-		if($class) $style=' class="'.$class.'"';
-		$attributes ['method'] = $this->method ();
-		$attributes ['name'] = $this->prefixId . "form";
+		$this->setIdPrefix($this->getDesignator());
+		$attributes['id'] = $key;
+		$attributes['action'] = $this->action ();
+		if ($class) {
+			$style = ' class="' . $class . '"';
+		}
+		$attributes['method'] = $this->method ();
+		$attributes['name'] = $this->prefixId . "form";
 		unset($attributes['aID']);
 		unset($attributes['ajaxTarget']);
-		//t3lib_div::Debug($attributes);
 		$attrutes ['enctype'] = "multipart/form-data";
-		if(!$url) {
-			$url = $this->action ();
-			$url = str_replace ( "no_cache=1", "", $url );
+		if (!$url) {
+			$url = $this->action();
+			$url = str_replace('no_cache=1', '', $url );
 		}
-		//t3lib_div::debug($_SERVER);
-		echo "\r\n" . '<form '.$style.' method="post" action="'.$url.'" enctype="multipart/form-data">' . "\r\n";
+		echo "\n" . '<form ' . $style . ' method="post" action="' . $url . '" enctype="multipart/form-data">' . "\n";
 	}
-	
+
 	/**
 	 * prints multiple file upload input elements
 	 *
@@ -76,14 +76,17 @@ class tx_crud__formBase extends tx_lib_formBase {
 	 */
 	function multiFileRow($key, $label, $attributes = array()) {
 		$setup = $this->setup;
+		$pars = $this->controller->parameters->getArrayCopy();
 		if (! isset ( $attributes ['name'] )) {
 			$this->_die ( 'Please set a name attribute for multiFileRow controls.', __FILE__, __LINE__ );
 		}
 		$y = 0;
-		for($i = 0; $i < $setup [$key] ['config.'] ['maxitems']; $i ++) {
-			if (strlen ( $setup [$key] ['value'] [$i] ) <= 0) {
+		//t3lib_div::debug($setup [$key]); 
+		for ($i = 0; $i < $setup [$key] ['config.'] ['maxitems']; $i ++) {
+			if ( !file_get_contents($setup [$key] ['value'] [$i])) {
 				if ($y < $setup [$key] ['config.'] ['size']) {
-					$inputs .= '<li><input type="file" title="' . $attributes ['title'] . '" name="' . $attributes ['name'] . '[' . $i . ']" maxlength="' . $attributes ['maxlength'] . '" /></li>' . "\n";
+					$inputs .= '<li><input type="file" title="' . 
+					$attributes ['title'] . '" name="' . $attributes ['name'] . '[' . $i . ']" maxlength="' . $attributes ['maxlength'] . '" /></li>' . "\n";
 					$y ++;
 				}
 			} else {
@@ -95,7 +98,7 @@ class tx_crud__formBase extends tx_lib_formBase {
 		$out = '<ul class="upload ' . $this->getDesignator () . '-multiUpload">' . $files . $inputs . "</ul>\n";
 		return $out;
 	}
-	
+
 	/**
 	 * prints a image preview or if not an images, an icon for the file extension if exist
 	 *
@@ -103,9 +106,9 @@ class tx_crud__formBase extends tx_lib_formBase {
 	 * @return	string	html code for the preview
 	 */
 	function makeFilePreview($url) {
-		$fileExtension_exploded = explode ( ".", $url );
-		$fileExtension = strtolower ( $fileExtension_exploded [count ( $fileExtension_exploded ) - 1] );
-		$images = array ("jpg", "jpeg", "png", "gif", "bmp" );
+		$fileExtension_exploded = explode('.', $url);
+		$fileExtension = strtolower($fileExtension_exploded[count($fileExtension_exploded) - 1]);
+		$images = array('jpg', 'jpeg', 'png', 'gif', 'bmp');
 		if (in_array ( $fileExtension, $images )) {
 			require_once (PATH_site . 'typo3/sysext/cms/tslib/class.tslib_content.php');
 			require_once (PATH_site . 't3lib/class.t3lib_stdgraphic.php');
@@ -118,12 +121,13 @@ class tx_crud__formBase extends tx_lib_formBase {
 			if ($size [0] > 30) {
 				$size [0] = 30;
 			}
-			$imageClassName = tx_div::makeInstanceClassName ( 'tx_lib_image' );
-			$image = new $imageClassName ( );
-			$image->alt ( $setup [$key] ['label'] ); //TODO: img label
-			$image->maxWidth ( $size [0] );
-			$image->maxHeight ( $size [1] );
-			$image->path ( $url );
+			$imageClassName = tx_div::makeInstanceClassName('tx_lib_image');
+			$image = new $imageClassName();
+			$image->alt($setup[$key]['label']); //TODO: img label
+			$image->maxWidth($size[0]);
+			$image->maxHeight($size[1]);
+			$image->path($url);
+
 			return $image->make ();
 		} else {
 			if (file_exists ( 'typo3conf/ext/crud/resources/icons/files/icon_' . strtolower ( $fileExtension ) . '.gif' )) {
@@ -132,20 +136,20 @@ class tx_crud__formBase extends tx_lib_formBase {
 			}
 		}
 	}
-	
+
 	/**
 	 * prints an rte text field with tinyMCE
 	 *
 	 * @param	string	$key	the url to the file
 	 * @param	string	$label	the label for the element
-	 * @param	array	$attributes	the optional attributes for the element	
+	 * @param	array	$attributes	the optional attributes for the element
 	 * @return	string	html code for the rte text field
 	 */
 	function rteRow($key, $label, $attributes = array()) {
-		$conf = $this->controller->configurations->getArrayCopy ();
-		$setup = $conf ['view'] ['setup.'];
-		$rte = $conf ['view.'] ['tinymce.'];
-		unset($rte ['enable']);
+		$conf = $this->controller->configurations->getArrayCopy();
+		$setup = $conf['view']['setup.'];
+		$rte = $conf['view.']['tinymce.'];
+		unset($rte['enable']);
 		foreach ($rte as $name=>$val) {
 			if (!empty($val['fields'])) {
 				$fields = explode(',', $val['fields'] );
@@ -169,148 +173,76 @@ class tx_crud__formBase extends tx_lib_formBase {
 			$attributes ['rows'] = 5;
 		}
 		if (! $class) {
-			$class = "tinymce_default";
+			$class = 'tinymce_default';
 		}
 		$out = '<textarea id="' . $this->getDesignator () . "-" . $key . '" cols="' . $attributes ['cols'] . '" rows="' . $attributes ['rows'] . '" name="' . $this->getDesignator () . '[' . $key . ']' . '" class="' . $class . ' expand">' . $this->_getValue ( $key ) . '</textarea>' . "\n";
 		return '<dt><label for="' . $this->getDesignator () . "-" . $key . '">' . $label . "</label></dt>\n\t
 				<dd>" . $out . "</dd>\n";
 	}
-	
-	function categorieRow($key,$label,$attributes= array()) {
-		
+
+	function categorieRow($key, $label, $attributes=array()) {
+
 	}
-	
+
 	/**
 	 * prints an date with time form element
 	 *
 	 * @param	string	$key	the key of the form element
 	 * @param	string	$label	the label for the element
-	 * @param	array	$attributes	the optional attributes for the element	
+	 * @param	array	$attributes	the optional attributes for the element
 	 * @return	string	html code for the datime form element
 	 */
 	function dateTimeRow($key, $label, $attributes = array()) {
 		$setup = $this->setup;
 		$date = $setup [$key] ['value'] ['date'];
 		$time = $setup [$key] ['value'] ['time'];
-		//t3lib_div::debug($setup[$key]['config.'],$key);
-		if(isset($setup[$key]['config.']['range'])){
-			$render = 'onRender: function(date) {
-							return {
-								disabled: (date.valueOf() < ' . $setup[$key]['config.']['range']['lower']. '000  || date.valueOf() > ' . $setup[$key]['config.']['range']['upper'] .'000)
-							}
-						},';
+		if (isset($setup[$key]['config.']['range'])) {
+			$range = 'upper="' . $setup[$key]['config.']['range']['upper'] . '000" lower="' . $setup[$key]['config.']['range']['lower'] . '000" ';
 		}
-		if($GLOBALS['TSFE']->config['config']['language'] == 'de') { 
-			$locale = "locale: {
-							days: ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag'],
-							daysShort: ['Son', 'Mon', 'Die', 'Mit', 'Don', 'Fre', 'Sam', 'Son'],
-							daysMin: ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'],
-							months: ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'],
-							monthsShort: ['Jan', 'Feb', 'Mrz', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'],
-							weekMin: 'KW'
-						},"; 
-		} // TODO: andere Sprachen, wenn nötig
 		$output = explode(' ', $setup[$key]['config.']['output']);
 		$out = '<ul class="crud-datetime" class="clearfix">' . "\n\t";
-		$out .= '<li>%%%date%%% <input type="input" id="' . $this->getDesignator () . '-' . $key .'" name="' . $this->getDesignator () . '[' . $key . '][date]" value="' . $date . '" size="10" maxlength="10" /></li>' . "\n\t";
-		$out .= '<li>%%%time%%% <input type="input" name="' . $this->getDesignator () . '[' . $key . '][time]" value="' . $time . '" size="5" maxlength="5" /></li>' . "\n" . '</ul>' . "\n";
+		$out .= '<li>%%%date%%% <input ' . $range . ' lan="' . $GLOBALS['TSFE']->config['config']['language'] . '" format="' . $output[1] . '" type="text" class="inputDate" id="' . $this->getDesignator () . '-' . $key .'" name="' . $this->getDesignator () . '[' . $key . '][date]" value="' . $date . '" size="10" maxlength="10" /></li>' . "\n\t";
+		$out .= '<li>%%%time%%% <input type="text" name="' . $this->getDesignator () . '[' . $key . '][time]" value="' . $time . '" size="5" maxlength="5" /></li>' . "\n" . '</ul>' . "\n";
 		return '<dt><label for="' . $key . '">' . $label . '</label></dt>' . "\n\t" . '
-				<dd>' . $out . '</dd>' . "\n".
-				"<script type=\"text/javascript\">
-					$('#" . $this->getDesignator () . '-' . $key ."').DatePicker({
-						eventName: 'focus',
-						format:'" . $output[1] . "',
-						date: $('#" . $this->getDesignator () . '-' . $key ."').val(),
-						current: $('#" . $this->getDesignator () . '-' . $key ."').val(),
-						starts: 1,
-						position: 'right',
-						onBeforeShow: function(){
-							if ( $('#" . $this->getDesignator () . '-' . $key ."').val().length > 0 ) {
-								$('#" . $this->getDesignator () . '-' . $key ."').DatePickerSetDate($('#" . $this->getDesignator () . '-' . $key ."').val(), true);
-							}
-						}," . $render . $locale . "
-						onChange: function(formated, dates) {
-							if(!isNaN(dates.valueOf())) {
-								$('#" . $this->getDesignator () . '-' . $key ."').val(formated);
-								$('#" . $this->getDesignator () . '-' . $key ."').DatePickerHide();
-							}
-						}
-					});
-				</script>";
+				<dd>' . $out . '</dd>' . "\n";
 	}
-	
+
 	/**
 	 * prints an date with time form element
 	 *
 	 * @param	string	$key	the key of the form element
 	 * @param	string	$label	the label for the element
-	 * @param	array	$attributes	the optional attributes for the element	
+	 * @param	array	$attributes	the optional attributes for the element
 	 * @return	string	html code for the datime form element
 	 */
 	function dateRow($key, $label, $attributes = array()) {
 		$setup = $this->setup;
-		$date = $setup [$key] ['value'];
-		if(isset($setup[$key]['config.']['range'])){
-			$render = 'onRender: function(date) {
-							return {
-								disabled: (date.valueOf() < ' . $setup[$key]['config.']['range']['lower']. '000  || date.valueOf() > ' . $setup[$key]['config.']['range']['upper'] .'000)
-							}
-						},';// . ' || date.valueOf() > ' . $setup[$key]['config.']['range']['upper'] .
+		$date = $setup[$key]['value'];
+		if (isset($setup[$key]['config.']['range'])) {
+			$range = 'upper="' . $setup[$key]['config.']['range']['upper'] . '000" lower="' . $setup[$key]['config.']['range']['lower'] . '000" ';
 		}
-		if($GLOBALS['TSFE']->config['config']['language'] == 'de') { 
-			$locale = "locale: {
-							days: ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag'],
-							daysShort: ['Son', 'Mon', 'Die', 'Mit', 'Don', 'Fre', 'Sam', 'Son'],
-							daysMin: ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'],
-							months: ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'],
-							monthsShort: ['Jan', 'Feb', 'Mrz', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'],
-							weekMin: 'KW'
-						},"; 
-		} // TODO: andere Sprachen, wenn nötig
-		//t3lib_div::debug($setup[$key]['config.'],$key);
-		$out .= '<input type="input" id="' . $this->getDesignator () . '-' . $key . '" name="' . $this->getDesignator () . '[' . $key . ']" value="' . $date . '" size="10" maxlength="10" />' . "\n\t";	
+		$out .= '<input ' . $range . ' lan="' . $GLOBALS['TSFE']->config['config']['language'] . '" format="' . $setup[$key]['config.']['output'] . '" class="inputDate" type="text" id="' . $this->getDesignator () . '-' . $key . '" name="' . $this->getDesignator () . '[' . $key . ']" value="' . $date . '" size="10" maxlength="10" />' . "\n\t";
 		return '<dt><label for="' . $key . '">' . $label . '</label></dt>' . "\n\t" . '
-				<dd>' . $out . '</dd>' . "\n".
-				"<script type=\"text/javascript\">
-					$('#" . $this->getDesignator () . '-' . $key ."').DatePicker({
-						eventName: 'focus',
-						format:'" . $setup[$key]['config.']['output'] . "',
-						date: $('#" . $this->getDesignator () . '-' . $key ."').val(),
-						current: $('#" . $this->getDesignator () . '-' . $key ."').val(),
-						starts: 1,
-						position: 'right',
-						onBeforeShow: function(){
-							if ( $('#" . $this->getDesignator () . '-' . $key ."').val().length > 0 ) {
-								$('#" . $this->getDesignator () . '-' . $key ."').DatePickerSetDate($('#" . $this->getDesignator () . '-' . $key ."').val(), true);
-							}
-						}," . $render . $locale . "
-						onChange: function(formated, dates) {
-							if(!isNaN(dates.valueOf())) {
-								$('#" . $this->getDesignator () . '-' . $key ."').val(formated);
-								$('#" . $this->getDesignator () . '-' . $key ."').DatePickerHide();
-							}
-						}
-					});
-				</script>";
+				<dd>' . $out . '</dd>' . "\n";
 	}
-	
+
 	/**
 	 * prints an mutiple checkbox form element
 	 *
 	 * @param	string	$key	the key of the form element
 	 * @param	string	$label	the label for the element
-	 * @param	array	$attributes	the optional attributes for the element	
+	 * @param	array	$attributes	the optional attributes for the element
 	 * @return	string	html code for the multiple checkbox form element
 	 */
 	function multicheckbox($key, $label, $attributes = array()) {
 		$setup = $this->setup;
-		if (! isset ( $attributes ['name'] )) {
-			$this->_die ( 'Please set a name attribute for multicheckbox controlls.', __FILE__, __LINE__ );
+		if (!isset($attributes['name'])) {
+			$this->_die ( 'Please set a name attribute for multicheckbox controls.', __FILE__, __LINE__ );
 		}
-		if (! is_array ( $attributes ['options.'] )) {
-			$this->_die ( 'Please set a optins attribute for radio controlls.', __FILE__, __LINE__ );
+		if (!is_array($attributes['options.'])) {
+			$this->_die ( 'Please set an option attribute for radio controls.', __FILE__, __LINE__ );
 		} else {
-			foreach ( $attributes ['options.'] as $k => $val ) {
+			foreach ($attributes['options.'] as $k => $val) {
 				if (is_array ( $setup [$key] ['value'] ) && in_array ( $k, $setup [$key] ['value'] )) {
 					$checked = ' checked="checked"';
 				} else {
@@ -322,43 +254,43 @@ class tx_crud__formBase extends tx_lib_formBase {
 					<dd>' . $out . "</dd>\n";
 		}
 	}
-	
+
 	/**
 	 * prints an radio form element
 	 *
 	 * @param	string	$key	the key of the form element
 	 * @param	string	$label	the label for the element
-	 * @param	array	$attributes	the optional attributes for the element	
+	 * @param	array	$attributes	the optional attributes for the element
 	 * @return	string	html code for the radio form element
 	 */
 	function radio($key, $label, $attributes = array()) {
 		$setup = $this->setup;
-		if (! isset ( $attributes ['name'] )) {
-			$this->_die ( 'Please set a name attribute for radio controlls.', __FILE__, __LINE__ );
+		if (!isset($attributes['name'])) {
+			$this->_die('Please set a name attribute for radio controlls.', __FILE__, __LINE__ );
 		}
-		if (! is_array ( $attributes ['options.'] )) {
-			$this->_die ( 'Please set a optins attribute for radio controlls.', __FILE__, __LINE__ );
+		if (!is_array($attributes['options.'])) {
+			$this->_die('Please set a optins attribute for radio controlls.', __FILE__, __LINE__ );
 		} else {
-			$radio ['type'] = 'radio';
-			foreach ( $attributes ['options.'] as $k => $val ) {
-				if ($setup [$key] ['value'] == $k) {
+			$radio['type'] = 'radio';
+			foreach ($attributes['options.'] as $k => $val ) {
+				if ($setup [$key]['value'] == $k) {
 					$checked = ' checked="checked"';
 				} else {
 					$checked = '';
 				}
-				$out .= '<input type="radio" class="crud-radio" name="' . $attributes ['name'] . '" value="' . $k . '" ' . $checked . ' />' . $val . "\n";
+				$out .= '<label><input type="radio" class="crud-radio" name="' . $attributes ['name'] . '" value="' . $k . '" ' . $checked . ' /> ' . $val . '</label>' . " \n";
 			}
 		}
-		return '<dt><label for="' . $key . '">' . $label . '</label></dt>' . "\n\t" . '
+		return '<dt>' . $label . '</dt>' . "\n\t" . '
 				<dd>' . $out . "</dd>\n";
 	}
-	
+
 	/**
 	 * prints an select form element
 	 *
 	 * @param	string	$key	the key of the form element
 	 * @param	string	$label	the label for the element
-	 * @param	array	$attributes	the optional attributes for the element	
+	 * @param	array	$attributes	the optional attributes for the element
 	 * @param 	array	$options	the values for the select
 	 * @return	string	html code for the select form element
 	 */
@@ -472,19 +404,18 @@ class tx_crud__formBase extends tx_lib_formBase {
 				$body .= '</optgroup>' . "\n";
 			}
 		}
-		//t3lib_div::debug($setup[$key]);
 		if ($setup [$key] ['reload']) {
-			$reload = ' onchange="javascript:ajax4onClick(this);"';
+			//$reload = ' onchange="javascript:ajax4onClick(this);"';
 		}
 		return "\r\t" . '<select' . $attributes . $reload . $multiselect . '>' . $body . "\r\t" . '</select>' . "\r";
 	}
-	
+
 	/**
 	 * prints an captcha form element
 	 *
 	 * @param	string	$key	the name of the form element
 	 * @param	array	$entry	the setup for the captcha entry
-	 * @return	string	 
+	 * @return	string
 	 */
 	function captchaRow($key, $entry) {
 		if (t3lib_extMgm::isLoaded ( 'captcha' )) {
@@ -494,25 +425,26 @@ class tx_crud__formBase extends tx_lib_formBase {
 		}
 		return $captchaHTMLoutput;
 	}
-	
+
 	/**
 	 * prints a category select form
 	 *
 	 * @param	string	$key	the key of the form element
 	 * @param	string	$label	the label for the element
-	 * @param	array	$attributes	the optional attributes for the element	
+	 * @param	array	$attributes	the optional attributes for the element
 	 * @param 	array	$options	the values for the select
 	 * @return	string	html code for the select form element
 	 */
 	function categoryRow($key, $label, $attributes = array(), $options = NULL){
 		$setup = $this->setup[$key];
-		//echo $key;
-		//if($key=="category") t3lib_div::Debug($setup);
-		if(isset($setup['config.']['MM'])) $process = $setup['processMM'];
-		else  $process = $setup['process'];
+		if (isset($setup['config.']['MM'])) {
+			$process = $setup['processMM'];
+		} else  {
+			$process = $setup['process'];
+		}
 		$rows['options'] = $setup['options.'];
 		$rows['sorting'] = $setup['sorting.'];
-		//t3lib_div::Debug($setup);
+
 		foreach ($rows['sorting'] as $key=>$value) {
 			if (is_array($value['sub'])) {
 				$subBody = "\r\t" . '<optgroup label="' . $value['title'] . '">';
@@ -561,24 +493,24 @@ class tx_crud__formBase extends tx_lib_formBase {
 	// -------------------------------------------------------------------------------------
 	// SOME FORM HELPERS
 	// -------------------------------------------------------------------------------------
-	
+
 	/**
 	 * renders images from a setup automatic
 	 *
 	 * @param	string	$item_key	the key in the setup
-	 * @param	integer	$height		the height of the image 
-	 * @param	integer	$width		the hwidth of the image 
+	 * @param	integer	$height		the height of the image
+	 * @param	integer	$width		the hwidth of the image
 	 * @param	integer	$maxImages	how much images should rendered maximal
 	 * @param	boolean	$lightbox	should a lightbox be active
 	 * @param	string	$wrapAll	wrap some html about all images
 	 * @param	string	$wrapImage	wrap some html about every single image
 	 * @return	string	the image
 	 */
-	function makeImage($item_key, $height = 30, $width = 30, $maxImages = 100, $lightbox = 1, $wrapAll = "", $wrapImage = "") {
+	function makeImage($item_key, $height=30, $width=30, $maxImages=100, $lightbox=1, $wrapAll='', $wrapImage='') {
 		$setup = $this->setup;
 		$pars = $this->controller->parameters->getArrayCopy ();
 		$img = $item_key;
-		$wrapImage = explode ( "|", $wrapImage );
+		$wrapImage = explode('|', $wrapImage);
 		if (is_array ( $img )) {
 			$i = 0;
 			foreach ( $img as $key => $val ) {
@@ -610,13 +542,13 @@ class tx_crud__formBase extends tx_lib_formBase {
 				}
 				$i ++;
 			}
-			$wrapAll = explode ( "|", $wrapAll );
+			$wrapAll = explode('|', $wrapAll );
 			if ($images) {
 				return $wrapAll [0] . $images . $wrapAll [1];
 			}
 		}
 	}
-	
+
 	/**
 	 * check if an checkbox or radio is checked
 	 *

@@ -4,7 +4,7 @@
  *  Copyright notice
  *
  *  (c) 2006 Frank Thelemann
- *  Contact: thelemann@datenpioniere.de
+ *  Contact: f.thelemann@yellowmed.com
  *  All rights reserved
  *
  * This library is free software; you can redistribute it and/or
@@ -25,7 +25,7 @@
 /**
  * Depends on: lib/div
  *
- * @author Frank Thelemann <thelemann@datenpioniere.de>
+ * @author Frank Thelemann <f.thelemann@yellowmed.com>
  * @package TYPO3
  * @subpackage tx_partner__registration
  */

@@ -10,7 +10,8 @@
 			<label index="retrieve">Retrieve Element</label>
 			<label index="update">Update Element</label>
 			<label index="delete">Delete Element</label>
-			<label index="back">Back</label>
+			<label index="back">back</label>
+			<label index="backToListview">back to list view</label>
 			<label index="error_required">This is a mandatory field.</label>
 			<label index="error_max">Too many characters. Only ###MAX### characters are allowed.</label>
 			<label index="error_min">Too little characters. You have to use at least ###MIN### characters.</label>
@@ -28,7 +29,7 @@
 			<label index="error_integer">Your input is no number.</label>
 			<label index="error_twice">Your input already exists.</label>
 			<label index="error_link">The link is not correct or doesn't exist.</label>
-			<label index="error_filesize">Filesize is to big. Maximal ###MAX_SIZE### is allowed.</label>
+			<label index="error_filesize">Filesize is to big. Maximal ###MAX_SIZE### KB is allowed.</label>
 			<label index="error_filetype">No correct filetype. Allowed are ###ALLOWED###.</label>
 			<label index="error_filecopy">File copying failed.</label>
 			<label index="error_fileitems">Not enough files.</label>
@@ -90,6 +91,7 @@
 			<label index="update">Element aktualisieren.</label>
 			<label index="delete">Element löschen.</label>
 			<label index="back">zurück</label>
+			<label index="backToListview">zurück zur Übersicht</label>
 			<label index="error_required">Dies ist ein Pflichtfeld.</label>
 			<label index="error_max">Zeichenlänge überschritten. Es sind nur ###MAX### Zeichen erlaubt.</label>
 			<label index="error_min">Zu wenige Zeichen eingegeben. Sie müssen mindestens ###MIN### Zeichen verwenden.</label>
@@ -107,7 +109,7 @@
 			<label index="error_integer">Ihre Eingabe ist keine Zahl.</label>
 			<label index="error_twice">Ihre Eingabe existiert bereits.</label>
 			<label index="error_link">Der angegebene Link wurde nicht korrekt eigegeben oder existiert nicht.</label>
-			<label index="error_filesize">Dateigröße überschritten. Maximal ###MAX_SIZE### sind erlaubt.</label>
+			<label index="error_filesize">Dateigröße überschritten. Maximal ###MAX_SIZE### KB sind erlaubt.</label>
 			<label index="error_filetype">Dieses Dateiformat ist nicht zulässig. Zulässige Formate sind: ###ALLOWED###.</label>
 			<label index="error_filecopy">Der Kopiervorgang war leider nicht erfolgreich.</label>
 			<label index="error_fileitems">Die Dateien sind nicht vollständig.</label>

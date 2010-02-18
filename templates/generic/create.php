@@ -1,5 +1,6 @@
 <?php 
 if (!defined ('TYPO3_MODE')) die ('Access denied.');
+echo $this->get('mode');
 if ($this->get('mode') == 'EDIT') {
 	$entryList = $this->get('setup');
 	$this->printAsFormheader();
@@ -49,11 +50,11 @@ if ($this->get('mode') == 'EDIT') {
 	
 	$this->loadHeaderData('css', 'tables');
 	$this->loadHeaderData('css', 'forms');
-	$this->loadHeaderData('libraries', 'jquery');
-	$this->loadHeaderData('libraries', 'jquery-forms');
-	$this->loadHeaderData('libraries', 'jquery-ui-tabs');
+	//$this->loadFooterData('libraries', 'jquery');
+	//$this->loadFooterData('libraries', 'jquery-forms');
+	//$this->loadFooterData('libraries', 'jquery-ui-tabs');
 	$this->loadHeaderData('libraries', 'tiny-mce');
-	$this->loadHeaderData('libraries', 'crudscript');
+	//$this->loadFooterData('libraries', 'crudscript');
 	$this->enableTabs('#crud-tabs-form', $entryList);
 	$this->printAsFormSubmit();
 
@@ -63,7 +64,7 @@ if ($this->get('mode') == 'EDIT') {
 
 //	$this->printAsFormCancel();
 	} elseif ($this->get('mode') == 'ICON') {
-		$this->printActionLink('update');
+		$this->printAsActionLink('update');
 	} elseif ($this->get('mode') == 'PROCESS') {
 		echo '<p>%%%create_preview%%%</p>' . $this->printAsExitLink('%%%back%%%', 0);
 	} elseif ($this->get('mode') == 'HIDE') {

@@ -77,10 +77,15 @@ class tx_crud__views_common extends tx_lib_phpTemplateEngine {
 		}
 		$hash = md5($config['setup.']['marker'] . $config['storage.']['action'] . '-VIEW' . $hash);
 		$this->cached=tx_crud__cache::get($hash);
-		$this->generateUrls();
+		//$this->generateUrls();
 		if (is_array($pars['search']) && !$pars['track']) {
  	    	$hash = md5($_REQUEST['PHPSESSID'] . '-' . $config['setup.']['marker'] . '=' . $GLOBALS['TSFE']->id);
  	        $_SESSION[$this->getSessionHash()]['search'] = $pars['search'];
+	    }
+	    if($_GET['return']) {
+	    	//$return['url']=$_SERVER['REQUEST_URI'];
+	    	//$//return['trigger']="http://"
+	    	//$GLOBALS['TSFE']->fe_user->setKey("ses","return",$return); 
 	    }
 		if ($config['view.']['replace.'] && isset($pars['retrieve'])) {
 			$data = $view['data'][$pars['retrieve']];
@@ -90,6 +95,7 @@ class tx_crud__views_common extends tx_lib_phpTemplateEngine {
 				$this->replace[$field] = $val;
 			}
 		}
+		//t3lib_div::debug($this->replace);
 	}
 
 	/**
@@ -187,8 +193,8 @@ class tx_crud__views_common extends tx_lib_phpTemplateEngine {
 			$this->cache['realurl'][$pid] = $url;
 		}
 
-		$url = str_replace("%5B","[", $url);
-		$url = str_replace("%5D","]", $url);
+		$url = str_replace('%5B', '[', $url);
+		$url = str_replace('%5D', ']', $url);
 	//	echo $url;
 		$url_exploded = explode('.', $url);
 		if (trim($url_exploded[0]) == 'index') { //|| count($url_exploded)<=1
@@ -308,7 +314,11 @@ class tx_crud__views_common extends tx_lib_phpTemplateEngine {
 	 * @param	array		pars for your URL
 	 * @return	string		the complete URL
 	 */
-	function getUrl($pars=false, $pid=false, $search=false, $force=false, $ajaxTarget=false, $aID=false) {
+	function getUrl($pars=false, $pid=false, $search=false, $force=false, $ajaxTarget=false, $aID=false, $extKey=false) {
+		if (!$extKey) {
+			$extKey = $this->getDesignator();
+		}
+		//echo $extKey;
 		$params = $this->controller->parameters->getArrayCopy();
 		unset($pars['ajaxTarget']);
 		unset($pars['aID']);
@@ -321,12 +331,14 @@ class tx_crud__views_common extends tx_lib_phpTemplateEngine {
 			$renderNew = true;
 		}
 		if (is_array($_POST)) {
-			foreach($_POST as $key=>$val) {
+			foreach ($_POST as $key=>$val) {
 				if (isset($pars[$key])) {
-					if($key!="action")unset($pars[$key]);
+					if ($key != 'action') {
+						unset($pars[$key]);
+					}
 				}
 				if (is_array($val)) {
-					foreach($val as $key2=>$val2) {
+					foreach ($val as $key2=>$val2) {
 						if (isset($get[$key2])) {
 							unset($pars[$key2]);
 						}
@@ -334,13 +346,15 @@ class tx_crud__views_common extends tx_lib_phpTemplateEngine {
 				}
 			}
 		}
-		if(is_array($_POST[$this->getDesignator()])) {
-			foreach($_POST[$this->getDesignator()] as $key=>$val) {
+		if(is_array($_POST[$extKey])) {
+			foreach ($_POST[$extKey] as $key=>$val) {
 				if (isset($pars[$key])) {
-					 if($key!="action") unset($pars[$key]);
+					if ($key != 'action') {
+						unset($pars[$key]);
+					}
 				}
 				if (is_array($val)) {
-					foreach($val as $key2=>$val2) {
+					foreach ($val as $key2=>$val2) {
 						if (isset($get[$key2])) {
 							unset($pars[$key2]);
 						}
@@ -356,26 +370,28 @@ class tx_crud__views_common extends tx_lib_phpTemplateEngine {
 			$pars['find'] = urlencode($pars['find']);
 		}
 		$config = $this->controller->configurations->getArrayCopy();
-		if (is_array($config['storage.']['defaultParams.'])) foreach($config['storage.']['defaultParams.'] as $k=>$v) {
-			$k = str_replace('.', '', $k);
-			if (is_array($vXXX)) {
-				foreach($v as $k2=>$v2) {
-					$k2 = str_replace('.', '', $k2);
-					if (is_array($v2)) {
-						foreach($v2 as $k3=>$v3) {
-							$k3 = str_replace('.', '', $k3);
-							if (!isset($pars[$k][$k2][$k3])) {
-								$pars[$k][$k2][$k3] = $v3;
+		if (is_array($config['storage.']['defaultParams.'])) {
+			foreach ($config['storage.']['defaultParams.'] as $k=>$v) {
+				$k = str_replace('.', '', $k);
+				if (is_array($vXXX)) {
+					foreach($v as $k2=>$v2) {
+						$k2 = str_replace('.', '', $k2);
+						if (is_array($v2)) {
+							foreach ($v2 as $k3=>$v3) {
+								$k3 = str_replace('.', '', $k3);
+								if (!isset($pars[$k][$k2][$k3])) {
+									$pars[$k][$k2][$k3] = $v3;
+								}
 							}
+						} elseif (isset($pars[$k][$k2])) {
+							$pars[$k][$k2] = $v2;
 						}
-					} elseif (isset($pars[$k][$k2])) {
-						$pars[$k][$k2] = $v2;
 					}
-				}
-			} else {
-				if ($pars[$k] == $v) {
-					if (isset($pars[$k])) {
-						unset($pars[$k]);
+				} else {
+					if ($pars[$k] == $v) {
+						if (isset($pars[$k])) {
+							unset($pars[$k]);
+						}
 					}
 				}
 			}
@@ -383,13 +399,17 @@ class tx_crud__views_common extends tx_lib_phpTemplateEngine {
 		require_once(PATH_site . 'typo3/sysext/cms/tslib/class.tslib_content.php');
 		$link = tx_div::makeInstance('tx_lib_link');
 		$link->parameters($pars);
-		$link->designator($this->getDesignator());
+		//echo $extKey;
+		$link->designator($extKey);
 		$link->destination($pid);
 		$url = $link->makeURL();
+		//print_r($url);
+		//print_r($pid);
+		//print_r($pars);
 		if (is_array($searchPars) && $search) {
-			foreach($searchPars as $key=>$params) {
+			foreach ($searchPars as $key=>$params) {
 				if (is_array($params)) {
-					foreach($params as $trenner=>$value) {
+					foreach ($params as $trenner=>$value) {
 						$url_exploded = explode('?', $url);
 						if (sizeof($url_exploded) > 1) {
 							$split = '&';
@@ -448,7 +468,7 @@ class tx_crud__views_common extends tx_lib_phpTemplateEngine {
 			$renderNew = true;
 		}
 		if (is_array($_POST)) {
-			foreach($_POST as $key=>$val) {
+			foreach ($_POST as $key=>$val) {
 				if (isset($pars[$key])) {
 					unset($pars[$key]);
 				}
@@ -467,7 +487,7 @@ class tx_crud__views_common extends tx_lib_phpTemplateEngine {
 					 unset($pars[$key]);
 				}
 				if (is_array($val)) {
-					foreach($val as $key2=>$val2) {
+					foreach ($val as $key2=>$val2) {
 						if (isset($get[$key2])) {
 							unset($pars[$key2]);
 						}
@@ -539,16 +559,16 @@ class tx_crud__views_common extends tx_lib_phpTemplateEngine {
 						}
 					}
 				} elseif ($key == $this->getDesignator()) {
-					echo $key . 'nor in<br />';
+					echo $key . 'not in<br />';
 				}
 			}
 		}
 
 		if (is_array($this->urlBaseParameters) && !$force) {
-			foreach($this->urlBaseParameters as $key=>$val) {
+			foreach ($this->urlBaseParameters as $key=>$val) {
 				if ($this->realUrl) {
 					if (is_array($val)) {
-						foreach($val as $k=>$v) {
+						foreach ($val as $k=>$v) {
 							if ($i == 0) {
 								$url .= '?' . $key . '[' . $k . ']=' . urlencode($v);
 								$i++;
@@ -585,9 +605,9 @@ class tx_crud__views_common extends tx_lib_phpTemplateEngine {
 
 		//echo $split;
 		if (is_array($searchPars) && $search) {
-			foreach($searchPars as $key=>$params) {
+			foreach ($searchPars as $key=>$params) {
 				if (is_array($params)) {
-					foreach($params as $trenner=>$value) {
+					foreach ($params as $trenner=>$value) {
 						$url_exploded = explode('?', $url);
 						if (sizeof($url_exploded) > 1) {
 							$split = '&';
@@ -752,17 +772,26 @@ class tx_crud__views_common extends tx_lib_phpTemplateEngine {
 	 * @param	boolean		$force	if set the string will return alos if not successfull translated
 	 * @return	string
 	 */
-	function getLL($localLangKey,$force=false) {
+	function getLL($localLangKey,$force=false,$language=false,$cache=true) {
 		//echo $localLangKey;
 		$string = @explode(':', $localLangKey);
 		$config = $this->controller->configurations->getArrayCopy();
-		$hash = md5($string[1] . $string[2]);
+		if (!$language) {
+			$language = trim($GLOBALS['TSFE']->config['config']['language']);
+		}
+		$hash = md5($string[1] . $string[2].$language);
 		if ($string[0] == 'LLL') {
 			if (!is_array($this->LL[$hash])) {
-				$localLang = tx_crud__cache::get($hash);
-				$this->LL[$hash] = $localLang;
+				if ($cache) {
+					$localLang = tx_crud__cache::get($hash);
+				}
+				if ($cache) {
+					$this->LL[$hash] = $localLang;
+				}
 			} else {
-				$localLang = $this->LL[$hash];
+				if ($cache) {
+					$localLang = $this->LL[$hash];
+				}
 			}
 			$LLL[] = $localLangKey;
 			if (!is_array($localLang)) {
@@ -774,7 +803,7 @@ class tx_crud__views_common extends tx_lib_phpTemplateEngine {
 					if (!is_object($this->extTranslator)) {
 						$this->extTranslator = tx_div::makeInstance('tx_lib_translator');
 					} else {
-						$this->extTranslator->LOCAL_LANG_loaded=false;
+						$this->extTranslator->LOCAL_LANG_loaded = false;
 					}
 					if ($string[0] == 'LLL' && !$LLKey) {
 						$this->extTranslator->setPathToLanguageFile($path);
@@ -796,10 +825,9 @@ class tx_crud__views_common extends tx_lib_phpTemplateEngine {
 					}
 				}
 			}
-			//echo $GLOBALS['TSFE']->config['config']['language'];
+			//print_r($localLang);
 			if (is_array($localLang)) {
-				$language = trim($GLOBALS['TSFE']->config['config']['language']);
-				//echo $string[3];
+				//echo $language;
 				if (strlen($localLang[$language][$string[3]]) >= 1) {
 					$translated = $localLang[$language][$string[3]];
 					//echo $string;
@@ -879,7 +907,9 @@ class tx_crud__views_common extends tx_lib_phpTemplateEngine {
 		}
 	}
 
-	function printAsDamMedia($record) {
+	function printAsDamMedia($record,$height=false,$width=false) {
+		if($height) $record['height']=$height;
+		if($width) $record['width']=$width;
 		if ($record['file_mime_type'] == 'image') {
 			$image = $record['file_path'] . $record['file_name'];
 			echo $this->printAsImage($record['file_name'], $record['height'], $record['width'], $record['title'], $record['file_path']);
@@ -906,74 +936,143 @@ class tx_crud__views_common extends tx_lib_phpTemplateEngine {
 			$img[0] = $item_key;
 		}
 		$wrapImage = explode('|', $wrapImage);
+		//t3lib_div::debug($wrapImage);
 		if (strlen($img[0]) > 1) {
 			$i = 0;
+			//t3lib_div::Debug($img);
 			foreach ($img as $key=>$val) {
 				if (!$path) {
 					$url = $setup['view.']['setup'][$item_key]['config.']['uploadfolder'] . '/' . $val;
 				} else {
 					$url = $path . '/' . $val;
 				}
-			//	echo $url;
-				
-				if (($config['storage.']['action'] == 'retrieve' || $config['storage.']['action'] == 'browse') && $this->cached['images'][$url]) {
-					$img = '<img src="' . $this->cached['images'][$url] . '" alt="' . $altText . '"/>';
-					echo $img;
-				} elseif (@file_get_contents($url) && $i < $maxImages) {
-					$size = getimagesize($url);
-					if ($size[1] > $height) {
-						$size[1] = $height;
-					}
-					if ($size[0] > $width) {
-						$size[0] = $width;
-					}
-					require_once(PATH_site . 'typo3/sysext/cms/tslib/class.tslib_content.php');
-					require_once(PATH_site . 't3lib/class.t3lib_stdgraphic.php');
-					require_once(PATH_site . 'typo3/sysext/cms/tslib/class.tslib_gifbuilder.php');
-					$imageClassName = tx_div::makeInstanceClassName('tx_lib_image');
-					//if(is_object($image))
-					$image = new $imageClassName();
-					if (strlen($altText) > 1) {
-						$image->alt($altText);
-					} else {
-						$image->alt($val);
-					}
-					$image->maxWidth($size[0]);
-					$image->maxHeight($size[1]);
-					$image->path($url);
-
-					if ($lightbox) {
-						$images .= '<a href="' . $url . '" rel="lightbox[lb26]">' . $wrapImage[0] . $image->make() . $wrapImage[1] . '</a>'; //TODO: [lb26]
-					} else {
-						if (!$urlOnly) {
-							$images .= $wrapImage[0] . $image->make() . $wrapImage[1];
-						} else {
-							$images .= $image->make();
+				//echo $url;
+				if (@file_get_contents($url) && $i < $maxImages)  {
+					if ($this->cached['images'][$url.$height.$width]) {
+						$images .= $wrapImage[0.].'<img src="' . $this->cached['images'][$url.$height.$width] . '" alt="' . $altText . '"/>'.$wrapImage[1];
+					} else{
+						//echo"rendere image ".$val;
+						$size = getimagesize($url);
+						if ($size[1] > $height) {
+							$size[1] = $height;
 						}
-					}
-					echo $images;
-					$img_exploded = explode('src="', $images);
-					$img_exploded = explode('"', $img_exploded[1]);
-					if ($config['storage.']['action'] == 'retrieve' || $config['storage.']['action'] == 'browse') $this->cache['images'][$url] = $img_exploded[0];
-					unset($image);
-				} else {
-					echo '%%%error_no-image%%%';
+						if ($size[0] > $width) {
+							$size[0] = $width;
+						}
+						require_once(PATH_site . 'typo3/sysext/cms/tslib/class.tslib_content.php');
+						require_once(PATH_site . 't3lib/class.t3lib_stdgraphic.php');
+						require_once(PATH_site . 'typo3/sysext/cms/tslib/class.tslib_gifbuilder.php');
+						$imageClassName = tx_div::makeInstanceClassName('tx_lib_image');
+						//if(is_object($image))
+						$image = new $imageClassName();
+						if (strlen($altText) > 1) {
+							$image->alt($altText);
+						} else {
+							$image->alt($val);
+						}
+						$image->maxWidth($size[0]);
+						$image->maxHeight($size[1]);
+						$image->path($url);
+						if (!$urlOnly) {
+							$render = $wrapImage[0] . $image->make() . $wrapImage[1];
+						} else {
+							$render = $image->make();
+						}
+						$images.=$render;
+						$img_exploded = explode('src="', $render);
+						$img_exploded = explode('"', $img_exploded[1]);
+						$this->cache['images'][$url.$height.$width] = $img_exploded[0];
+						unset($image);
+					} 
 				}
 				$i++;
-				if ($urlOnly) {
-					$img = explode('src="', $images);
-					$img = explode('"', $img[1]);
-					//echo $img[0];
-					return null;
-				}
 			}
+			unset($rendered);
+			//t3lib_div::debug($images);
+			//t3lib_div::debug($wrapAll);
 			$wrapAll = explode('|', $wrapAll);
 			if ($images) {
-				//echo $wrapAll[0] . $images . $wrapAll[1];
+				//t3lib_div::Debug($images);
+				if($urlOnly) {
+					$explode = explode("<img",$images);
+					//t3lib_div::Debug($explode);
+					foreach($explode as $image_single) {
+						
+						$img_exploded = explode('src="', $image_single);
+						if(strlen($img_exploded[1])>1) {
+							$img_exploded = explode('"', $img_exploded[1]);
+							$rendered[] = $img_exploded[0];
+						}
+					}
+					
+					return implode(",",$rendered);
+				}
+				else echo $wrapAll[0] . $images . $wrapAll[1];
 			}
+			
+		}
+		
+	}
+
+	function printGaleryImages($images, $fix='_t', $width=500, $height=375, $previewHeight=40, $previewWidth=50) {
+		$setup = $this->controller->configurations->getArrayCopy();
+		$images = explode(',', $images);
+
+		foreach ($images as $url) {
+			$size = getimagesize($url);
+			if ($size[1] > $height) {
+				$size[1] = $height;
+			}
+			if ($size[0] > $width) {
+				$size[0] = $width;
+			}
+			require_once(PATH_site . 'typo3/sysext/cms/tslib/class.tslib_content.php');
+			require_once(PATH_site . 't3lib/class.t3lib_stdgraphic.php');
+			require_once(PATH_site . 'typo3/sysext/cms/tslib/class.tslib_gifbuilder.php');
+			$imageClassName = tx_div::makeInstanceClassName('tx_lib_image');
+					//if(is_object($image))
+			$image = new $imageClassName();
+			$image->maxWidth($size[0]);
+			$image->maxHeight($size[1]);
+			$image->path($url);
+
+			$tag = $image->make();
+			$explode = explode('src="', $tag);
+
+			$explode = explode('"', $explode[1]);
+			echo '<img src="' . $explode[0] . '" />'; // TODO: generate alt-Tags
 		}
 	}
 
+	function printAsThumbsImages($images, $fix='_t', $width=500, $height=375, $previewHeight=40, $previewWidth=50) {
+		$setup = $this->controller->configurations->getArrayCopy();
+		$images = explode(',', $images);
+
+		foreach ($images as $url) {
+			$size = getimagesize($url);
+			if ($size[1] > $height) {
+				$size[1] = $height;
+			}
+			if ($size[0] > $width) {
+				$size[0] = $width;
+			}
+			require_once(PATH_site . 'typo3/sysext/cms/tslib/class.tslib_content.php');
+			require_once(PATH_site . 't3lib/class.t3lib_stdgraphic.php');
+			require_once(PATH_site . 'typo3/sysext/cms/tslib/class.tslib_gifbuilder.php');
+			$imageClassName = tx_div::makeInstanceClassName('tx_lib_image');
+					//if(is_object($image))
+			$image = new $imageClassName();
+			$image->maxWidth($size[0]);
+			$image->maxHeight($size[1]);
+			$image->path($url);
+
+			$tag = $image->make();
+			$explode = explode('src="', $tag);
+
+			$explode = explode('"', $explode[1]);
+			echo '<a href="' . $explode[0] . '"><img src="' . $explode[0] . '" /></a>'; // TODO: generate alt-Tags
+		}
+	}
 
 	/**
 	 * return the hash for the fe user session basesd on the PHPSESSID
@@ -1062,6 +1161,7 @@ class tx_crud__views_common extends tx_lib_phpTemplateEngine {
 	 * @return	void
 	 */
 	function enableTabs($call, $entryList=false) {
+		//t3lib_div::Debug($entryList);;
 		$tab = 1;
 		if (is_array($entryList)) {
 			foreach ( $entryList as $divider => $dividers ) {
@@ -1089,12 +1189,13 @@ class tx_crud__views_common extends tx_lib_phpTemplateEngine {
 		} else {
 			$tab = 1;
 		}
-		$tab = $tab - 1;
+		$tab_x = $tab - 1;
 
+	//echo "aktueller tab ".$tab;
 		$js = '<script type="text/javascript">
 				function enableTabs(){
 					$("' . $call . ' > ul").addClass("ui-tabs-nav");
-					$("' . $call . ' > ul > li:eq(' . $tab . ')").addClass("ui-tabs-selected");
+					$("' . $call . ' > ul > li:eq(' . $tab_x . ')").addClass("ui-tabs-selected");
 					$("' . $call . ' > div").addClass("ui-tabs-panel");
 					$("' . $call . ' > ul").tabs("' . $call . ' > div", {initialIndex: "' . $tab . '" });
 					$("' . $call . ' > ul > li").click(function() {
@@ -1158,7 +1259,7 @@ class tx_crud__views_common extends tx_lib_phpTemplateEngine {
 			if (is_array ( $this->cached )) {
 				foreach ( $this->cached as $key => $val ) {
 					if (is_array ( $val )) {
-						foreach($val as $k=>$v) {
+						foreach ($val as $k=>$v) {
 							$this->cache[$key][$k] = $v;
 						}
 					}
@@ -1171,6 +1272,48 @@ class tx_crud__views_common extends tx_lib_phpTemplateEngine {
 		$time = $end - $this->start;
 		if ($_REQUEST['showtime']) {
 			echo 'view ' . $config['setup.']['marker'] . 'rendered in $time seconds' . "\n";
+		}
+	}
+	
+	function printArticlePrice($uid,$wrap) {
+		$config=$this->controller->configurations->getArrayCopy();
+		$data = $config['view.']['data'];;
+		$wrap = explode("|",$wrap);
+		$price = $data[$uid]['price'];
+		$currency = $data[$uid]['currency'];
+		if($currency < 1) $currency = 49;
+		$type = $data[$uid]['offer_type'];
+		if($type == 0) {
+			$formatedPrice=$this->printAsPrice($price,$currency,true);
+			$formatedPrice=str_replace($this->currencySymbol,$wrap[0].$this->currencySymbol.$wrap[1],$formatedPrice);
+			echo $formatedPrice;
+		}
+		elseif($type==1) echo "%%%articleOffer%%%";
+		else {
+			echo "%%%articleRequest%%%";
+			
+		}
+	}
+	
+	function printAsPrice($price,$currencyCode=false,$return = false, $lang="de_DE",$format="%i") {
+		if($currencyCode) {
+			$currencyCode=tx_crud__div::getStaticValue($currencyCode,"cu_iso_3","static_currencies");
+			require_once(t3lib_extMgm::extPath('static_info_tables').'pi1/class.tx_staticinfotables_pi1.php');
+			$staticInfoObj = &t3lib_div::getUserObj('&tx_staticinfotables_pi1');
+			if ($staticInfoObj->needsInit())	{
+				$staticInfoObj->init();
+			}
+			$staticInfoObj->loadCurrencyInfo($currencyCode);
+			if(strlen($staticInfoObj->currencyInfo['cu_symbol_left'])>=1) $this->currencySymbol=$staticInfoObj->currencyInfo['cu_symbol_left'];
+			elseif(strlen($staticInfoObj->currencyInfo['cu_symbol_right'])>=1) $this->currencySymbol=$staticInfoObj->currencyInfo['cu_symbol_right'];
+			if(!$return) echo $staticInfoObj->formatAmount($price);
+			else return $staticInfoObj->formatAmount($price);
+			
+		}
+		else {
+			setlocale(LC_MONETARY, $lang);
+			if(!$return)echo money_format($format, $number);
+			else return money_format($format, $number);
 		}
 	}
 }

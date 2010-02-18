@@ -6,9 +6,9 @@ $conf = $this->controller->configurations->getArrayCopy();
 $this->loadHeaderData('css', 'datepicker');
 $this->loadHeaderData('css', 'forms');
 $this->loadHeaderData('css', 'news');//add the tt_news css
-$this->loadHeaderData('libraries', 'jquery');//include jquery 
-$this->loadHeaderData('libraries', 'jquery-forms');//include jquery forms lib needed by the autocomplete
-$this->loadHeaderData('libraries', 'crudscript');//include the crud js for ajax loading and browser histories
+//$this->loadFooterData('libraries', 'jquery');//include jquery 
+//$this->loadFooterData('libraries', 'jquery-forms');//include jquery forms lib needed by the autocomplete
+//$this->loadFooterData('libraries', 'crudscript');//include the crud js for ajax loading and browser histories
 $page_url = t3lib_div::getIndpEnv(TYPO3_REQUEST_URL);
 
 if ($this->get('mode') == 'ICON') {
@@ -41,7 +41,7 @@ if ($this->get('mode') == 'ICON') {
 		<div id="fragment-1">
 			<fieldset class="crud-section">
 				<div class="type-text<?php if ($form['title']['error']) echo ' error'; ?>">
-					<label for="title">Titel der Neuigkeit: <sup>*</sup></label>
+					<label for="title">Titel der Neuigkeit: <sup class="requiredflag">*</sup></label>
 					<?php if ($form['title']['error']) echo '<strong class="message">' . $this->getFormError($form['title']['error'], 'title') . '</strong>'; ?>
 					<?php echo $form['title']['html']; ?>
 				</div>
@@ -60,7 +60,7 @@ if ($this->get('mode') == 'ICON') {
 					<p><small>%%%news-keywords%%</small></p>
 				</div>
 				<div class="type-select<?php if ($form['category']['error']) echo ' error'; ?>">
-					<label for="category">Art der Neuigkeit: <sup>*</sup></label>
+					<label for="category">Art der Neuigkeit: <sup class="requiredflag">*</sup></label>
 					<?php if ($form['category']['error']) echo '<strong class="message">' . $this->getFormError($form['category']['error'], 'category') . '</strong>'; ?>
 					<?php echo $form['category']['html']; ?>
 				</div>
@@ -76,7 +76,7 @@ if ($this->get('mode') == 'ICON') {
 					<p><small>%%%news-teaser%%%</small></p>
 				</div>
 				<div class="type-text<?php if ($form['bodytext']['error']) echo ' error'; ?>">
-					<label for="bodytext">Text Ihrer Nachricht: <sup>*</sup></label>
+					<label for="bodytext">Text Ihrer Nachricht: <sup class="requiredflag">*</sup></label>
 					<?php if ($form['bodytext']['error']) echo '<strong class="message">' . $this->getFormError($form['bodytext']['error'], 'bodytext') . '</strong>'; ?>
 					<?php echo $form['bodytext']['html']; ?>
 				</div>
@@ -111,12 +111,12 @@ if ($this->get('mode') == 'ICON') {
 		<div id="fragment-4">
 			<fieldset class="crud-section">
 				<div class="type-select<?php if ($form['tx_yellowmed_specialism']['error']) echo ' error'; ?>">
-					<label for="tx_yellowmed_specialism">Kategorie: <sup>*</sup></label>
+					<label for="tx_yellowmed_specialism">Kategorie: <sup class="requiredflag">*</sup></label>
 					<?php if ($form['tx_yellowmed_specialism']['error']) echo '<strong class="message">' . $this->getFormError($form['tx_yellowmed_specialism']['error'], 'tx_yellowmed_specialism') . '</strong>'; ?>
 					<?php echo $form['tx_yellowmed_specialism']['html']; ?>
 				</div>
 				<div class="type-select<?php if ($form['tx_yellowmed_infos']['error']) echo ' error'; ?>">
-					<label for="tx_yellowmed_specialism">Kategorie: <sup>*</sup></label>
+					<label for="tx_yellowmed_specialism">Kategorie: <sup class="requiredflag">*</sup></label>
 					<?php if ($form['tx_yellowmed_infos']['error']) echo '<strong class="message">' . $this->getFormError($form['tx_yellowmed_infos']['error'], 'tx_yellowmed_infos') . '</strong>'; ?>
 					<?php echo $form['tx_yellowmed_infos']['html']; ?>
 				</div>

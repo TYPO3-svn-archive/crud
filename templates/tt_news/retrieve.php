@@ -1,10 +1,10 @@
 <?php
 $this->loadHeaderData('css', 'news-css');
-$this->loadHeaderData('libraries', 'jquery');
-$this->loadHeaderData('libraries', 'jquery-forms');
-$this->loadHeaderData('libraries', 'jquery-ui-tabs');
+//$this->loadFooterData('libraries', 'jquery');
+//$this->loadFooterData('libraries', 'jquery-forms');
+//$this->loadFooterData('libraries', 'jquery-ui-tabs');
 $this->loadHeaderData('libraries', 'tiny-mce');
-$this->loadHeaderData('libraries', 'crudscript');
+//$this->loadFooterData('libraries', 'crudscript');
 
 $pars = $this->controller->parameters->getArrayCopy();
 $config = $this->controller->configurations->getArrayCopy();

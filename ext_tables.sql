@@ -1,6 +1,6 @@
 #
 # Table structure for table 'tx_crud_groups_roles_mm'
-# 
+#
 #
 CREATE TABLE tx_crud_groups_roles_mm (
   uid_local int(11) DEFAULT '0' NOT NULL,
@@ -43,7 +43,7 @@ CREATE TABLE tx_crud_groups (
 
 #
 # Table structure for table 'tx_crud_roles_allow_create_mm'
-# 
+#
 #
 CREATE TABLE tx_crud_roles_allow_create_mm (
   uid_local int(11) DEFAULT '0' NOT NULL,
@@ -58,7 +58,7 @@ CREATE TABLE tx_crud_roles_allow_create_mm (
 
 #
 # Table structure for table 'tx_crud_roles_allow_retrieve_mm'
-# 
+#
 #
 CREATE TABLE tx_crud_roles_allow_retrieve_mm (
   uid_local int(11) DEFAULT '0' NOT NULL,
@@ -72,7 +72,7 @@ CREATE TABLE tx_crud_roles_allow_retrieve_mm (
 
 #
 # Table structure for table 'tx_crud_roles_allow_update_mm'
-# 
+#
 #
 CREATE TABLE tx_crud_roles_allow_update_mm (
   uid_local int(11) DEFAULT '0' NOT NULL,
@@ -88,7 +88,7 @@ CREATE TABLE tx_crud_roles_allow_update_mm (
 
 #
 # Table structure for table 'tx_crud_roles_allow_delete_mm'
-# 
+#
 #
 CREATE TABLE tx_crud_roles_allow_delete_mm (
   uid_local int(11) DEFAULT '0' NOT NULL,
@@ -104,7 +104,7 @@ CREATE TABLE tx_crud_roles_allow_delete_mm (
 
 #
 # Table structure for table 'tx_crud_roles_allow_controller_mm'
-# 
+#
 #
 CREATE TABLE tx_crud_roles_allow_controller_mm (
   uid_local int(11) DEFAULT '0' NOT NULL,
@@ -141,7 +141,7 @@ CREATE TABLE tx_crud_roles (
 	allow_delete int(11) DEFAULT '0' NOT NULL,
 	allow_controller int(11) DEFAULT '0' NOT NULL,
 	allow_type int(11) DEFAULT '0' NOT NULL,
-	
+
 	PRIMARY KEY (uid),
 	KEY parent (pid)
 );
@@ -163,7 +163,7 @@ CREATE TABLE tx_crud_options (
 	action int(11) DEFAULT '0' NOT NULL,
 	target tinytext NOT NULL,
 	value tinytext NOT NULL,
-	
+
 	PRIMARY KEY (uid),
 	KEY parent (pid)
 );
@@ -184,7 +184,7 @@ CREATE TABLE tx_crud_users (
 	crud_group blob NOT NULL,
 	crud_role blob NOT NULL,
 	feuser blob NOT NULL,
-	
+
 	PRIMARY KEY (uid),
 	KEY parent (pid)
 );
@@ -200,6 +200,7 @@ CREATE TABLE tx_crud_histories (
 	crdate int(11) DEFAULT '0' NOT NULL,
 	cruser_id int(11) DEFAULT '0' NOT NULL,
     title tinytext NOT NULL,
+	crud_action tinytext NOT NULL,
 	crud_table tinytext NOT NULL,
 	crud_record tinytext NOT NULL,
 	crud_page tinytext NOT NULL,
@@ -251,7 +252,7 @@ CREATE TABLE tx_crud_locks (
 	crud_record tinytext NOT NULL,
 	crud_timeout int(11) DEFAULT '0' NOT NULL,
 	crud_user blob NOT NULL,
-	
+
 	PRIMARY KEY (uid),
 	KEY parent (pid)
 );
@@ -272,8 +273,25 @@ CREATE TABLE tx_crud_cached (
 );
 
 #
-# Table structure for table 'tt_content'
+# Table structure for table 'tx_crud_log'
 #
-CREATE TABLE tt_content (
-    tx_crud_ts blob  NOT NULL,
+CREATE TABLE tx_crud_redirects (
+	uid int(11) NOT NULL auto_increment,
+	pid int(11) DEFAULT '0' NOT NULL,
+	tstamp int(11) DEFAULT '0' NOT NULL,
+	crdate int(11) DEFAULT '0' NOT NULL,
+	cruser_id int(11) DEFAULT '0' NOT NULL,
+	deleted tinyint(4) DEFAULT '0' NOT NULL,
+	hidden tinyint(4) DEFAULT '0' NOT NULL,
+	sys_language_uid int(11) DEFAULT '0' NOT NULL,
+	l18n_parent int(11) DEFAULT '0' NOT NULL,
+	l18n_diffsource mediumblob NOT NULL,
+    title tinytext NOT NULL,
+	description text NOT NULL,
+	redirect text NOT NULL,
+	target text NOT NULL,
+	page text NOT NULL,
+	login tinyint(4) DEFAULT '0' NOT NULL,
+	PRIMARY KEY (uid),
+	KEY parent (pid)
 );

@@ -198,7 +198,7 @@ class  tx_crud_module1 extends t3lib_SCbase {
 
 	function deleteCache() {
 		if($_POST['cache']) {
-			if($GLOBALS['TYPO3_DB']->exec_DELETEquery("tx_crud_cached","tstamp>1")) {
+			if($GLOBALS['TYPO3_DB']->sql_query("TRUNCATE tx_crud_cached")) {
 				$form= "All Caches successfull deleted";
 			}
 			

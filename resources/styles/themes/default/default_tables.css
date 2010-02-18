@@ -195,16 +195,6 @@ position: absolute;
 margin-top: expression(0 - parseInt(this.offsetHeight / 2) + (TBWindowMargin = document.documentElement && document.documentElement.scrollTop || document.body.scrollTop) + 'px');
 }
 
-img#loadAjaxGif {
-	position: fixed;
-	z-index: 102;
-	top: 50%;
-	margin-top: -9px;
-	left: 50%;
-	margin-left: -110px;
-}
-
-
  /**
   * @section filter list
   *

@@ -33,13 +33,13 @@
 require_once (t3lib_extMgm::extPath ( 'crud' ) . 'library/class.tx_crud__formBase.php');
 require_once (t3lib_extMgm::extPath ( 'crud' ) . 'views/class.tx_crud__views_common.php');
 class tx_crud__views_create extends tx_crud__views_common {
-	
+
 	var $viewAction = 'CREATE';
-	
+
 	// -------------------------------------------------------------------------------------
 	// FORM HELPER
 	// -------------------------------------------------------------------------------------
-	
+
 	/**
 	 * Prints the form start tag and makes an instance of tx_crud__formBase
 	 *
@@ -60,37 +60,35 @@ class tx_crud__views_create extends tx_crud__views_common {
 		echo "\n" . '<form ' . $style . ' method="post" action="' . $this->getUrl(array()) . '" enctype="multipart/form-data">' . "\n\t";
 		//echo $this->form->begin($this->getDesignator(), array('name' => $this->getDesignator()), $url, $class);
 	}
-	
+
 	/**
 	 * Prints an link to exit the form
 	 *
 	 * @param	$label	the label
 	 * @return	string	link to cancel the form action
 	 */
-	function printAsFormCancel($label='Cancel', $ajax=true, $mID=false) {
+	function printAsFormCancel($label='Cancel', $ajax=true, $pid=false) {
+		if (!$pid) {
+			$pid = $GLOBALS['TSFE']->id;
+		}
 		$pars = $this->controller->parameters->getArrayCopy ();
 		$config = $this->controller->configurations->getArrayCopy ();
-		if (isset($config['setup.']['target']) && !$mID) {
-			$mID = $config['setup.']['target'];
-		}
 		$data = $pars;
 		unset ( $data ['action'] );
 		unset ( $data ['retrieve'] );
-		///$data ['ajaxTarget'] = $this->getAjaxTarget ( "printAsFormCancel" );
 		if ($pars['track'] >= 1) {
 			$data['track'] = 1;
 		}
 		if ($this->page >= 1) {
 			$data['page'] = $this->page;
 		}
-		//if($mID)$config=array();
-		if($ajax) {
-			$onClick = $this->getAjaxOnClick(tx_crud__div::getAjaxTarget($config, 'default'), tx_crud__div::getActionID($config,$mID), false, false);
+		if ($ajax) {
+			$onClick = $this->getAjaxOnClick(tx_crud__div::getAjaxTarget($config, 'printAsFormCancel'), tx_crud__div::getActionID($config, $mID), false, false);
 		}
-		$out = '<a href="' . $this->getUrl($data) . '" ' . $onClick . '>' . $label . '</a>';
+		$out = '<a href="' . $this->getUrl($data, $pid) . '" ' . $onClick . '>' . $label . '</a>';
 		echo $out;
 	}
-	
+
 	/**
 	 * Prints the submit button and checks for an enabled RTE and includes tinyMCE
 	 *
@@ -132,9 +130,9 @@ class tx_crud__views_create extends tx_crud__views_common {
 			}
 		}
 		if (is_array ( $rte ['default.'] )) {
-			$this->headerData ['libraries'] ['tinymce'] = '<script language="javascript" type="text/javascript" src="typo3conf/ext/crud/resources/tiny_mce/tiny_mce.js"></script>';
+			//$this->headerData ['libraries'] ['tinymce'] = '<script language="javascript" type="text/javascript" src="typo3conf/ext/crud/resources/tiny_mce/tiny_mce.js"></script>';
 			unset ( $tinymce ['enable'] );
-			$tiny = '<script type="text/javascript"> 
+			$tiny = '<script type="text/javascript">
 			function enableTinyMCE(){ tinyMCEpresent = true;';
 			foreach ( $tinymce as $key => $al ) {
 				unset ( $tinymce[$key]['cols'] );
@@ -150,11 +148,11 @@ class tx_crud__views_create extends tx_crud__views_common {
 				$tiny .= 'editor_selector : "tinymce_' . $key . '"});';
 			}
 			$tiny .= "} \nenableTinyMCE();</script>";
-			$GLOBALS ['TSFE']->additionalFooterData [] = $tiny;
+			//$GLOBALS ['TSFE']->additionalFooterData [] = $tiny;
 		}
 		echo $form . $tiny;
 	}
-	
+
 	/**
 	 * Prints the form close tag
 	 *
@@ -164,7 +162,7 @@ class tx_crud__views_create extends tx_crud__views_common {
 		$code = '</form>';
 		echo $code;
 	}
-	
+
 	/**
 	 * Prints an link to exit the form
 	 *
@@ -177,7 +175,7 @@ class tx_crud__views_create extends tx_crud__views_common {
 		$out = '<a href="' . $this->getUrl ( $pars ) . '">' . $label . '</a>';
 		return $out;
 	}
-	
+
 	/**
 	 * Prints an array as checkboxes
 	 *
@@ -195,12 +193,12 @@ class tx_crud__views_create extends tx_crud__views_common {
 	// -------------------------------------------------------------------------------------
 	// SETUP HELPER
 	// -------------------------------------------------------------------------------------
-	
+
 	/**
 	 * render the setup from the model to forms
 	 *
-	 * @param 	array	$entryList	the setup for the form  
-	 * @return	array	the rendered setup 
+	 * @param 	array	$entryList	the setup for the form
+	 * @return	array	the rendered setup
 	 */
 	function renderSetup($entryList) {
 		$setup = $this->controller->configurations->getArrayCopy ();
@@ -213,11 +211,11 @@ class tx_crud__views_create extends tx_crud__views_common {
 		}
 		return $this->html;
 	}
-	
+
 	/**
 	 * render a single entry from the setup to a form element
 	 *
-	 * @param 	array	$entry	a single form element setup to render	
+	 * @param 	array	$entry	a single form element setup to render
 	 * @return	void
 	 */
 	function renderEntry($entry) {
@@ -243,24 +241,24 @@ class tx_crud__views_create extends tx_crud__views_common {
 		if (! $entry ['divider'] || $entry ['divider'] == 'General') {
 			$entry ['divider'] = '%%%' . strtolower ( $this->viewAction ) . '%%%' . " " . $this->getLL ( $setup ['view.'] ['title'] );
 		}
-		
+
 		$label = $entry ['label'];
 		$eval_exploded = explode ( ',', $entry['config.']['eval']);
 		foreach ( $eval_exploded as $key => $val ) {
 			$eval [$val] = $val;
 		}
 		$this->html [$entry ['divider']][$entry ['section']][$entry['key']] = $entry;
-	
+
 		if ($eval ['captcha']) {
 			$this->html [$entry ['divider']] [$entry ['section']] [$entry ['key']] ['html'] = $this->form->captchaRow ( $entry ['key'], $label, $entry ['attributes.'] );
 		} elseif ($entry ['element'] == 'inputRow') {
 			$this->html [$entry ['divider']] [$entry ['section']] [$entry ['key']] ['html'] = $this->form->inputRow ( $entry ['key'], $label, $entry ['attributes.'] );
 		} elseif ($entry ['element'] == 'dateTimeRow') {
 			$this->html [$entry ['divider']] [$entry ['section']] [$entry ['key']] ['html'] = $this->form->dateTimeRow ( $entry ['key'], $label, $entry ['attributes.'] );
-		
+
 		} elseif ($entry ['element'] == 'dateRow') {
 			$this->html [$entry ['divider']] [$entry ['section']] [$entry ['key']] ['html'] = $this->form->dateRow ( $entry ['key'], $label, $entry ['attributes.'] );
-		
+
 		} elseif ($entry ['element'] == 'passwordRow') {
 			$this->html [$entry ['divider']] [$entry ['section']] [$entry ['key']] ['html'] = $this->form->passwordRow ( $entry ['key'], $label, $entry ['attributes.'] );
 		} elseif ($entry ['element'] == 'multicheckbox') {
@@ -278,7 +276,7 @@ class tx_crud__views_create extends tx_crud__views_common {
 			}
 			else $this->html [$entry ['divider']] [$entry ['section']] [$entry ['key']] ['html'] = $this->form->selectRow ( $entry ['key'], $label, $entry ['attributes.'], $entry ['options.'] );
 			//$this->html [$entry ['divider']] [$entry ['section']] [$entry ['key']] ['html'] = $this->form->selectRow ( $entry ['key'], $label, $entry ['attributes.'], $entry ['options.'] );
-		} 
+		}
 		elseif ($entry ['element'] == 'multiselectRow') {
 			if ($entry['config.']['foreign_table'] == 'tx_categories') {
 				$this->html [$entry ['divider']] [$entry ['section']] [$entry ['key']] ['html'] = $this->form->categoryRow ( $entry ['key'], $label, $entry ['attributes.'], $entry ['options.'] );
@@ -301,25 +299,25 @@ class tx_crud__views_create extends tx_crud__views_common {
 			$this->html [$entry ['divider']] [$entry ['section']] [$entry ['key']] ['html'] = str_replace ( "\n", "", $html );
 		}
 	}
-	
+
 	/**
 	 * adds a manual entry to to form wich is not defined in the setup
 	 *
 	 * @param 	array	$entry	an complete setup for element
-	 * @param	string	$content	the html of the form elemnt 
+	 * @param	string	$content	the html of the form elemnt
 	 * @return	void
 	 */
 	function addPlainEntry($entry, $content) {
 		$this->html [$entry ['divider']] [$entry ['section']] [$entry ['key']] ['html'] = $content;
 	}
-	
+
 	// -------------------------------------------------------------------------------------
 	// ERROR HELPER
 	// -------------------------------------------------------------------------------------
-	
+
 
 	/**
-	 * translate and search an error for a form element. 
+	 * translate and search an error for a form element.
 	 * if not the complete locallangkey isset, it fallback to the crud locallocal.xml
 	 *
 	 * @param 	string	$localLangKey	the error of the locallang or a complete locallang path with the errro(LLL:EXT"crud/locallangxml:someError)
@@ -343,7 +341,7 @@ class tx_crud__views_create extends tx_crud__views_common {
 				$string[3] = $string[2];
 			}
 			//$what [0] = $table . "." . $action . "." . $key . "." . $string [3];
-			
+
 			//$what [1] = $table . "." . $key . "." . $string [3];
 			$what[0] = $key . '.' . $string[3];
 			$what[1] = $string[3];
@@ -368,30 +366,30 @@ class tx_crud__views_create extends tx_crud__views_common {
 			return false;
 		}
 	}
-	
+
 	/**
-	 * returns an error for a form element. 
+	 * returns an error for a form element.
 	 *
 	 * @param 	string	$localLangKey	the error without a path
 	 * @param 	string	$key	optional the key of the formelement to get a a special field error
-	 * @return	string	the translated error 
+	 * @return	string	the translated error
 	 */
 	function getFormError($str, $key) {
 		$config = $this->controller->configurations->getArrayCopy ();
-		
+
 		$LLL = 'LLL:' . $config['view.']['keyOfPathToLanguageFile'] . ':' . $str;
 		//echo "str:".$LLL;
 		//die();
 		$str = $this->getError ( $LLL, $key );
 		return $this->getEvalConfig ( $str, $key );
 	}
-	
+
 	/**
 	 * replace all amrker in the translated error from the tca eval configuration
 	 *
 	 * @param 	string	$localLangKey	the error without a path
 	 * @param 	string	$key	optional the key of the formelement to get a a special field error
-	 * @return	string	the translated error 
+	 * @return	string	the translated error
 	 */
 	function getEvalConfig($str, $key = false) {
 		$setup = $this->controller->configurations->getArrayCopy ();

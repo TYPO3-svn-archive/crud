@@ -61,7 +61,6 @@ class tx_crud__models_create extends tx_crud__models_common{
 				$this->processData[$key] = $val['process'];
 			}
 		}
-
 		if (is_array($this->controller->configurations['storage.']['defaultQuery.'][$this->panelTable."."])) {
 			foreach($this->controller->configurations['storage.']['defaultQuery.'][$this->panelTable."."] as $field=>$value) {
 				$this->processData[$field]=$value;
@@ -137,7 +136,6 @@ class tx_crud__models_create extends tx_crud__models_common{
 	 * @return  void
 	 */
 	function setupValues() {
-		//echo $this->mode;
 		$this->preSetupValues();
 		$config=$this->controller->configurations->getArrayCopy();
 		$orgMode=$this->mode;
@@ -444,7 +442,9 @@ class tx_crud__models_create extends tx_crud__models_common{
 					foreach ($eval as $key=>$val) $entry[$key] = $val;
 				}
 				$entry["element"] = "multiFileRow";
+				
 				if (is_array($entry['value'])) {
+					///$exploded=explode($entry);
 					$entry['preview'] = implode(",",$entry['value']);
 				}
 				$this->html[$item_key] = $entry;
@@ -473,8 +473,8 @@ class tx_crud__models_create extends tx_crud__models_common{
 	 */
 	function _getValue($item_key) {
 		$pars = $this->controller->parameters->getArrayCopy();
-		if(!is_array($pars[$item_key]) && strlen($pars[$item_key])>=1) return $pars[$item_key];
-		if(is_array($pars[$item_key]) && strlen($pars[$item_key][0])>=1) return $pars[$item_key];
+		if(!is_array($pars[$item_key])) return $pars[$item_key];
+		if(is_array($pars[$item_key])) return $pars[$item_key];
 	}
 }
 ?>
